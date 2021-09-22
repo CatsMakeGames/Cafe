@@ -16,6 +16,9 @@ public class Cafe : Node2D
 	public Texture TableTexture;
 
 	[Export]
+	public Texture FloorTexture;
+
+	[Export]
 	public int GridSize = 32;
 
 	/**
@@ -36,12 +39,16 @@ public class Cafe : Node2D
 
 	Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
 
+	protected Floor floor;
+
 	public override void _Ready()
 	{
 		base._Ready();
 		SpawnCustomer();
 
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
+
+		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this); 
 	}
 
 	public override void _Input(InputEvent @event)

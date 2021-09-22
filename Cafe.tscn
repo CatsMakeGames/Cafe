@@ -1,14 +1,16 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
 [ext_resource path="res://Art/tables.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
+[ext_resource path="res://Art/floor.png" type="Texture" id=5]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 CustomerTexture = ExtResource( 2 )
 TableTexture = ExtResource( 3 )
+FloorTexture = ExtResource( 5 )
 GridSize = 128
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -17,6 +19,7 @@ current = true
 zoom = Vector2( 2, 2 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
+visible = false
 
 [node name="TileMap" type="TileMap" parent="Navigation2D"]
 tile_set = ExtResource( 4 )
