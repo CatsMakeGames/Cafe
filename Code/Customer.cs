@@ -1,19 +1,25 @@
 using Godot;
 using System;
 
-public class Customer : Godot.Object
+public class Customer : CafeObject
 {
-    RID textureRID;
-
-    public Customer(Texture texture,Node2D cafe)
+    async void move()
     {
-        //spawn image in the world
-        if (texture != null && cafe != null)
+        //find table to move to
+        var table = cafe.FindTable();
+        if (table != null)
         {
-            textureRID = VisualServer.CanvasItemCreate();
-            VisualServer.CanvasItemAddTextureRect(textureRID, new Rect2(0, 0, 64, 64), texture.GetRid(), false, null, false, texture.GetRid());
-            VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
-            VisualServer.CanvasItemSetZIndex(textureRID, (int)ZOrderValues.Customer);
+            await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
+            Position = table.Position;
+            table.CurrentState = Table.State.InUse;
         }
+        else
+        {
+            GD.PrintErr("No table available!");
+        }
+    }
+    public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
+    {
+        move();
     }
 }

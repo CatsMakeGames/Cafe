@@ -40,20 +40,52 @@ public class Cafe : Node2D
 
 	protected TileMap navigationTilemap;
 
-	Godot.Collections.Array<Customer> customers = new Godot.Collections.Array<Customer>();
+	protected Navigation2D navigation;
 
-	Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
+	protected Node2D customerEntranceLocationNode;
+
+	protected Godot.Collections.Array<Customer> customers = new Godot.Collections.Array<Customer>();
+
+	public Godot.Collections.Array<Customer> Customers => customers;
+	
+	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
+
+	public Godot.Collections.Array<Table> Tables => tables;
 
 	protected Floor floor;
 
 	public override void _Ready()
 	{
 		base._Ready();
-		SpawnCustomer();
+		//SpawnCustomer();
 
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
-		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this); 
+		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
+
+		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
+
+		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
+	}
+
+	/**<summary>Find table that customer can use and can get to</summary>*/
+	public Table FindTable()
+	{
+		foreach(Table table in tables)
+		{
+			Vector2[] path;
+			if(table.CurrentState == Table.State.Free)
+			{
+				path = navigation.GetSimplePath(customerEntranceLocationNode.GlobalPosition, table.Position);
+				if(path.Length > 0)
+				{
+					return table;
+				}
+
+			}
+		}
+		//no tables were found
+		return null;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -61,16 +93,24 @@ public class Cafe : Node2D
 		base._Input(@event);
 		if (@event is InputEventMouseButton mouseEvent)
 		{
-			Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize) , ((int)GetLocalMousePosition().y / GridSize));
-			tables.Add(new Table(TableTexture, new Vector2(64,64), resultLocation * GridSize, this));
-			navigationTilemap.SetCell((int)resultLocation.x , (int)resultLocation.y, -1);
+			if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+			{
+				Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
+				tables.Add(new Table(TableTexture, new Vector2(64, 64), resultLocation * GridSize, this));
+				navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+			}
+
+			else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
+			{
+				customers.Add(new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize));
+			}
 		}
 	}
 
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public void SpawnCustomer()
 	{
-		customers.Add(new Customer(CustomerTexture,this));
+		customers.Add(new Customer(CustomerTexture,this,customerEntranceLocationNode.Position));
 	}
 
 	public void OnCustomerServed(Customer customer)

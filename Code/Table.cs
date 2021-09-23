@@ -2,15 +2,17 @@ using Godot;
 using System;
 
 /**<summary>Stores data about what table it is as well as manages what table image to draw</summary>*/
-public class Table : Godot.Object
+public class Table : CafeObject
 {
-    protected Vector2 position;
+    public enum State
+    {
+        Free,
+        InUse,
+        NeedsCleaning
+    }
+    public State CurrentState = State.Free;
 
     protected Vector2 tableTextureSize;
-
-    public Vector2 Position => position;
-
-    protected RID textureRID;
 
     /**<summary>Current table level<para/>Used for calculations and display</summary>*/
     protected int level = 0;
@@ -20,7 +22,7 @@ public class Table : Godot.Object
         get => level;
         set
         {
-            VisualServer.CanvasItemSetCustomRect(textureRID, true, new Rect2(0, 0, tableTextureSize));
+            VisualServer.CanvasItemSetCustomRect(textureRID, true, new Rect2(value * tableTextureSize.x, 0, tableTextureSize));
             level = value;
         }
     }
@@ -32,17 +34,8 @@ public class Table : Godot.Object
      * <param name="tableTextureSize">Size of the table image on the texture atlas</param>
      * <param name="cafe">Cafe object</param>
      * */
-    public Table(Texture texture, Vector2 tableTextureSize, Vector2 position, Node2D cafe)
+    public Table(Texture texture, Vector2 tableTextureSize, Vector2 position, Cafe cafe):base(texture,new Vector2(128,128),tableTextureSize,cafe,position,(int)ZOrderValues.Furniture)
     {
-        this.tableTextureSize = tableTextureSize;
-        this.position = position;
-        //spawn image in the world
-        if (texture != null && cafe != null)
-        {
-            textureRID = VisualServer.CanvasItemCreate();
-            VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
-            VisualServer.CanvasItemAddTextureRectRegion(textureRID, new Rect2(position.x, position.y, 128, 128), texture.GetRid(), new Rect2(0, 0, tableTextureSize), null, false, texture.GetRid());
-            VisualServer.CanvasItemSetZIndex(textureRID,(int)ZOrderValues.Furniture);
-        }
+
     }
 }

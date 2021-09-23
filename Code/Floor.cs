@@ -4,8 +4,8 @@ using System;
 public class Floor : Godot.Object
 {
     RID textureRID;
-
-    public Floor(Texture texture,Vector2 roomSize, Node2D cafe)
+    
+    public Floor(Texture texture,Vector2 roomSize, Cafe cafe)
     {
         //spawn image in the world
         if (texture != null && cafe != null)
