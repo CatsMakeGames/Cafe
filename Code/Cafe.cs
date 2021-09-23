@@ -1,6 +1,11 @@
 using Godot;
 using System;
 
+/* All items drawing order
+ * 0 - floor
+ * 1- furniture
+ * 2- customers(so they'd appear in front of the furniture while moving)(maybe have it be based on row(will make customers have to do layer jumping tho)
+ */
 public class Cafe : Node2D
 {
 	/**

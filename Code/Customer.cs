@@ -11,8 +11,9 @@ public class Customer : Godot.Object
         if (texture != null && cafe != null)
         {
             textureRID = VisualServer.CanvasItemCreate();
-            VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
             VisualServer.CanvasItemAddTextureRect(textureRID, new Rect2(0, 0, 64, 64), texture.GetRid(), false, null, false, texture.GetRid());
+            VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
+            VisualServer.CanvasItemSetZIndex(textureRID, 2);
         }
     }
 }

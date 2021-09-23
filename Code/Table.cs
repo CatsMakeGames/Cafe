@@ -42,6 +42,7 @@ public class Table : Godot.Object
             textureRID = VisualServer.CanvasItemCreate();
             VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
             VisualServer.CanvasItemAddTextureRectRegion(textureRID, new Rect2(position.x, position.y, 128, 128), texture.GetRid(), new Rect2(0, 0, tableTextureSize), null, false, texture.GetRid());
+            VisualServer.CanvasItemSetZIndex(textureRID,1);
         }
     }
 }
