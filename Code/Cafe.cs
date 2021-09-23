@@ -54,6 +54,8 @@ public class Cafe : Node2D
 
 	protected Floor floor;
 
+	protected bool pressed = false;
+
 	public override void _Ready()
 	{
 		base._Ready();
@@ -91,18 +93,27 @@ public class Cafe : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
+		
 		if (@event is InputEventMouseButton mouseEvent)
 		{
-			if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+			if (!pressed)
 			{
-				Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-				tables.Add(new Table(TableTexture, new Vector2(64, 64), resultLocation * GridSize, this));
-				navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
-			}
+				if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+				{
+					Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
+					tables.Add(new Table(TableTexture, new Vector2(64, 64), resultLocation * GridSize, this));
+					navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+				}
 
-			else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
+				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
+				{
+					customers.Add(new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize));
+				}
+				pressed = true;
+			}
+			else if(!mouseEvent.Pressed)
 			{
-				customers.Add(new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize));
+				pressed = false;
 			}
 		}
 	}
