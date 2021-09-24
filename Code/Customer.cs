@@ -5,14 +5,14 @@ public class Customer : CafeObject
 {
     protected Vector2[] pathToTheTable;
 
-    protected int pathId = 1;
+    protected int pathId = 0;
 
     protected float Speed = 10;
 
     async void move()
     {
         //find table to move to
-        var table = cafe.FindTable(out pathToTheTable);
+        var table = cafe.FindTable(out pathToTheTable,Position);
         
         if (table != null)
         {
@@ -39,7 +39,7 @@ public class Customer : CafeObject
     }
 
     //should make this function be async in some way
-    public void Update(float deltaTime)
+    public async void Update(float deltaTime)
     {
         if (pathToTheTable == null || pathId >= pathToTheTable.Length) { return; }
         //move customer along the path
@@ -48,7 +48,6 @@ public class Customer : CafeObject
         if (position.DistanceTo(pathToTheTable[pathId]) <= 3f)
         {
             pathId++;
-            GD.Print(pathId);
         }
     }
 }

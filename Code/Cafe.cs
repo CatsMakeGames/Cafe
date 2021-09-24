@@ -73,13 +73,13 @@ public class Cafe : Node2D
 	/**<summary>Find table that customer can use and can get to</summary>
 	 * <param name="path">Path to the table</param>
 	 *<returns>Table that customer was assigned to</returns>*/
-	public Table FindTable(out Vector2[] path)
+	public Table FindTable(out Vector2[] path,Vector2 customerLocation)
 	{
 		foreach(Table table in tables)
 		{
 			if(table.CurrentState == Table.State.Free)
 			{
-				path = navigation.GetSimplePath(customerEntranceLocationNode.GlobalPosition, table.Position);
+				path = navigation.GetSimplePath(customerLocation, table.Position);
 				if(path.Length > 0)
 				{
 					return table;
