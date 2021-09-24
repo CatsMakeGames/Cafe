@@ -19,7 +19,7 @@ current = true
 zoom = Vector2( 2, 2 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
-visible = false
+z_index = -1
 
 [node name="TileMap" type="TileMap" parent="Navigation2D"]
 tile_set = ExtResource( 4 )

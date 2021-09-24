@@ -70,12 +70,13 @@ public class Cafe : Node2D
 		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
 	}
 
-	/**<summary>Find table that customer can use and can get to</summary>*/
-	public Table FindTable()
+	/**<summary>Find table that customer can use and can get to</summary>
+	 * <param name="path">Path to the table</param>
+	 *<returns>Table that customer was assigned to</returns>*/
+	public Table FindTable(out Vector2[] path)
 	{
 		foreach(Table table in tables)
 		{
-			Vector2[] path;
 			if(table.CurrentState == Table.State.Free)
 			{
 				path = navigation.GetSimplePath(customerEntranceLocationNode.GlobalPosition, table.Position);
@@ -83,10 +84,10 @@ public class Cafe : Node2D
 				{
 					return table;
 				}
-
 			}
 		}
 		//no tables were found
+		path = null;
 		return null;
 	}
 
@@ -135,5 +136,13 @@ public class Cafe : Node2D
 
 		*/
 		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
+	}
+	public override void _Process(float delta)
+	{
+		base._Process(delta);
+		foreach(Customer customer in customers)
+		{
+			customer.Update(delta);
+		}
 	}
 }
