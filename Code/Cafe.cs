@@ -56,6 +56,8 @@ public class Cafe : Node2D
 
 	protected bool pressed = false;
 
+	protected AudioStreamPlayer PaymentSoundPlayer;
+
 	public override void _Ready()
 	{
 		base._Ready();
@@ -68,6 +70,8 @@ public class Cafe : Node2D
 		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
 
 		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
+
+		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 	}
 
 	/**<summary>Find table that customer can use and can get to</summary>
@@ -91,6 +95,20 @@ public class Cafe : Node2D
 		return null;
 	}
 
+	public Vector2[] FindExit(Vector2 customerLocation)
+    {
+		return navigation?.GetSimplePath(customerLocation, customerEntranceLocationNode.GlobalPosition);
+    }
+
+	private void _onCustomerLeft(Customer customer)
+    {
+		if(customers.Contains(customer))
+        {
+			customers.Remove(customer);
+			GD.Print("Customer left");
+        }
+    }
+
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
@@ -108,7 +126,9 @@ public class Cafe : Node2D
 
 				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
 				{
-					customers.Add(new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize));
+					Customer customer = new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+					customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
+					customers.Add(customer);
 				}
 				pressed = true;
 			}
@@ -122,8 +142,17 @@ public class Cafe : Node2D
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public void SpawnCustomer()
 	{
-		customers.Add(new Customer(CustomerTexture,this,customerEntranceLocationNode.Position));
+		Customer customer = new Customer(CustomerTexture, this, customerEntranceLocationNode.Position);
+		customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
+		customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
+		customers.Add(customer);
 	}
+
+	private void  _onCustomerFinishedEating(int payment)
+    {
+		Money += payment;
+		PaymentSoundPlayer?.Play();
+    }
 
 	public void OnCustomerServed(Customer customer)
 	{
@@ -142,7 +171,11 @@ public class Cafe : Node2D
 		base._Process(delta);
 		foreach(Customer customer in customers)
 		{
-			customer.Update(delta);
+			if (IsInstanceValid(customer))
+			{
+				if (!customer.IsAtTheTable)
+					customer.Update(delta);
+			}
 		}
 	}
 }

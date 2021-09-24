@@ -11,6 +11,8 @@ public class CafeObject : Godot.Object
 
     protected Vector2 textureSize;
 
+    
+
     public virtual Vector2 Position
     {
         get => position;
@@ -34,6 +36,12 @@ public class CafeObject : Godot.Object
             VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
             VisualServer.CanvasItemSetZIndex(textureRID, zorder);
         }
+    }
+
+    public virtual void Destroy()
+    {
+        VisualServer.FreeRid(textureRID);
+        Free();
     }
 }
 
