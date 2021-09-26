@@ -40,13 +40,22 @@ public class Cafe : Node2D
 	[Export]
 	public float DecorRating = 1;
 
+	/**<summary>Array of node names that correspond to a specific location node</summary>*/
+	[Export]
+	public Godot.Collections.Dictionary<string, string> Locations = new Godot.Collections.Dictionary<string, string>();
+
+	/**<summary>Nodes used for naviagiton</summary>*/
+	protected Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
+
 	protected TileMap navigationTilemap;
 
 	protected Navigation2D navigation;
 
 	#region LocationNodes
+	[Obsolete("Use LocationNodes instead")]
 	protected Node2D customerEntranceLocationNode;
 
+	[Obsolete("Use LocationNodes instead")]
 	protected Node2D kitchenLocationNode;
 	#endregion
 
@@ -89,6 +98,11 @@ public class Cafe : Node2D
 		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
+
+		foreach(var loc in Locations)
+		{
+			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
+		}
 	}
 
 	/**<summary>Find table that customer can use and can get to</summary>
@@ -114,11 +128,19 @@ public class Cafe : Node2D
 		return null;
 	}
 
+	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliencies</summary>*/
+	public Vector2[] FindLocation(string locationName,Vector2 location)
+	{
+		return navigation?.GetSimplePath(location, LocationNodes[locationName]?.GlobalPosition ?? Vector2.Zero) ?? null;
+	}
+
+	[Obsolete]
 	public Vector2[] FindExit(Vector2 customerLocation)
 	{
 		return navigation?.GetSimplePath(customerLocation, customerEntranceLocationNode.GlobalPosition);
 	}
-	
+
+	[Obsolete]
 	public Vector2[] FindKitchen(Vector2 staffLocation)
 	{
 		return navigation?.GetSimplePath(staffLocation, customerEntranceLocationNode.GlobalPosition); ;

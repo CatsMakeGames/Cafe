@@ -45,7 +45,7 @@ namespace Staff
                     CurrentGoal = Goal.PassOrder;
                     //don't reset current customer because we still need to know the order
                     //find path to the kitchen
-                    PathToTheTarget = cafe.FindKitchen(Position);
+                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     break;
                 case Goal.PassOrder:
                     //kitchen is now making the order

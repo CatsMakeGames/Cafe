@@ -13,6 +13,10 @@ CustomerTexture = ExtResource( 2 )
 TableTexture = ExtResource( 3 )
 FloorTexture = ExtResource( 5 )
 GridSize = 128
+Locations = {
+"Entrance": "Entrance",
+"Kitchen": "Kitchen"
+}
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 511.243, 299.004 )
