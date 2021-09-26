@@ -9,6 +9,16 @@ public class Person : CafeObject
 
     protected Vector2[] pathToTheTarget = null;
 
+    public Vector2[] PathToTheTarget
+    {
+        get => pathToTheTarget;
+        set
+        {
+            pathToTheTarget = value;
+            pathId = 0;
+        }
+    }
+
     protected bool shouldUpdate = true;
 
     public virtual bool ShouldUpdate => shouldUpdate;

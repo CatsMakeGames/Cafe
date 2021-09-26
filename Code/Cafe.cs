@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Linq;
+using Staff;
 
 /* All items drawing order
  * 0 - floor
@@ -42,9 +44,17 @@ public class Cafe : Node2D
 
 	protected Navigation2D navigation;
 
+	#region LocationNodes
 	protected Node2D customerEntranceLocationNode;
 
+	protected Node2D kitchenLocationNode;
+	#endregion
+
 	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
+
+	#region Staff
+	protected Godot.Collections.Array<Staff.Waiter> waiters = new Godot.Collections.Array<Staff.Waiter>();
+	#endregion
 
 	public Godot.Collections.Array<Person> People => people;
 	
@@ -57,6 +67,11 @@ public class Cafe : Node2D
 	protected bool pressed = false;
 
 	protected AudioStreamPlayer PaymentSoundPlayer;
+
+	#region WaiterToDoList
+	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
+	protected Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+	#endregion
 
 	public override void _Ready()
 	{
@@ -71,24 +86,28 @@ public class Cafe : Node2D
 
 		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
 
+		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
+
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 	}
 
 	/**<summary>Find table that customer can use and can get to</summary>
 	 * <param name="path">Path to the table</param>
 	 *<returns>Table that customer was assigned to</returns>*/
-	public Table FindTable(out Vector2[] path,Vector2 customerLocation)
+	public Table FindTable(out Vector2[] path,Vector2 customerLocation,out int tableId)
 	{
-		foreach(Table table in tables)
+		tableId = -1;
+		foreach (Table table in tables)
 		{
-			if(table.CurrentState == Table.State.Free)
+			tableId++;
+			if (table.CurrentState == Table.State.Free)
 			{
 				path = navigation.GetSimplePath(customerLocation, table.Position);
 				if(path.Length > 0)
 				{
 					return table;
 				}
-			}
+			}		
 		}
 		//no tables were found
 		path = null;
@@ -98,6 +117,11 @@ public class Cafe : Node2D
 	public Vector2[] FindExit(Vector2 customerLocation)
 	{
 		return navigation?.GetSimplePath(customerLocation, customerEntranceLocationNode.GlobalPosition);
+	}
+	
+	public Vector2[] FindKitchen(Vector2 staffLocation)
+	{
+		return navigation?.GetSimplePath(staffLocation, customerEntranceLocationNode.GlobalPosition); ;
 	}
 
 	private void _onCustomerLeft(Customer customer)
@@ -128,7 +152,15 @@ public class Cafe : Node2D
 				{
 					Customer customer = new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 					customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
+					customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
+					customer.Connect(nameof(Customer.ArivedToTheTable), this, nameof(_onCustomerArrivedAtTheTable));
 					people.Add(customer);
+				}
+				else if(mouseEvent.ButtonIndex == (int)ButtonList.Middle)
+				{
+					Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+					people.Add(waiter);
+					waiters.Add(waiter);
 				}
 				pressed = true;
 			}
@@ -145,7 +177,28 @@ public class Cafe : Node2D
 		Customer customer = new Customer(CustomerTexture, this, customerEntranceLocationNode.Position);
 		customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
 		customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
+		customer.Connect(nameof(Customer.ArivedToTheTable), this, nameof(_onCustomerArrivedAtTheTable));
 		people.Add(customer);
+	}
+
+	private void _onCustomerArrivedAtTheTable(Customer customer)
+	{
+		if (customer.CurrentTableId != -1)
+		{   //make waiter go to the table
+			//if no free waiters are available -> add to the list of waiting people
+			//each time waiter is done with the task they will read from the list 
+			//lists priority goes in the order opposite of the values in Goal enum
+			var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+			if (!freeWaiters.Any())
+			{
+				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+			}
+			else
+			{
+				freeWaiters.ElementAt(0).PathToTheTarget = navigation.GetSimplePath(freeWaiters.ElementAt(0).Position, tables[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+				freeWaiters.ElementAt(0).CurrentGoal = Staff.Waiter.Goal.TakeOrder;
+			}
+		}
 	}
 
 	private void  _onCustomerFinishedEating(int payment)
@@ -173,7 +226,7 @@ public class Cafe : Node2D
 		{
 			if (IsInstanceValid(person))
 			{
-				if (!person.ShouldUpdate)
+				if (person.ShouldUpdate)
 					person.Update(delta);
 			}
 		}

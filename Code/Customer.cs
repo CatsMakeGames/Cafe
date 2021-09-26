@@ -3,12 +3,19 @@ using System;
 
 public class Customer : Person
 {
+    /**<summary>Because all orders are stored as a list we can just pass around id of the order</summary>*/
+    protected int orderId = 0;
+
+    public int OrderId => OrderId;
 
     protected bool isAtTheTable = false;
 
     protected bool ate = false;
 
-    public override bool ShouldUpdate => base.ShouldUpdate && isAtTheTable;
+    /**<summary>Id of the table where customer sits</summary>*/
+    public int CurrentTableId = -1;
+
+    public override bool ShouldUpdate => base.ShouldUpdate && !isAtTheTable;
 
     [Signal]
     public delegate void FinishEating(int payment);
@@ -22,8 +29,8 @@ public class Customer : Person
     void move()
     {
         //find table to move to
-        var table = cafe.FindTable(out pathToTheTarget,Position);
-        
+        var table = cafe.FindTable(out pathToTheTarget, Position, out CurrentTableId);
+
         if (table != null)
         {
             table.CurrentState = Table.State.InUse;
@@ -67,7 +74,6 @@ public class Customer : Person
         if (!ate)
         {
             isAtTheTable = true;
-            Eat();
             //tell cafe that they are ready to order
             EmitSignal(nameof(ArivedToTheTable), this);
         }
