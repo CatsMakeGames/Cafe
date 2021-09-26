@@ -44,9 +44,9 @@ public class Cafe : Node2D
 
 	protected Node2D customerEntranceLocationNode;
 
-	protected Godot.Collections.Array<Customer> customers = new Godot.Collections.Array<Customer>();
+	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
 
-	public Godot.Collections.Array<Customer> Customers => customers;
+	public Godot.Collections.Array<Person> People => people;
 	
 	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
 
@@ -96,18 +96,18 @@ public class Cafe : Node2D
 	}
 
 	public Vector2[] FindExit(Vector2 customerLocation)
-    {
+	{
 		return navigation?.GetSimplePath(customerLocation, customerEntranceLocationNode.GlobalPosition);
-    }
+	}
 
 	private void _onCustomerLeft(Customer customer)
-    {
-		if(customers.Contains(customer))
-        {
-			customers.Remove(customer);
+	{
+		if(people.Contains(customer))
+		{
+			people.Remove(customer);
 			GD.Print("Customer left");
-        }
-    }
+		}
+	}
 
 	public override void _Input(InputEvent @event)
 	{
@@ -128,7 +128,7 @@ public class Cafe : Node2D
 				{
 					Customer customer = new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 					customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
-					customers.Add(customer);
+					people.Add(customer);
 				}
 				pressed = true;
 			}
@@ -145,14 +145,14 @@ public class Cafe : Node2D
 		Customer customer = new Customer(CustomerTexture, this, customerEntranceLocationNode.Position);
 		customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
 		customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
-		customers.Add(customer);
+		people.Add(customer);
 	}
 
 	private void  _onCustomerFinishedEating(int payment)
-    {
+	{
 		Money += payment;
 		PaymentSoundPlayer?.Play();
-    }
+	}
 
 	public void OnCustomerServed(Customer customer)
 	{
@@ -169,12 +169,12 @@ public class Cafe : Node2D
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
-		foreach(Customer customer in customers)
+		foreach(Person person in people)
 		{
-			if (IsInstanceValid(customer))
+			if (IsInstanceValid(person))
 			{
-				if (!customer.IsAtTheTable)
-					customer.Update(delta);
+				if (!person.ShouldUpdate)
+					person.Update(delta);
 			}
 		}
 	}

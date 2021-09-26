@@ -1,19 +1,14 @@
 using Godot;
 using System;
 
-public class Customer : CafeObject
+public class Customer : Person
 {
-    protected Vector2[] pathToTheTable;
-
-    protected int pathId = 0;
-
-    protected float Speed = 10;
 
     protected bool isAtTheTable = false;
 
     protected bool ate = false;
 
-    public bool IsAtTheTable => isAtTheTable;
+    public override bool ShouldUpdate => base.ShouldUpdate && isAtTheTable;
 
     [Signal]
     public delegate void FinishEating(int payment);
@@ -21,16 +16,19 @@ public class Customer : CafeObject
     [Signal]
     public delegate void OnLeft(Customer customer);
 
+    [Signal]
+    public delegate void ArivedToTheTable(Customer customer);
+
     void move()
     {
         //find table to move to
-        var table = cafe.FindTable(out pathToTheTable,Position);
+        var table = cafe.FindTable(out pathToTheTarget,Position);
         
         if (table != null)
         {
             table.CurrentState = Table.State.InUse;
             Line2D pathLine = new Line2D();
-            System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTable);
+            System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
             path.RemoveAt(0);
             pathLine.Points = path.ToArray();
             pathLine.ShowOnTop = true;
@@ -48,15 +46,14 @@ public class Customer : CafeObject
         //TODO: make it so it would read payment from the table of values
         EmitSignal(nameof(FinishEating), 100);
         isAtTheTable = false;
+        pathId = 0;
+        ate = true;
         //leave the cafe
-        pathToTheTable = cafe.FindExit(Position);
-        if(pathToTheTable.Length == 0)
+        pathToTheTarget = cafe.FindExit(Position);
+        if (pathToTheTarget.Length == 0)
         {
             Destroy();
-            
         }
-        await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
-        Destroy();
     }
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
@@ -64,28 +61,19 @@ public class Customer : CafeObject
         move();
     }
 
-    //should make this function be async in some way
-    public void Update(float deltaTime)
+    protected override void onArrivedToTheTarget()
     {
-        if (pathToTheTable == null || pathId >= pathToTheTable.Length) { return; }
-        //move customer along the path
-
-        Position += (pathToTheTable[pathId] - position).Normalized() * Speed;
-        if (position.DistanceTo(pathToTheTable[pathId]) <= 3f)
+        base.onArrivedToTheTarget();
+        if (!ate)
         {
-            pathId++;
-            if (pathId >= pathToTheTable.Length)
-            {
-                if (!ate)
-                {
-                    isAtTheTable = true;
-                    Eat();
-                }
-                else
-                {
-                    Destroy();
-                }
-            }
+            isAtTheTable = true;
+            Eat();
+            //tell cafe that they are ready to order
+            EmitSignal(nameof(ArivedToTheTable), this);
+        }
+        else
+        {
+            Destroy();
         }
     }
 
