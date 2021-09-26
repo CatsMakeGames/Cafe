@@ -24,11 +24,15 @@ namespace Staff
 
         public override bool ShouldUpdate => base.ShouldUpdate && CurrentGoal != Goal.None;
 
+        [Signal]
+        public delegate void OnWaiterIsFree(Waiter waiter);
+
         /**<summary>Customer from whom to take or deliver to the order<para/>Note that this value is reset each time action is finished</summary>*/
         public Customer currentCustomer = null;
 
         public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
         {
+            EmitSignal(nameof(OnWaiterIsFree), this);
         }
 
         protected override void onArrivedToTheTarget()
@@ -47,6 +51,7 @@ namespace Staff
                     //kitchen is now making the order
                     //waiter is now free
                     CurrentGoal = Goal.None;
+                    EmitSignal(nameof(OnWaiterIsFree), this);
                     GD.Print("Free!");
                     break;
                 case Goal.AcquireOrder:

@@ -159,6 +159,7 @@ public class Cafe : Node2D
 				else if(mouseEvent.ButtonIndex == (int)ButtonList.Middle)
 				{
 					Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+					waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(_onWaiterIsFree));
 					people.Add(waiter);
 					waiters.Add(waiter);
 				}
@@ -181,6 +182,17 @@ public class Cafe : Node2D
 		people.Add(customer);
 	}
 
+	private void _onWaiterIsFree(Waiter waiter)
+	{
+		//search through the list and find tasks that can be completed
+		if(tablesToTakeOrdersFrom.Count > 0)
+		{
+			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[tablesToTakeOrdersFrom[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+			waiter.CurrentGoal = Staff.Waiter.Goal.TakeOrder;
+			tablesToTakeOrdersFrom.RemoveAt(0);
+		}
+	}
+
 	private void _onCustomerArrivedAtTheTable(Customer customer)
 	{
 		if (customer.CurrentTableId != -1)
@@ -195,8 +207,9 @@ public class Cafe : Node2D
 			}
 			else
 			{
-				freeWaiters.ElementAt(0).PathToTheTarget = navigation.GetSimplePath(freeWaiters.ElementAt(0).Position, tables[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-				freeWaiters.ElementAt(0).CurrentGoal = Staff.Waiter.Goal.TakeOrder;
+				var waiter = freeWaiters.ElementAt(0);
+				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
 			}
 		}
 	}
