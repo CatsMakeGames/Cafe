@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 using Staff;
+using Kitchen;
 
 /* All items drawing order
  * 0 - floor
@@ -24,6 +25,12 @@ public class Cafe : Node2D
 
 	[Export]
 	public Texture FloorTexture;
+
+	[Export]
+	public Texture FridgeTexture;
+
+	[Export]
+	public Texture StoveTexture;
 
 	[Export]
 	public int GridSize = 32;
@@ -63,15 +70,21 @@ public class Cafe : Node2D
 
 	#region Staff
 	protected Godot.Collections.Array<Staff.Waiter> waiters = new Godot.Collections.Array<Staff.Waiter>();
+
+	protected Godot.Collections.Array<Cook> cooks = new Godot.Collections.Array<Cook>();
 	#endregion
 
 	public Godot.Collections.Array<Person> People => people;
-	
-	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
 
+	#region Furniture
+	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
 	public Godot.Collections.Array<Table> Tables => tables;
 
-	protected Floor floor;
+	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
+	public Godot.Collections.Array<Fridge> Fridges => fridges;
+    #endregion
+
+    protected Floor floor;
 
 	protected bool pressed = false;
 
@@ -80,6 +93,11 @@ public class Cafe : Node2D
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
 	protected Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+	#endregion
+
+	#region CookToDoList
+	/**<summary>List of order IDs that need to be cooked</summary>*/
+	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
 	#endregion
 
 	public override void _Ready()
@@ -103,7 +121,42 @@ public class Cafe : Node2D
 		{
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
+
+		for (int i = 0; i < 5; i++)
+		{
+			Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
+			people.Add(waiter);
+			waiters.Add(waiter);
+
+			Cook cook = new Cook(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			people.Add(cook);
+			cooks.Add(cook);
+		}
 	}
+
+	public Vector2[] FindClosestFridge(Vector2 pos)
+    {
+		//not the pretties way but it does the job done
+		//maybe sheer of fridges that are too far
+		if (fridges.Any())
+		{
+			float distSq = fridges[0].Position.DistanceSquaredTo(pos);
+			float dist = 0;
+			int smallestId = 0;
+			for (int i = 1; i < fridges.Count; i++)
+			{
+				dist = fridges[i].Position.DistanceSquaredTo(pos);
+				if (distSq >= dist)
+				{
+					distSq = dist;
+					smallestId = i;
+				}
+			}
+			return navigation?.GetSimplePath(pos, fridges[smallestId].Position) ?? null;
+		}
+		return null;
+    }
 
 	/**<summary>Find table that customer can use and can get to</summary>
 	 * <param name="path">Path to the table</param>
@@ -166,24 +219,25 @@ public class Cafe : Node2D
 				if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 				{
 					Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-					tables.Add(new Table(TableTexture, new Vector2(64, 64), resultLocation * GridSize, this));
+					tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(64, 64), resultLocation * GridSize, this));
 					navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
 				}
 
 				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
 				{
-					Customer customer = new Customer(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
-					customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
-					customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
-					customer.Connect(nameof(Customer.ArivedToTheTable), this, nameof(_onCustomerArrivedAtTheTable));
-					people.Add(customer);
+					fridges.Add(
+						new Fridge(
+							FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
+							new Vector2(64, 64), 
+							new Vector2(128, 128),
+							this, 
+							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
+							(int)ZOrderValues.Furniture)
+						);
 				}
 				else if(mouseEvent.ButtonIndex == (int)ButtonList.Middle)
 				{
-					Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
-					waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(_onWaiterIsFree));
-					people.Add(waiter);
-					waiters.Add(waiter);
+					
 				}
 				pressed = true;
 			}
@@ -197,28 +251,53 @@ public class Cafe : Node2D
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public void SpawnCustomer()
 	{
-		Customer customer = new Customer(CustomerTexture, this, customerEntranceLocationNode.Position);
+		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
 		customer.Connect(nameof(Customer.OnLeft), this, nameof(_onCustomerLeft));
 		customer.Connect(nameof(Customer.ArivedToTheTable), this, nameof(_onCustomerArrivedAtTheTable));
 		people.Add(customer);
 	}
 
-	private void _onWaiterIsFree(Waiter waiter)
+	public void OnWaiterIsFree(Waiter waiter)
 	{
 		//search through the list and find tasks that can be completed
 		if(tablesToTakeOrdersFrom.Count > 0)
 		{
 			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[tablesToTakeOrdersFrom[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-			waiter.CurrentGoal = Staff.Waiter.Goal.TakeOrder;
+			waiter.CurrentGoal = Waiter.Goal.TakeOrder;
+			waiter.currentCustomer = tables[tablesToTakeOrdersFrom[0]].CurrentCustomer;
 			tablesToTakeOrdersFrom.RemoveAt(0);
 		}
 	}
 
-	private void _onCustomerArrivedAtTheTable(Customer customer)
+	/**<summary>Finds a free cook or puts it into the list of orders</summary>*/
+	public void OnNewOrder(int orderId)
+    {
+		if (orderId != -1)
+		{
+			var freeCooks = cooks.Where(p => p.currentGoal == 0/*because "None" is the first in the enum anyway*/);
+			if (!freeCooks.Any())
+			{
+				orders.Add(orderId);
+			}
+			else
+			{
+				//cach the refernce to avoid iteration
+				var cook = freeCooks.ElementAt(0);
+				cook.currentGoal = Cook.Goal.TakeFood;
+				cook.goalOrderId = orderId;
+				cook.PathToTheTarget = FindClosestFridge(Position);
+				GD.Print("It's cooking time!");
+			}
+		}
+    }
+
+	public void _onCustomerArrivedAtTheTable(Customer customer)
 	{
 		if (customer.CurrentTableId != -1)
-		{   //make waiter go to the table
+		{
+			tables[customer.CurrentTableId].CurrentCustomer = customer;
+			//make waiter go to the table
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
@@ -232,6 +311,7 @@ public class Cafe : Node2D
 				var waiter = freeWaiters.ElementAt(0);
 				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
+				waiter.currentCustomer = tables[customer.CurrentTableId].CurrentCustomer;
 			}
 		}
 	}
@@ -265,5 +345,9 @@ public class Cafe : Node2D
 					person.Update(delta);
 			}
 		}
+	}
+	private void _on_CustomerSpawnTimer_timeout()
+	{
+		SpawnCustomer();
 	}
 }

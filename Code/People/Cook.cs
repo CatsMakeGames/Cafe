@@ -21,7 +21,13 @@ namespace Staff
             GiveFood
         }
 
-        protected Goal currentGoal = Goal.None;
+        public Goal currentGoal = Goal.None;
+
+        public int goalOrderId = -1;
+
+        //prepare and cook are basically wait tasks done using timers so no need for update function
+        public override bool ShouldUpdate => base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1;
+
 
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(64, 64), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
@@ -34,7 +40,9 @@ namespace Staff
             switch (currentGoal)
             {
                 case Goal.TakeFood:
+                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
                     currentGoal = Goal.PrepareFood;
+                    
                     //move to the cutting table
                     break;
                 case Goal.PrepareFood:

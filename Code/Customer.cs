@@ -6,7 +6,7 @@ public class Customer : Person
     /**<summary>Because all orders are stored as a list we can just pass around id of the order</summary>*/
     protected int orderId = 0;
 
-    public int OrderId => OrderId;
+    public int OrderId => orderId;
 
     protected bool isAtTheTable = false;
 
@@ -14,6 +14,10 @@ public class Customer : Person
 
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
+
+    protected float defaultOrderTime = 1;
+
+    public float OrderTime => defaultOrderTime;
 
     public override bool ShouldUpdate => base.ShouldUpdate && !isAtTheTable;
 
@@ -33,6 +37,7 @@ public class Customer : Person
 
         if (table != null)
         {
+            CurrentTableId = cafe.Tables.IndexOf(table);
             table.CurrentState = Table.State.InUse;
             Line2D pathLine = new Line2D();
             System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);

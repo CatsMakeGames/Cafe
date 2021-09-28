@@ -35,7 +35,7 @@ namespace Staff
             EmitSignal(nameof(OnWaiterIsFree), this);
         }
 
-        protected override void onArrivedToTheTarget()
+        protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
             switch (CurrentGoal)
@@ -43,6 +43,9 @@ namespace Staff
                 case Goal.TakeOrder:
                     //goal changes to new one
                     CurrentGoal = Goal.PassOrder;
+
+                    //this way we don't hold the execution
+                    await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
                     //don't reset current customer because we still need to know the order
                     //find path to the kitchen
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
@@ -51,7 +54,11 @@ namespace Staff
                     //kitchen is now making the order
                     //waiter is now free
                     CurrentGoal = Goal.None;
-                    EmitSignal(nameof(OnWaiterIsFree), this);
+                    //since cafe is refenced for using node functions anyway, no need to use signals
+                    cafe.OnWaiterIsFree(this);
+                    cafe.OnNewOrder(currentCustomer.OrderId);
+                    //forget about this customer
+                    currentCustomer = null;
                     GD.Print("Free!");
                     break;
                 case Goal.AcquireOrder:
