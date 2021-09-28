@@ -49,6 +49,7 @@ namespace Staff
                 case Goal.GiveFood:
                     currentGoal = Goal.None;
                     //seek next task
+                    //cook is idling
                     break;
             }
         }
