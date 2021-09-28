@@ -41,20 +41,25 @@ namespace Staff
             {
                 case Goal.TakeFood:
                     await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
-                    currentGoal = Goal.PrepareFood;
-                    
+                    currentGoal = Goal.CookFood;
+                    cafe.FindClosestApplience(Position, typeof(Kitchen.Stove),out pathToTheTarget);
+                    pathId = 0;
                     //move to the cutting table
                     break;
                 case Goal.PrepareFood:
-                    await ToSignal(cafe.GetTree().CreateTimer(5), "timeout");
+                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
                     //move to the applience
                     break;
                 case Goal.CookFood:
-                    await ToSignal(cafe.GetTree().CreateTimer(5), "timeout");
+                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
                     currentGoal = Goal.GiveFood;
+                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     //move to the finish table
                     break;
                 case Goal.GiveFood:
+                    GD.Print("Giving food");
+                    cafe.OnOrderComplete(goalOrderId);
+                    goalOrderId = -1;
                     currentGoal = Goal.None;
                     //seek next task
                     //cook is idling

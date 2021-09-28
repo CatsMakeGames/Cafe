@@ -13,7 +13,7 @@ namespace Kitchen
         * <param name="tableTextureSize">Size of the fridge image on the texture atlas</param>
         * <param name="cafe">Cafe object</param>
         * */
-        public Fridge(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
+        public Fridge(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
         {
         }
     }

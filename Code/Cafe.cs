@@ -82,6 +82,8 @@ public class Cafe : Node2D
 
 	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
 	public Godot.Collections.Array<Fridge> Fridges => fridges;
+
+	protected Godot.Collections.Array<Appliance> appliances = new Godot.Collections.Array<Appliance>();
     #endregion
 
     protected Floor floor;
@@ -93,6 +95,9 @@ public class Cafe : Node2D
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
 	protected Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+
+	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
+	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
 	#region CookToDoList
@@ -133,6 +138,36 @@ public class Cafe : Node2D
 			people.Add(cook);
 			cooks.Add(cook);
 		}
+	}
+
+	public Vector2[] FindPathTo(Vector2 locStart,Vector2 locEnd)
+    {
+		return navigation?.GetSimplePath(locStart, locEnd) ?? null;
+    }
+
+
+	public Appliance FindClosestApplience(Vector2 pos,Type type,out Vector2[] path)
+    {
+		var apps = appliances.Where(p => p.GetType() == type);
+		if (apps.Any())
+		{
+			float distSq = apps.ElementAt(0).Position.DistanceSquaredTo(pos);
+			float dist = 0;
+			int smallestId = 0;
+			for (int i = 1; i < apps.Count(); i++)
+			{
+				dist = apps.ElementAt(i).Position.DistanceSquaredTo(pos);
+				if (distSq >= dist)
+				{
+					distSq = dist;
+					smallestId = i;
+				}
+			}
+			path =  navigation?.GetSimplePath(pos, apps.ElementAt(smallestId).Position) ?? null;
+			return apps.ElementAt(smallestId);
+		}
+		path = null;
+		return null;
 	}
 
 	public Vector2[] FindClosestFridge(Vector2 pos)
@@ -231,13 +266,19 @@ public class Cafe : Node2D
 							new Vector2(64, 64), 
 							new Vector2(128, 128),
 							this, 
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
-							(int)ZOrderValues.Furniture)
+							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
 						);
 				}
 				else if(mouseEvent.ButtonIndex == (int)ButtonList.Middle)
 				{
-					
+					appliances.Add(
+						new Stove(
+							StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
+							new Vector2(64, 64),
+							new Vector2(128, 128),
+							this,
+							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
+						);
 				}
 				pressed = true;
 			}
@@ -268,6 +309,43 @@ public class Cafe : Node2D
 			waiter.currentCustomer = tables[tablesToTakeOrdersFrom[0]].CurrentCustomer;
 			tablesToTakeOrdersFrom.RemoveAt(0);
 		}
+	}
+
+	public void OnCookIsFree(Cook cook)
+    {
+
+    }
+
+	public void OnOrderComplete(int orderId)
+	{
+		//make waiter come and pick this up or add this to the pile of tasks
+		var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+		if (!freeWaiters.Any())
+		{
+			completedOrders.Add(orderId);
+		}
+        else
+        {
+			//find customer target
+			var targets = people.Where
+				(
+					p =>
+					{
+						if (p is Customer customer)
+						{
+							return customer.OrderId == orderId && customer.IsAtTheTable;
+						}
+						return false;
+					}
+				);
+			if(targets.Any())
+            {
+				var waiter = freeWaiters.First();
+				waiter.CurrentGoal = Waiter.Goal.AcquireOrder;
+				waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
+				waiter.currentCustomer = targets.First() as Customer;
+            }
+        }
 	}
 
 	/**<summary>Finds a free cook or puts it into the list of orders</summary>*/

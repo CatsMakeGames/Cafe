@@ -30,9 +30,20 @@ namespace Staff
         /**<summary>Customer from whom to take or deliver to the order<para/>Note that this value is reset each time action is finished</summary>*/
         public Customer currentCustomer = null;
 
-        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
+        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(64, 64), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
+        }
+
+        private void BeFree()
+        {
+            //waiter is now free
+            CurrentGoal = Goal.None;
+            //since cafe is refenced for using node functions anyway, no need to use signals
+            cafe.OnWaiterIsFree(this);
+            //forget about this customer
+            currentCustomer = null;
+            GD.Print("Free!");
         }
 
         protected override async void onArrivedToTheTarget()
@@ -51,19 +62,16 @@ namespace Staff
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     break;
                 case Goal.PassOrder:
-                    //kitchen is now making the order
-                    //waiter is now free
-                    CurrentGoal = Goal.None;
-                    //since cafe is refenced for using node functions anyway, no need to use signals
-                    cafe.OnWaiterIsFree(this);
+                    //kitchen is now making the order                           
                     cafe.OnNewOrder(currentCustomer.OrderId);
-                    //forget about this customer
-                    currentCustomer = null;
-                    GD.Print("Free!");
+                    BeFree();
                     break;
                 case Goal.AcquireOrder:
+                    //make way towards customer now
+                    PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
                     break;
                 case Goal.DeliverOrder:
+                    BeFree();
                     break;
             }
 

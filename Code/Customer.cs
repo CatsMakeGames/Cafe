@@ -10,6 +10,8 @@ public class Customer : Person
 
     protected bool isAtTheTable = false;
 
+    public bool IsAtTheTable => isAtTheTable;
+
     protected bool ate = false;
 
     /**<summary>Id of the table where customer sits</summary>*/
