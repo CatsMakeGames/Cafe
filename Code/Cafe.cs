@@ -133,7 +133,7 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 5; i++)
 		{
 			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
@@ -412,10 +412,32 @@ public class Cafe : Node2D
 		}
 	}
 
-	private void _onCustomerFinishedEating(int payment)
+	public void _onCustomerFinishedEating(Customer customer,int payment)
 	{
+		//we don't have cleaning service yet
+		tables[customer.CurrentTableId].CurrentState = Table.State.Free;
 		Money += payment;
 		PaymentSoundPlayer?.Play();
+	}
+
+	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
+	public void OnNewTableIsAvailable(Table table)
+    {
+		var unSittedCustomers = people.Where
+				(
+					p =>
+					{
+						if (p is Customer customer)
+						{
+							return !customer.IsAtTheTable;
+						}
+						return false;
+					}
+				);
+		if(unSittedCustomers.Any())
+        {
+			(unSittedCustomers.First() as Customer).FindAndMoveToTheTable();
+		}
 	}
 
 	public void OnCustomerServed(Customer customer)

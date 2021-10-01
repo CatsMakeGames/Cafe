@@ -47,6 +47,7 @@ namespace Staff
             GD.Print("Free!");
         }
 
+
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();

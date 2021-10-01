@@ -29,7 +29,7 @@ public class Customer : Person
     [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
-    void move()
+    public void FindAndMoveToTheTable()
     {
         //find table to move to
         var table = cafe.FindTable(out pathToTheTarget, Position, out CurrentTableId);
@@ -38,16 +38,12 @@ public class Customer : Person
         {
             CurrentTableId = cafe.Tables.IndexOf(table);
             table.CurrentState = Table.State.InUse;
-            Line2D pathLine = new Line2D();
-            System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
-            path.RemoveAt(0);
-            pathLine.Points = path.ToArray();
-            pathLine.ShowOnTop = true;
-            cafe.AddChild(pathLine);
-        }
-        else
-        {
-            GD.PrintErr("No table available!");
+            /* Line2D pathLine = new Line2D();
+             System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
+             path.RemoveAt(0);
+             pathLine.Points = path.ToArray();
+             pathLine.ShowOnTop = true;
+             cafe.AddChild(pathLine);*/
         }
     }
 
@@ -55,7 +51,7 @@ public class Customer : Person
     {
         await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
         //TODO: make it so it would read payment from the table of values
-        EmitSignal(nameof(FinishEating), 100);
+       cafe._onCustomerFinishedEating(this,100);
         isAtTheTable = false;
         pathId = 0;
         ate = true;
@@ -69,7 +65,7 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
-        move();
+        FindAndMoveToTheTable();
     }
 
     protected override void onArrivedToTheTarget()
