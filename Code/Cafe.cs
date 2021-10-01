@@ -21,6 +21,12 @@ public class Cafe : Node2D
 	public Texture CustomerTexture;
 
 	[Export]
+	public Texture CookTexture;
+
+	[Export]
+	public Texture WaiterTexture;
+
+	[Export]
 	public Texture TableTexture;
 
 	[Export]
@@ -129,12 +135,12 @@ public class Cafe : Node2D
 
 		for (int i = 0; i < 1; i++)
 		{
-			Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
 			people.Add(waiter);
 			waiters.Add(waiter);
 
-			Cook cook = new Cook(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			people.Add(cook);
 			cooks.Add(cook);
 		}
@@ -299,8 +305,16 @@ public class Cafe : Node2D
 
 	public void OnWaiterIsFree(Waiter waiter)
 	{
+        if (completedOrders.Any())
+        {
+			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[completedOrders[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+			waiter.CurrentGoal = Waiter.Goal.AcquireOrder;
+			waiter.currentCustomer = tables[completedOrders[0]].CurrentCustomer;
+			completedOrders.RemoveAt(0);
+		}
+			
 		//search through the list and find tasks that can be completed
-		if (tablesToTakeOrdersFrom.Count > 0)
+		if (tablesToTakeOrdersFrom.Any())
 		{
 			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[tablesToTakeOrdersFrom[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 			waiter.CurrentGoal = Waiter.Goal.TakeOrder;
@@ -311,7 +325,13 @@ public class Cafe : Node2D
 
 	public void OnCookIsFree(Cook cook)
 	{
-
+		if(orders.Any())
+        {
+			cook.currentGoal = Cook.Goal.TakeFood;
+			cook.goalOrderId = orders[0];
+			cook.PathToTheTarget = FindClosestFridge(Position);
+			orders.RemoveAt(0);
+		}
 	}
 
 	public void OnOrderComplete(int orderId)

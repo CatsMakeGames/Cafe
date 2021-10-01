@@ -61,6 +61,7 @@ namespace Staff
                     cafe.OnOrderComplete(goalOrderId);
                     goalOrderId = -1;
                     currentGoal = Goal.None;
+                    cafe.OnCookIsFree(this);
                     //seek next task
                     //cook is idling
                     break;

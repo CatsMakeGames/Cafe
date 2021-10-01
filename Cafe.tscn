@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -8,10 +8,14 @@
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art/Kitchen/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art/Kitchen/fridge.png" type="Texture" id=8]
+[ext_resource path="res://Art/red.png" type="Texture" id=9]
+[ext_resource path="res://Art/table.png" type="Texture" id=10]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 CustomerTexture = ExtResource( 2 )
+CookTexture = ExtResource( 9 )
+WaiterTexture = ExtResource( 10 )
 TableTexture = ExtResource( 3 )
 FloorTexture = ExtResource( 5 )
 FridgeTexture = ExtResource( 8 )
