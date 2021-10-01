@@ -27,9 +27,6 @@ public class Customer : Person
     public delegate void FinishEating(int payment);
 
     [Signal]
-    public delegate void OnLeft(Customer customer);
-
-    [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
     void move()
@@ -54,9 +51,9 @@ public class Customer : Person
         }
     }
 
-    protected virtual async void Eat()
+    public virtual async void Eat()
     {
-        await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
+        await ToSignal(cafe.GetTree().CreateTimer(10), "timeout");
         //TODO: make it so it would read payment from the table of values
         EmitSignal(nameof(FinishEating), 100);
         isAtTheTable = false;
@@ -82,7 +79,7 @@ public class Customer : Person
         {
             isAtTheTable = true;
             //tell cafe that they are ready to order
-            EmitSignal(nameof(ArivedToTheTable), this);
+            cafe._onCustomerArrivedAtTheTable(this);
         }
         else
         {
@@ -92,7 +89,7 @@ public class Customer : Person
 
     public override void Destroy()
     {
-        EmitSignal(nameof(OnLeft), this);
+        cafe._onCustomerLeft(this);
         base.Destroy();
     }
 }

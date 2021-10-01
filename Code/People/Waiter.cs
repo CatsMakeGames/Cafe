@@ -69,8 +69,11 @@ namespace Staff
                 case Goal.AcquireOrder:
                     //make way towards customer now
                     PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                    CurrentGoal = Goal.DeliverOrder;
                     break;
                 case Goal.DeliverOrder:
+                    GD.Print("DeliveredFood");
+                    currentCustomer.Eat();
                     BeFree();
                     break;
             }
