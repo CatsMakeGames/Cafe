@@ -68,8 +68,6 @@ public class Cafe : Node2D
 
 	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
 
-	protected Godot.Collections.Array<int> pendingKillObjectIds = new Godot.Collections.Array<int>();
-
 	#region Staff
 	protected Godot.Collections.Array<Staff.Waiter> waiters = new Godot.Collections.Array<Staff.Waiter>();
 
@@ -240,7 +238,7 @@ public class Cafe : Node2D
 	{
 		if (people.Contains(customer))
 		{
-			pendingKillObjectIds.Add(people.IndexOf(customer));
+			
 		}
 	}
 

@@ -53,7 +53,7 @@ public class Customer : Person
 
     public virtual async void Eat()
     {
-        await ToSignal(cafe.GetTree().CreateTimer(10), "timeout");
+        await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
         //TODO: make it so it would read payment from the table of values
         EmitSignal(nameof(FinishEating), 100);
         isAtTheTable = false;
@@ -83,13 +83,8 @@ public class Customer : Person
         }
         else
         {
-            Destroy();
+            pendingKill = true;
+            cafe._onCustomerLeft(this);
         }
-    }
-
-    public override void Destroy()
-    {
-        cafe._onCustomerLeft(this);
-        base.Destroy();
     }
 }
