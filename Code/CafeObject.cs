@@ -11,7 +11,9 @@ public class CafeObject : Godot.Object
 
     protected Vector2 textureSize;
 
-    
+    protected bool pendingKill = false;
+
+    public bool Valid => !pendingKill;
 
     public virtual Vector2 Position
     {

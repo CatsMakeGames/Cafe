@@ -30,12 +30,25 @@ namespace Staff
         /**<summary>Customer from whom to take or deliver to the order<para/>Note that this value is reset each time action is finished</summary>*/
         public Customer currentCustomer = null;
 
-        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
+        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(64, 64), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
         }
 
-        protected override void onArrivedToTheTarget()
+        private void BeFree()
+        {
+            //waiter is now free
+            CurrentGoal = Goal.None;
+            //forget about this customer
+            currentCustomer = null;
+            //since cafe is refenced for using node functions anyway, no need to use signals
+            cafe.OnWaiterIsFree(this);
+            
+            GD.Print("Free!");
+        }
+
+
+        protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
             switch (CurrentGoal)
@@ -43,20 +56,28 @@ namespace Staff
                 case Goal.TakeOrder:
                     //goal changes to new one
                     CurrentGoal = Goal.PassOrder;
+
+                    //this way we don't hold the execution
+                    await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+
                     //don't reset current customer because we still need to know the order
                     //find path to the kitchen
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     break;
                 case Goal.PassOrder:
-                    //kitchen is now making the order
-                    //waiter is now free
-                    CurrentGoal = Goal.None;
-                    EmitSignal(nameof(OnWaiterIsFree), this);
-                    GD.Print("Free!");
+                    //kitchen is now making the order                           
+                    cafe.OnNewOrder(currentCustomer.OrderId);
+                    BeFree();
                     break;
                 case Goal.AcquireOrder:
+                    //make way towards customer now
+                    PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                    CurrentGoal = Goal.DeliverOrder;
                     break;
                 case Goal.DeliverOrder:
+                    GD.Print("DeliveredFood");
+                    currentCustomer.Eat();
+                    BeFree();
                     break;
             }
 

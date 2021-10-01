@@ -14,6 +14,8 @@ public class Table : CafeObject
 
     protected Vector2 tableTextureSize;
 
+    public Customer CurrentCustomer;
+
     /**<summary>Current table level<para/>Used for calculations and display</summary>*/
     protected int level = 0;
 

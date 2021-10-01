@@ -6,14 +6,20 @@ public class Customer : Person
     /**<summary>Because all orders are stored as a list we can just pass around id of the order</summary>*/
     protected int orderId = 0;
 
-    public int OrderId => OrderId;
+    public int OrderId => orderId;
 
     protected bool isAtTheTable = false;
+
+    public bool IsAtTheTable => isAtTheTable;
 
     protected bool ate = false;
 
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
+
+    protected float defaultOrderTime = 1;
+
+    public float OrderTime => defaultOrderTime;
 
     public override bool ShouldUpdate => base.ShouldUpdate && !isAtTheTable;
 
@@ -21,37 +27,31 @@ public class Customer : Person
     public delegate void FinishEating(int payment);
 
     [Signal]
-    public delegate void OnLeft(Customer customer);
-
-    [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
-    void move()
+    public void FindAndMoveToTheTable()
     {
         //find table to move to
         var table = cafe.FindTable(out pathToTheTarget, Position, out CurrentTableId);
 
         if (table != null)
         {
+            CurrentTableId = cafe.Tables.IndexOf(table);
             table.CurrentState = Table.State.InUse;
-            Line2D pathLine = new Line2D();
-            System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
-            path.RemoveAt(0);
-            pathLine.Points = path.ToArray();
-            pathLine.ShowOnTop = true;
-            cafe.AddChild(pathLine);
-        }
-        else
-        {
-            GD.PrintErr("No table available!");
+            /* Line2D pathLine = new Line2D();
+             System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
+             path.RemoveAt(0);
+             pathLine.Points = path.ToArray();
+             pathLine.ShowOnTop = true;
+             cafe.AddChild(pathLine);*/
         }
     }
 
-    protected virtual async void Eat()
+    public virtual async void Eat()
     {
         await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
         //TODO: make it so it would read payment from the table of values
-        EmitSignal(nameof(FinishEating), 100);
+       cafe._onCustomerFinishedEating(this,100);
         isAtTheTable = false;
         pathId = 0;
         ate = true;
@@ -65,7 +65,7 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
-        move();
+        FindAndMoveToTheTable();
     }
 
     protected override void onArrivedToTheTarget()
@@ -75,17 +75,12 @@ public class Customer : Person
         {
             isAtTheTable = true;
             //tell cafe that they are ready to order
-            EmitSignal(nameof(ArivedToTheTable), this);
+            cafe._onCustomerArrivedAtTheTable(this);
         }
         else
         {
-            Destroy();
+            pendingKill = true;
+            cafe._onCustomerLeft(this);
         }
-    }
-
-    public override void Destroy()
-    {
-        EmitSignal(nameof(OnLeft), this);
-        base.Destroy();
     }
 }
