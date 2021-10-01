@@ -39,10 +39,11 @@ namespace Staff
         {
             //waiter is now free
             CurrentGoal = Goal.None;
-            //since cafe is refenced for using node functions anyway, no need to use signals
-            cafe.OnWaiterIsFree(this);
             //forget about this customer
             currentCustomer = null;
+            //since cafe is refenced for using node functions anyway, no need to use signals
+            cafe.OnWaiterIsFree(this);
+            
             GD.Print("Free!");
         }
 
@@ -57,6 +58,7 @@ namespace Staff
 
                     //this way we don't hold the execution
                     await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+
                     //don't reset current customer because we still need to know the order
                     //find path to the kitchen
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);

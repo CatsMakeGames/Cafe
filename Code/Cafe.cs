@@ -127,7 +127,7 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Waiter waiter = new Waiter(CustomerTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
