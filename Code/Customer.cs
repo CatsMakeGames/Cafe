@@ -14,6 +14,10 @@ public class Customer : Person
 
     protected bool ate = false;
 
+    protected bool eating = false;
+
+    public bool Eating => eating;
+
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
 
@@ -47,20 +51,29 @@ public class Customer : Person
         }
     }
 
-    public virtual async void Eat()
+    private async void eat()
     {
-        await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
+        GD.Print($"{ToString()}: Eating");
+        eating = true;
+        await ToSignal(cafe.GetTree().CreateTimer(5), "timeout");
+        GD.Print($"{ToString()}: Ate");
         //TODO: make it so it would read payment from the table of values
-       cafe._onCustomerFinishedEating(this,100);
+        cafe._onCustomerFinishedEating(this, 100);
         isAtTheTable = false;
         pathId = 0;
         ate = true;
-        //leave the cafe
         pathToTheTarget = cafe.FindExit(Position);
+        //leave the cafe
+        /*pathToTheTarget = cafe.FindExit(Position);
         if (pathToTheTarget.Length == 0)
         {
             Destroy();
-        }
+        }*/
+    }
+
+    public void Eat()
+    {
+        eat(); 
     }
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(64,64),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
@@ -79,6 +92,7 @@ public class Customer : Person
         }
         else
         {
+
             pendingKill = true;
             cafe._onCustomerLeft(this);
         }

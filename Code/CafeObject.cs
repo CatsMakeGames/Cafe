@@ -42,6 +42,7 @@ public class CafeObject : Godot.Object
 
     public virtual void Destroy()
     {
+        GD.Print($"{ToString()}: Destroyed");
         VisualServer.FreeRid(textureRID);
         Free();
     }

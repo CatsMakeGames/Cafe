@@ -38,6 +38,6 @@ public class Table : CafeObject
      * */
     public Table(Texture texture, Vector2 tableTextureSize, Vector2 position, Cafe cafe):base(texture,new Vector2(128,128),tableTextureSize,cafe,position,(int)ZOrderValues.Furniture)
     {
-
+        cafe.OnNewTableIsAvailable(this);
     }
 }

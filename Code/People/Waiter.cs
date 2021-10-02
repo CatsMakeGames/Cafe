@@ -17,7 +17,9 @@ namespace Staff
             /**<summary>Take cooked food from kitchen and give to the customer</summary>*/
             AcquireOrder,
             /**<summary>Give order to the customer</summary>*/
-            DeliverOrder
+            DeliverOrder,
+            /**<summary>Leave to the staff room(or kitchen)<para/>This goal can be overriten at any time</summary>*/
+            Leave
         }
 
         public Goal CurrentGoal = Goal.None;
@@ -43,8 +45,6 @@ namespace Staff
             currentCustomer = null;
             //since cafe is refenced for using node functions anyway, no need to use signals
             cafe.OnWaiterIsFree(this);
-            
-            GD.Print("Free!");
         }
 
 
@@ -75,9 +75,18 @@ namespace Staff
                     CurrentGoal = Goal.DeliverOrder;
                     break;
                 case Goal.DeliverOrder:
-                    GD.Print("DeliveredFood");
-                    currentCustomer.Eat();
+                    var cust = currentCustomer;
                     BeFree();
+                    if (cust.IsAtTheTable)
+                    {
+                        cust.Eat();
+                        GD.Print($"Feeding: {cust.ToString()}");
+                    }
+                    
+                    break;
+
+                case Goal.Leave:
+                    CurrentGoal = Goal.None;
                     break;
             }
 

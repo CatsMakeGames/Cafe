@@ -41,6 +41,13 @@ public class Cafe : Node2D
 	[Export]
 	public int GridSize = 32;
 
+	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
+	[Export]
+	public int MaxSpawnedCustomersInQueue = 2;
+
+	/**<summary>How many customers are in the queue but not yet spawned</summary>*/
+	public int QueuedNotSpawnedCustomersCount = 0;
+
 	/**
 	 * <summary>Overall rating of the front part of the establishment</summary>
 	 */
@@ -56,6 +63,8 @@ public class Cafe : Node2D
 	/**<summary>Array of node names that correspond to a specific location node</summary>*/
 	[Export]
 	public Godot.Collections.Dictionary<string, string> Locations = new Godot.Collections.Dictionary<string, string>();
+
+	protected Label CustomerCountLabel;
 
 	/**<summary>Nodes used for naviagiton</summary>*/
 	protected Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
@@ -125,6 +134,8 @@ public class Cafe : Node2D
 		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
 
 		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
+
+		CustomerCountLabel = GetNodeOrNull<Label>("UI/CustomerCountLabel");
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
@@ -295,38 +306,47 @@ public class Cafe : Node2D
 	}
 
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
-	public void SpawnCustomer()
+	public Customer SpawnCustomer()
 	{
 		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
-		customer.Connect(nameof(Customer.FinishEating), this, nameof(_onCustomerFinishedEating));
-		customer.Connect(nameof(Customer.ArivedToTheTable), this, nameof(_onCustomerArrivedAtTheTable));
 		people.Add(customer);
+		return customer;
 	}
 
 	public void OnWaiterIsFree(Waiter waiter)
 	{
-        if (completedOrders.Any())
+		void changeTask(Vector2 target,Waiter.Goal goal,Customer customer)
         {
-			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[completedOrders[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-			waiter.CurrentGoal = Waiter.Goal.AcquireOrder;
-			waiter.currentCustomer = tables[completedOrders[0]].CurrentCustomer;
+			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position,target) ?? throw new NullReferenceException("Failed to find path to the table!");
+			waiter.CurrentGoal = goal;
+			waiter.currentCustomer = customer;
+		}
+
+		if (completedOrders.Any())
+		{
+			changeTask(tables[completedOrders[0]].Position, Waiter.Goal.AcquireOrder, tables[completedOrders[0]].CurrentCustomer);
 			completedOrders.RemoveAt(0);
 		}
 			
 		//search through the list and find tasks that can be completed
-		if (tablesToTakeOrdersFrom.Any())
+		else if (tablesToTakeOrdersFrom.Any())
 		{
-			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[tablesToTakeOrdersFrom[0]].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-			waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-			waiter.currentCustomer = tables[tablesToTakeOrdersFrom[0]].CurrentCustomer;
+			changeTask(tables[tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, tables[tablesToTakeOrdersFrom[0]].CurrentCustomer);
 			tablesToTakeOrdersFrom.RemoveAt(0);
+		}
+
+        else
+        {
+			//move waiter to "staff location"
+			waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
+			waiter.CurrentGoal = Waiter.Goal.Leave;
 		}
 	}
 
 	public void OnCookIsFree(Cook cook)
 	{
 		if(orders.Any())
-        {
+		{
 			cook.currentGoal = Cook.Goal.TakeFood;
 			cook.goalOrderId = orders[0];
 			cook.PathToTheTarget = FindClosestFridge(Position);
@@ -351,7 +371,7 @@ public class Cafe : Node2D
 					{
 						if (p is Customer customer)
 						{
-							return customer.OrderId == orderId && customer.IsAtTheTable;
+							return customer.OrderId == orderId && customer.IsAtTheTable && !customer.Eating;
 						}
 						return false;
 					}
@@ -378,12 +398,11 @@ public class Cafe : Node2D
 			}
 			else
 			{
-				//cach the refernce to avoid iteration
+				//cache the refernce to avoid iteration
 				var cook = freeCooks.ElementAt(0);
 				cook.currentGoal = Cook.Goal.TakeFood;
 				cook.goalOrderId = orderId;
 				cook.PathToTheTarget = FindClosestFridge(Position);
-				GD.Print("It's cooking time!");
 			}
 		}
 	}
@@ -397,7 +416,7 @@ public class Cafe : Node2D
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
-			var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+			var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.None);
 			if (!freeWaiters.Any())
 			{
 				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
@@ -416,13 +435,14 @@ public class Cafe : Node2D
 	{
 		//we don't have cleaning service yet
 		tables[customer.CurrentTableId].CurrentState = Table.State.Free;
+		OnNewTableIsAvailable(tables[customer.CurrentTableId]);
 		Money += payment;
 		PaymentSoundPlayer?.Play();
 	}
 
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
-    {
+	{
 		var unSittedCustomers = people.Where
 				(
 					p =>
@@ -435,8 +455,13 @@ public class Cafe : Node2D
 					}
 				);
 		if(unSittedCustomers.Any())
-        {
+		{
 			(unSittedCustomers.First() as Customer).FindAndMoveToTheTable();
+		}
+		else if(QueuedNotSpawnedCustomersCount > 0)
+		{
+			SpawnCustomer().FindAndMoveToTheTable();
+			QueuedNotSpawnedCustomersCount--;
 		}
 	}
 
@@ -455,6 +480,8 @@ public class Cafe : Node2D
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
+		CustomerCountLabel?.SetText(QueuedNotSpawnedCustomersCount.ToString());
+
 		if (people.Any())
 		{
 			foreach (Person person in people)
@@ -469,6 +496,8 @@ public class Cafe : Node2D
 			{
 				if (IsInstanceValid(people[i]) && !people[i].Valid)
 				{
+					if(IsInstanceValid(people[i])) 
+						people[i].Destroy();
 					people.RemoveAt(i);
 				}
 			}
@@ -476,6 +505,24 @@ public class Cafe : Node2D
 	}
 	private void _on_CustomerSpawnTimer_timeout()
 	{
-		SpawnCustomer();
+		var cust = people.Where
+				(
+					p =>
+					{
+						if (p is Customer customer)
+						{
+							return !customer.IsAtTheTable;
+						}
+						return false;
+					}
+				);
+		if (cust.Count() < MaxSpawnedCustomersInQueue)
+		{
+			SpawnCustomer();
+		}
+		else
+		{
+			QueuedNotSpawnedCustomersCount++;
+		}
 	}
 }

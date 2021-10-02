@@ -57,7 +57,6 @@ namespace Staff
                     //move to the finish table
                     break;
                 case Goal.GiveFood:
-                    GD.Print("Giving food");
                     cafe.OnOrderComplete(goalOrderId);
                     goalOrderId = -1;
                     currentGoal = Goal.None;

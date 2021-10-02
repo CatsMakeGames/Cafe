@@ -51,4 +51,19 @@ stream = ExtResource( 6 )
 [node name="CustomerSpawnTimer" type="Timer" parent="."]
 autostart = true
 
+[node name="UI" type="Control" parent="."]
+margin_right = 40.0
+margin_bottom = 40.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CustomerCountLabel" type="Label" parent="UI"]
+margin_left = 8.0
+margin_top = -208.0
+margin_right = 98.0
+margin_bottom = -194.0
+rect_scale = Vector2( 5, 5 )
+text = "asdadasdadfdf"
+
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
