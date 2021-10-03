@@ -2,14 +2,14 @@
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
-[ext_resource path="res://Art/tables.png" type="Texture" id=3]
+[ext_resource path="res://Art/Furniture/table_v2.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
 [ext_resource path="res://Art/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art/Kitchen/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art/Kitchen/fridge.png" type="Texture" id=8]
 [ext_resource path="res://Art/red.png" type="Texture" id=9]
-[ext_resource path="res://Art/table.png" type="Texture" id=10]
+[ext_resource path="res://Art/Staff/waiter.png" type="Texture" id=10]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -29,7 +29,7 @@ Locations = {
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 511.243, 299.004 )
 current = true
-zoom = Vector2( 2, 2 )
+zoom = Vector2( 1.5, 1.5 )
 
 [node name="Navigation2D" type="Navigation2D" parent="."]
 z_index = -1

@@ -36,7 +36,7 @@ public class Table : CafeObject
      * <param name="tableTextureSize">Size of the table image on the texture atlas</param>
      * <param name="cafe">Cafe object</param>
      * */
-    public Table(Texture texture, Vector2 tableTextureSize, Vector2 position, Cafe cafe):base(texture,new Vector2(128,128),tableTextureSize,cafe,position,(int)ZOrderValues.Furniture)
+    public Table(Texture texture, Vector2 tableTextureSize, Vector2 position, Cafe cafe):base(texture,new Vector2(96,96),tableTextureSize,cafe,position,(int)ZOrderValues.Furniture)
     {
         cafe.OnNewTableIsAvailable(this);
     }

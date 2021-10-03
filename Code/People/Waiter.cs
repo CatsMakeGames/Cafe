@@ -32,7 +32,7 @@ namespace Staff
         /**<summary>Customer from whom to take or deliver to the order<para/>Note that this value is reset each time action is finished</summary>*/
         public Customer currentCustomer = null;
 
-        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(64, 64), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+        public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
         }
@@ -77,7 +77,7 @@ namespace Staff
                 case Goal.DeliverOrder:
                     var cust = currentCustomer;
                     BeFree();
-                    if (cust.IsAtTheTable)
+                    if (cust.IsAtTheTable && !cust.Eating)
                     {
                         cust.Eat();
                         GD.Print($"Feeding: {cust.ToString()}");

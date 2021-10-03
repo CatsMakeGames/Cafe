@@ -270,7 +270,7 @@ public class Cafe : Node2D
 				if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 				{
 					Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-					tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(64, 64), resultLocation * GridSize, this));
+					tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
 					navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
 				}
 
@@ -316,7 +316,7 @@ public class Cafe : Node2D
 	public void OnWaiterIsFree(Waiter waiter)
 	{
 		void changeTask(Vector2 target,Waiter.Goal goal,Customer customer)
-        {
+		{
 			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position,target) ?? throw new NullReferenceException("Failed to find path to the table!");
 			waiter.CurrentGoal = goal;
 			waiter.currentCustomer = customer;
@@ -335,8 +335,8 @@ public class Cafe : Node2D
 			tablesToTakeOrdersFrom.RemoveAt(0);
 		}
 
-        else
-        {
+		else
+		{
 			//move waiter to "staff location"
 			waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
 			waiter.CurrentGoal = Waiter.Goal.Leave;
@@ -449,7 +449,7 @@ public class Cafe : Node2D
 					{
 						if (p is Customer customer)
 						{
-							return !customer.IsAtTheTable;
+							return !customer.IsAtTheTable && !customer.Eating;
 						}
 						return false;
 					}
@@ -480,7 +480,7 @@ public class Cafe : Node2D
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
-		CustomerCountLabel?.SetText(QueuedNotSpawnedCustomersCount.ToString());
+		CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
 
 		if (people.Any())
 		{
