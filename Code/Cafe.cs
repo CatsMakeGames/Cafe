@@ -60,6 +60,8 @@ public class Cafe : Node2D
 	[Export]
 	public float DecorRating = 1;
 
+	[Export]
+	public Godot.Collections.Dictionary<string, Texture> Textures = new Godot.Collections.Dictionary<string, Texture>();
 	/**<summary>Array of node names that correspond to a specific location node</summary>*/
 	[Export]
 	public Godot.Collections.Dictionary<string, string> Locations = new Godot.Collections.Dictionary<string, string>();
@@ -98,7 +100,11 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
 	public Godot.Collections.Array<Fridge> Fridges => fridges;
 
+	[Obsolete("Appliances array will be replaced with furniture array in next updates.")]
 	protected Godot.Collections.Array<Appliance> appliances = new Godot.Collections.Array<Appliance>();
+
+	/**<summary>Array containing every furniture object</summary>*/
+	public Godot.Collections.Array<Furniture> Furnitures = new Godot.Collections.Array<Furniture>();
 	#endregion
 
 	protected Floor floor;
@@ -276,14 +282,25 @@ public class Cafe : Node2D
 
 				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
 				{
-					fridges.Add(
+					/*fridges.Add(
 						new Fridge(
 							FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
 							new Vector2(64, 64),
 							new Vector2(128, 128),
 							this,
 							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-						);
+						);*/
+					Furnitures.Add(System.Activator.CreateInstance
+						(
+							Type.GetType(nameof(Furniture)),
+							Textures[nameof(Furniture)],
+							new Vector2(128, 128),
+							Textures[nameof(Furniture)].GetSize(),
+							this,
+							GetLocalMousePosition(),
+							(int)ZOrderValues.Furniture
+						) as Furniture);
+					
 				}
 				else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
 				{

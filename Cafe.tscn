@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -10,6 +10,7 @@
 [ext_resource path="res://Art/Kitchen/fridge.png" type="Texture" id=8]
 [ext_resource path="res://Art/red.png" type="Texture" id=9]
 [ext_resource path="res://Art/Staff/waiter.png" type="Texture" id=10]
+[ext_resource path="res://Art/table.png" type="Texture" id=11]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -21,6 +22,10 @@ FloorTexture = ExtResource( 5 )
 FridgeTexture = ExtResource( 8 )
 StoveTexture = ExtResource( 7 )
 GridSize = 128
+MaxSpawnedCustomersInQueue = 1
+Textures = {
+"Furniture": ExtResource( 11 )
+}
 Locations = {
 "Entrance": "Entrance",
 "Kitchen": "Kitchen"
