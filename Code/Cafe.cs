@@ -145,6 +145,13 @@ public class Cafe : Node2D
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
+		if(GetNodeOrNull("UI/StoreMenu") is StoreMenu menu)
+		{
+			menu.cafe = this;
+			menu.Create();
+		}
+
+
 		foreach (var loc in Locations)
 		{
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));

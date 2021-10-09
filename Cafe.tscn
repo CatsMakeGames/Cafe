@@ -25,7 +25,9 @@ StoveTexture = ExtResource( 7 )
 GridSize = 128
 MaxSpawnedCustomersInQueue = 1
 Textures = {
-"Furniture": ExtResource( 11 )
+"Furniture": ExtResource( 11 ),
+"Stove": ExtResource( 7 ),
+"Table": ExtResource( 3 )
 }
 Locations = {
 "Entrance": "Entrance",
@@ -71,10 +73,17 @@ margin_right = 98.0
 margin_bottom = -194.0
 rect_scale = Vector2( 5, 5 )
 text = "asdadasdadfdf"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="StoreMenu" type="Control" parent="UI"]
 margin_right = 40.0
 margin_bottom = 40.0
 script = ExtResource( 12 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+width = 5
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]

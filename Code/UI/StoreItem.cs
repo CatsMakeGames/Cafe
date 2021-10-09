@@ -1,6 +1,7 @@
-﻿
-public class StoreItemData : Godot.Object
+﻿using Godot;
+public class StoreItem : Godot.Object
 {
+    protected RID rid;
     public string ClassName = nameof(Furniture);
 
     public string Name = nameof(Furniture);
@@ -11,7 +12,9 @@ public class StoreItemData : Godot.Object
 
     public Furniture.Category FurnitureCategory = Furniture.Category.None;
 
-    public StoreItemData(string className, string name, string textureName, int price, Furniture.Category furnitureCategory)
+    public Cafe cafe;
+
+    public StoreItem(string className, string name, string textureName, int price, Furniture.Category furnitureCategory)
     {
         ClassName = className;
         Name = name;
@@ -19,6 +22,7 @@ public class StoreItemData : Godot.Object
         Price = 100;
         FurnitureCategory = furnitureCategory;
     }
+
     void fillData(string[] subData)
     {
         Name = subData[1];
@@ -31,14 +35,22 @@ public class StoreItemData : Godot.Object
         }
     }
 
+    /**<summary>Loads textures and creates item</summary>*/
+    public void Create(Vector2 position,StoreMenu menu,int size = 256)
+    {
+        rid = VisualServer.CanvasItemCreate();
+        VisualServer.CanvasItemAddTextureRect(rid, new Rect2(position, new Vector2(size, size)), menu.cafe.Textures[TextureName].GetRid(), false, null, false, menu.cafe.Textures[TextureName].GetRid());
+        VisualServer.CanvasItemSetParent(rid, menu.GetCanvasItem());
+    }
+
     /**<summary>Creates Store item data from csv string</summary>*/
-    public StoreItemData(string data)
+    public StoreItem(string data)
     {
         string[] subData = data.Split(';');
         fillData(subData);
     }
 
-    public StoreItemData(string[] subData)
+    public StoreItem(string[] subData)
     {
         fillData(subData);
     }

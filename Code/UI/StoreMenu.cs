@@ -3,13 +3,30 @@ using System;
 
 public class StoreMenu : Control
 {
-    Godot.Collections.Array<StoreItemData> storeItems = new Godot.Collections.Array<StoreItemData>();
+    Godot.Collections.Array<StoreItem> storeItems = new Godot.Collections.Array<StoreItem>();
+
+    public Cafe cafe;
+
+    [Export]
+    int width;
 
     public override void _Ready()
     {
         base._Ready();
         Load();
         GD.Print("Loaded");
+        //show on screen
+        //cafe = GetTree().Root.FindNode("Cafe") as Cafe ?? throw new NullReferenceException("Failed to find cafe");
+    }
+
+    public void Create()
+    {
+        int id = 0;
+        foreach (StoreItem item in storeItems)
+        {
+            item.Create(new Vector2(id - ((int)(id / width) * width), (int)(id / width)) * 256, this, 256);
+            id++;
+        }
     }
 
     /**<summary>Flushes and reloads </summary>*/
@@ -30,11 +47,11 @@ public class StoreMenu : Control
                 try
                 {
                     line = file.GetCsvLine(";");
-                    storeItems.Add(new StoreItemData(line));
+                    storeItems.Add(new StoreItem(line));
                 }
                 catch (Exception e)
                 {
-                    //ignore
+                    //ignore cause first line is column names and that causes errors
                 }           
             }
         }
