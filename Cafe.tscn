@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -11,6 +11,7 @@
 [ext_resource path="res://Art/red.png" type="Texture" id=9]
 [ext_resource path="res://Art/Staff/waiter.png" type="Texture" id=10]
 [ext_resource path="res://Art/table.png" type="Texture" id=11]
+[ext_resource path="res://Code/UI/StoreMenu.cs" type="Script" id=12]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -70,5 +71,10 @@ margin_right = 98.0
 margin_bottom = -194.0
 rect_scale = Vector2( 5, 5 )
 text = "asdadasdadfdf"
+
+[node name="StoreMenu" type="Control" parent="UI"]
+margin_right = 40.0
+margin_bottom = 40.0
+script = ExtResource( 12 )
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]

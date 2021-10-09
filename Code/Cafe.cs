@@ -310,8 +310,9 @@ public class Cafe : Node2D
 							new Vector2(64, 64),
 							new Vector2(128, 128),
 							this,
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-						);
+							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
+							Furniture.Category.Kitchen
+						));
 				}
 				pressed = true;
 			}

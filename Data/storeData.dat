@@ -1,0 +1,4 @@
+id;name;textureName;category;price;class
+1;Test;Furniture;1;100;Furniture
+2;Stove;Stove;2;454;Stove
+3;Table;Table;1|2;865;Table
