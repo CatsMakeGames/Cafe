@@ -41,6 +41,11 @@ public class Cafe : Node2D
 	[Export]
 	public int GridSize = 32;
 
+	[Export(PropertyHint.Layers2dPhysics)]
+	public int ClickTaken = 0;
+
+	public bool ShouldProcessMouse => ClickTaken == 0;
+
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
 	public int MaxSpawnedCustomersInQueue = 2;
@@ -276,56 +281,59 @@ public class Cafe : Node2D
 	{
 		base._Input(@event);
 
-		if (@event is InputEventMouseButton mouseEvent)
+		if (!GetTree().IsInputHandled() && ShouldProcessMouse)
 		{
-			if (!pressed)
+			if (@event is InputEventMouseButton mouseEvent)
 			{
-				if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+				if (!pressed)
 				{
-					Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-					tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
-					navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
-				}
+					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+					{
+						Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
+						tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
+						navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+					}
 
-				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
-				{
-					/*fridges.Add(
-						new Fridge(
-							FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-							new Vector2(64, 64),
-							new Vector2(128, 128),
-							this,
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-						);*/
-					Furnitures.Add(System.Activator.CreateInstance
-						(
-							Type.GetType(nameof(Furniture)),
-							Textures[nameof(Furniture)],
-							new Vector2(128, 128),
-							Textures[nameof(Furniture)].GetSize(),
-							this,
-							GetLocalMousePosition(),
-							(int)ZOrderValues.Furniture
-						) as Furniture);
-					
+					else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
+					{
+						/*fridges.Add(
+							new Fridge(
+								FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
+								new Vector2(64, 64),
+								new Vector2(128, 128),
+								this,
+								new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
+							);*/
+						Furnitures.Add(System.Activator.CreateInstance
+							(
+								Type.GetType(nameof(Furniture)),
+								Textures[nameof(Furniture)],
+								new Vector2(128, 128),
+								Textures[nameof(Furniture)].GetSize(),
+								this,
+								GetLocalMousePosition(),
+								(int)ZOrderValues.Furniture
+							) as Furniture);
+
+					}
+					else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
+					{
+						appliances.Add(
+							new Stove(
+								StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
+								new Vector2(64, 64),
+								new Vector2(128, 128),
+								this,
+								new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
+								Furniture.Category.Kitchen
+							));
+					}
+					pressed = true;
 				}
-				else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
+				else if (!mouseEvent.Pressed)
 				{
-					appliances.Add(
-						new Stove(
-							StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-							new Vector2(64, 64),
-							new Vector2(128, 128),
-							this,
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
-							Furniture.Category.Kitchen
-						));
+					pressed = false;
 				}
-				pressed = true;
-			}
-			else if (!mouseEvent.Pressed)
-			{
-				pressed = false;
 			}
 		}
 	}
