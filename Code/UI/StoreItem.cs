@@ -36,7 +36,7 @@ public class StoreItem : Godot.Object
     }
 
     /**<summary>Loads textures and creates item</summary>*/
-    public void Create(Vector2 position,StoreMenu menu,int size = 256)
+    public void Create(Vector2 position,StoreMenu menu,float size = 256)
     {
         rid = VisualServer.CanvasItemCreate();
         VisualServer.CanvasItemAddTextureRect(rid, new Rect2(position, new Vector2(size, size)), menu.cafe.Textures[TextureName].GetRid(), false, null, false, menu.cafe.Textures[TextureName].GetRid());

@@ -96,19 +96,8 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="table_v2" type="Sprite" parent="UI/StoreMenu/VScrollBar"]
-position = Vector2( -256, 424 )
-texture = ExtResource( 3 )
-
-[node name="table_v3" type="Sprite" parent="UI/StoreMenu/VScrollBar"]
-position = Vector2( -264, 144 )
-texture = ExtResource( 3 )
-
-[node name="table_v4" type="Sprite" parent="UI/StoreMenu/VScrollBar"]
-position = Vector2( -240, 680 )
-texture = ExtResource( 3 )
-
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
+[connection signal="gui_input" from="UI/StoreMenu" to="UI/StoreMenu" method="_onGUIInput"]
 [connection signal="mouse_entered" from="UI/StoreMenu" to="UI/StoreMenu" method="_on_StoreMenu_mouse_entered"]
 [connection signal="mouse_exited" from="UI/StoreMenu" to="UI/StoreMenu" method="_on_StoreMenu_mouse_exited"]
 [connection signal="scrolling" from="UI/StoreMenu/VScrollBar" to="UI/StoreMenu" method="_on_VScrollBar_scrolling"]
