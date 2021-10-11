@@ -85,6 +85,8 @@ public class StoreMenu : Control
 					loc = new Vector2(loc.x - 9 * (int)(loc.x / 9), loc.y - 9 * (int)(loc.y / 9));
 					if(loc.x <= 9 && loc.x >= 2 && loc.y <= 9 && loc.y >=2)
                     {
+						//TODO: Add setting which class will be placed via the data
+						cafe.currentPlacingStoreItem = storeItems[id];
 						GD.Print($"{loc} : {storeItems[id].ClassName}");
 					}
 					

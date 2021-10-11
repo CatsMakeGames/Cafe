@@ -17,7 +17,7 @@ public class Furniture : CafeObject
     protected Category category = Category.Any;
 
     public Category ItemCategory => category;
-    public Furniture(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,Category _category = Category.Any, int zorder = (int)ZOrderValues.Furniture) : base(texture, size, textureSize, cafe, pos, zorder)
+    public Furniture(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
         category = _category;
     }

@@ -11,6 +11,18 @@ using Kitchen;
  */
 public class Cafe : Node2D
 {
+	/**<summary>Which state is player currently in<para/>
+	 * Depending on these states input will be handled differently</summary>*/
+	public enum State
+	{
+		/**<summary>Player is not in any special state</summary>*/
+		Idle,
+		/**<summary>Placing funriniture</summary>*/
+		Building,
+		/**<summary>Moving/deleting/selling furniture</summary>*/
+		Moving
+	}
+
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -44,7 +56,15 @@ public class Cafe : Node2D
 	[Export(PropertyHint.Layers2dPhysics)]
 	public int ClickTaken = 0;
 
+	/**<summary>Data for what object is going to be spawned via building system</summary>*/
+	public StoreItem currentPlacingStoreItem = null;
+
 	public bool ShouldProcessMouse => ClickTaken == 0;
+
+	[Export(PropertyHint.Enum)]
+	protected State currentState;
+
+	public State CurrentState => currentState;
 
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
@@ -277,6 +297,31 @@ public class Cafe : Node2D
 		}
 	}
 
+	public void PlaceNewFurniture()
+	{
+		Type type;
+		//TODO: fix issue with c# not finding type by name even though name is correct
+		try
+		{
+			type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
+
+			Furnitures.Add(System.Activator.CreateInstance
+							(
+								type,
+								Textures[currentPlacingStoreItem.TextureName],
+								new Vector2(128, 128),
+								Textures[currentPlacingStoreItem.TextureName].GetSize(),
+								this,
+								GetLocalMousePosition(),
+								currentPlacingStoreItem.FurnitureCategory
+							) as Furniture);
+		}
+		catch(Exception e)
+		{
+			GD.PrintErr($"Unable to find or load type. Error: {e.Message}");
+		}
+	}
+
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
@@ -289,9 +334,17 @@ public class Cafe : Node2D
 				{
 					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 					{
-						Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-						tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
-						navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+						switch(CurrentState)
+						{
+							case State.Building:
+								PlaceNewFurniture();
+								break;
+							case State.Idle:
+								Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
+								tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
+								navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+								break;
+						}
 					}
 
 					else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
