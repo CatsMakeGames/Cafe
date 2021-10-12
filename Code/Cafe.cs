@@ -321,24 +321,31 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
-		try
-		{
-			Type type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
+		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
+		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
+		var fur = Furnitures.Where(p => (p.Position.x >= endLoc.x && p.Position.y >= endLoc.y && p.Position.x < rect2.End.x && p.Position.y < rect2.End.y) );
 
-			Furnitures.Add(System.Activator.CreateInstance
-							(
-								type,
-								Textures[currentPlacingStoreItem.TextureName],
-								new Vector2(128, 128),
-								Textures[currentPlacingStoreItem.TextureName].GetSize(),
-								this,
-								GetLocalMousePosition(),
-								currentPlacingStoreItem.FurnitureCategory
-							) as Furniture);
-		}
-		catch(Exception e)
+		if (!fur.Any())
 		{
-			GD.PrintErr($"Unable to find or load type. Error: {e.Message}");
+			try
+			{
+				Type type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
+
+				Furnitures.Add(System.Activator.CreateInstance
+								(
+									type,
+									Textures[currentPlacingStoreItem.TextureName],
+									new Vector2(128, 128),
+									Textures[currentPlacingStoreItem.TextureName].GetSize(),
+									this,
+									endLoc,
+									currentPlacingStoreItem.FurnitureCategory
+								) as Furniture);
+			}
+			catch (Exception e)
+			{
+				GD.PrintErr($"Unable to find or load type. Error: {e.Message}");
+			}
 		}
 	}
 
