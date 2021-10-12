@@ -97,8 +97,25 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Menu" type="VBoxContainer" parent="UI"]
+margin_left = -256.0
+margin_top = -152.0
+margin_right = -168.0
+margin_bottom = -40.0
+rect_scale = Vector2( 2, 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StoreButton" type="Button" parent="UI/Menu"]
+margin_right = 88.0
+margin_bottom = 20.0
+toggle_mode = true
+text = "Store"
+
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="gui_input" from="UI/StoreMenu" to="UI/StoreMenu" method="_onGUIInput"]
 [connection signal="mouse_entered" from="UI/StoreMenu" to="UI/StoreMenu" method="_on_StoreMenu_mouse_entered"]
 [connection signal="mouse_exited" from="UI/StoreMenu" to="UI/StoreMenu" method="_on_StoreMenu_mouse_exited"]
 [connection signal="scrolling" from="UI/StoreMenu/VScrollBar" to="UI/StoreMenu" method="_on_VScrollBar_scrolling"]
+[connection signal="toggled" from="UI/Menu/StoreButton" to="." method="_on_StoreButton_toggled"]

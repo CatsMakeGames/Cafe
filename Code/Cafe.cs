@@ -20,7 +20,9 @@ public class Cafe : Node2D
 		/**<summary>Placing funriniture</summary>*/
 		Building,
 		/**<summary>Moving/deleting/selling furniture</summary>*/
-		Moving
+		Moving,
+		/**<summary>Player is currently browsing menu</summary>*/
+		UsingMenu
 	}
 
 	/**
@@ -64,7 +66,21 @@ public class Cafe : Node2D
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
 
-	public State CurrentState => currentState;
+	public State CurrentState 
+	{
+		get => currentState;
+		set
+		{
+			currentState = value;
+			if (currentState != State.UsingMenu)
+			{
+				//hide all of the menus
+				storeMenu.Visible = false;
+				//untoggle all of the buttons
+				storeMenuButton.Pressed = false;
+			}
+		}
+	}
 
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
@@ -146,6 +162,10 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
+	protected StoreMenu storeMenu;
+
+	protected Button storeMenuButton;
+
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
 	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
@@ -170,11 +190,12 @@ public class Cafe : Node2D
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
-		if(GetNodeOrNull("UI/StoreMenu") is StoreMenu menu)
-		{
-			menu.cafe = this;
-			menu.Create();
-		}
+		storeMenu = GetNodeOrNull<StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
+		storeMenu.cafe = this;
+		storeMenu.Create();
+		storeMenu.Visible = false;
+
+		storeMenuButton = GetNodeOrNull<Button>("UI/Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
 
 
 		foreach (var loc in Locations)
@@ -201,7 +222,7 @@ public class Cafe : Node2D
 	}
 
 
-	public Appliance FindClosestApplience(Vector2 pos, Type type, out Vector2[] path)
+	public Appliance FindClosestAppliance(Vector2 pos, Type type, out Vector2[] path)
 	{
 		var apps = appliances.Where(p => p.GetType() == type);
 		if (apps.Any())
@@ -225,6 +246,7 @@ public class Cafe : Node2D
 		return null;
 	}
 
+	[Obsolete("Please use FindClosestAppliance")]
 	public Vector2[] FindClosestFridge(Vector2 pos)
 	{
 		//not the pretties way but it does the job done
@@ -299,11 +321,9 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
-		Type type;
-		//TODO: fix issue with c# not finding type by name even though name is correct
 		try
 		{
-			type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
+			Type type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
 
 			Furnitures.Add(System.Activator.CreateInstance
 							(
@@ -340,10 +360,11 @@ public class Cafe : Node2D
 								PlaceNewFurniture();
 								break;
 							case State.Idle:
-								Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
+								/*Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
 								tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
-								navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
+								navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);*/
 								break;
+
 						}
 					}
 
@@ -609,6 +630,15 @@ public class Cafe : Node2D
 		else
 		{
 			QueuedNotSpawnedCustomersCount++;
+		}
+	}
+
+	private void _on_StoreButton_toggled(bool button_pressed)
+	{
+		storeMenu.Visible = button_pressed;
+		if (currentState == State.UsingMenu || currentState == State.Idle )
+		{
+			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
 	}
 }

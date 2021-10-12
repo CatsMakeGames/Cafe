@@ -87,6 +87,13 @@ public class StoreMenu : Control
                     {
 						//TODO: Add setting which class will be placed via the data
 						cafe.currentPlacingStoreItem = storeItems[id];
+						cafe.CurrentState = Cafe.State.Building;
+						//unsure about this check
+						if ((cafe.ClickTaken & (ClickIDValue)) > 0)
+						{
+							cafe.ClickTaken ^= ClickIDValue;
+							GD.Print(cafe.ClickTaken);
+						}
 						GD.Print($"{loc} : {storeItems[id].ClassName}");
 					}
 					
@@ -107,15 +114,22 @@ public class StoreMenu : Control
 
 	private void _on_StoreMenu_mouse_entered()
 	{
-		cafe.ClickTaken |= ClickIDValue;
-		GD.Print(cafe.ClickTaken);
+		if (Visible)
+		{
+			cafe.ClickTaken |= ClickIDValue;
+			GD.Print(cafe.ClickTaken);
+		}
 	}
 
 
 	private void _on_StoreMenu_mouse_exited()
 	{
-		cafe.ClickTaken ^= ClickIDValue;
-		GD.Print(cafe.ClickTaken);
+		//unsure about this check
+		if ((cafe.ClickTaken & (ClickIDValue)) > 0)
+		{
+			cafe.ClickTaken ^= ClickIDValue;
+			GD.Print(cafe.ClickTaken);
+		}
 	}
 }
 
