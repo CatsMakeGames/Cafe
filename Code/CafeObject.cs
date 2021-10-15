@@ -13,8 +13,15 @@ public class CafeObject : Godot.Object
 
     protected bool pendingKill = false;
 
+    /**<summary>How big the object is in the game world</summary>*/
+    protected Vector2 size;
+
+    /**<summary>How big the object is in the game world</summary>*/
+    public Vector2 Size => size;
+
     public bool Valid => !pendingKill;
 
+  
     public virtual Vector2 Position
     {
         get => position;
@@ -29,6 +36,7 @@ public class CafeObject : Godot.Object
     {
         this.cafe = cafe;
         this.textureSize = textureSize;
+        this.size = size;
         //spawn image in the world
         if (texture != null && cafe != null)
         {

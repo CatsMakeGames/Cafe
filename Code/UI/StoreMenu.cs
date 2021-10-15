@@ -13,12 +13,6 @@ public class StoreMenu : Control
 	[Export]
 	int GridSize = 256;
 
-
-
-	/**<summary>This is used as flag for setting if mouse or touch should be updated.<para/>MUST be 2^n</summary>*/
-	[Export]
-	int ClickIDValue = 1 << 1;
-
 	VScrollBar scrollBar;
 
 	public override void _Ready()
@@ -88,12 +82,6 @@ public class StoreMenu : Control
 						//TODO: Add setting which class will be placed via the data
 						cafe.currentPlacingStoreItem = storeItems[id];
 						cafe.CurrentState = Cafe.State.Building;
-						//unsure about this check
-						if ((cafe.ClickTaken & (ClickIDValue)) > 0)
-						{
-							cafe.ClickTaken ^= ClickIDValue;
-							GD.Print(cafe.ClickTaken);
-						}
 						GD.Print($"{loc} : {storeItems[id].ClassName}");
 					}
 					
@@ -109,29 +97,6 @@ public class StoreMenu : Control
 	private void _on_VScrollBar_scrolling()
 	{
 		GetTree().SetInputAsHandled();
-		
-	}
 
-	private void _on_StoreMenu_mouse_entered()
-	{
-		if (Visible)
-		{
-			cafe.ClickTaken |= ClickIDValue;
-			GD.Print(cafe.ClickTaken);
-		}
-	}
-
-
-	private void _on_StoreMenu_mouse_exited()
-	{
-		//unsure about this check
-		if ((cafe.ClickTaken & (ClickIDValue)) > 0)
-		{
-			cafe.ClickTaken ^= ClickIDValue;
-			GD.Print(cafe.ClickTaken);
-		}
 	}
 }
-
-
-

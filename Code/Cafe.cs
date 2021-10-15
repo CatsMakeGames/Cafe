@@ -101,6 +101,7 @@ public class Cafe : Node2D
 	[Export]
 	public float DecorRating = 1;
 
+	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
 	[Export]
 	public Godot.Collections.Dictionary<string, Texture> Textures = new Godot.Collections.Dictionary<string, Texture>();
 	/**<summary>Array of node names that correspond to a specific location node</summary>*/
@@ -166,10 +167,23 @@ public class Cafe : Node2D
 
 	protected Button storeMenuButton;
 
+	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
+
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
 	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
 	#endregion
+
+	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
+	public bool ProcessPress(Vector2 pressLocation)
+	{
+		return !(mouseBlockAreas.Where(p => (p.Visible) && 
+		(pressLocation.x >= p.RectPosition.x &&
+		pressLocation.y >= p.RectPosition.y && 
+		pressLocation.x < (p.RectSize.x + p.RectPosition.x )&&
+		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
+		)).Any();
+	}
 
 	public override void _Ready()
 	{
@@ -323,7 +337,7 @@ public class Cafe : Node2D
 	{
 		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
 		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
-		var fur = Furnitures.Where(p => (p.Position.x >= endLoc.x && p.Position.y >= endLoc.y && p.Position.x < rect2.End.x && p.Position.y < rect2.End.y) );
+		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
 
 		if (!fur.Any())
 		{
@@ -335,7 +349,7 @@ public class Cafe : Node2D
 								(
 									type,
 									Textures[currentPlacingStoreItem.TextureName],
-									new Vector2(128, 128),
+									new Vector2(128, 128),//TODO: make this dynamic you fool
 									Textures[currentPlacingStoreItem.TextureName].GetSize(),
 									this,
 									endLoc,
@@ -361,15 +375,13 @@ public class Cafe : Node2D
 				{
 					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 					{
-						switch(CurrentState)
+						GD.Print("button");
+						switch (CurrentState)
 						{
 							case State.Building:
 								PlaceNewFurniture();
 								break;
 							case State.Idle:
-								/*Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-								tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
-								navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);*/
 								break;
 
 						}
@@ -377,14 +389,6 @@ public class Cafe : Node2D
 
 					else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
 					{
-						/*fridges.Add(
-							new Fridge(
-								FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-								new Vector2(64, 64),
-								new Vector2(128, 128),
-								this,
-								new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-							);*/
 						Furnitures.Add(System.Activator.CreateInstance
 							(
 								Type.GetType(nameof(Furniture)),
@@ -642,6 +646,7 @@ public class Cafe : Node2D
 
 	private void _on_StoreButton_toggled(bool button_pressed)
 	{
+		GD.Print("Menu");
 		storeMenu.Visible = button_pressed;
 		if (currentState == State.UsingMenu || currentState == State.Idle )
 		{

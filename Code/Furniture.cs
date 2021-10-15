@@ -14,6 +14,20 @@ public class Furniture : CafeObject
         Kitchen = 1 << 3,
         Toilet = 1 << 4
     }
+
+    protected int level;
+
+    public int Level
+    {
+        get => level;
+        set
+        {
+            level = value;
+            VisualServer.CanvasItemSetCustomRect(textureRID, true, new Rect2(value * textureSize.x, 0, textureSize));
+            //throw new NotImplementedException("Level system is not yet supported");
+        }
+    }
+
     protected Category category = Category.Any;
 
     public Category ItemCategory => category;
