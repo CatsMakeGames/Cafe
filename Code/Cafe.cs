@@ -175,7 +175,7 @@ public class Cafe : Node2D
 	#endregion
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
-	public bool ProcessPress(Vector2 pressLocation)
+	public bool NeedsProcessPress(Vector2 pressLocation)
 	{
 		return !(mouseBlockAreas.Where(p => (p.Visible) && 
 		(pressLocation.x >= p.RectPosition.x &&
@@ -227,6 +227,11 @@ public class Cafe : Node2D
 			Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			people.Add(cook);
 			cooks.Add(cook);
+		}
+
+		foreach(var node in GetTree().GetNodesInGroup("MouseBlock"))
+		{
+			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
 	}
 
@@ -367,7 +372,7 @@ public class Cafe : Node2D
 	{
 		base._Input(@event);
 
-		if (!GetTree().IsInputHandled() && ShouldProcessMouse)
+		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
 			if (@event is InputEventMouseButton mouseEvent)
 			{
