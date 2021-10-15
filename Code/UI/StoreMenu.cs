@@ -13,7 +13,58 @@ public class StoreMenu : Control
 	[Export]
 	int GridSize = 256;
 
+	/**<summary>Key is id of the item in the table and value is true if item is bought</summary>*/
+	Godot.Collections.Array<ushort> purchasedItems = new Godot.Collections.Array<ushort>();
+
 	VScrollBar scrollBar;
+
+	/**<summary>saves purchasedItems to the file<para/>Data is saved with 4 bytes for id next byte for either t or f </summary>*/
+	bool savePurchaseData()
+    {
+		var save = new File();
+		Directory dir = new Directory();
+		//file fails to create file if directory does not exist
+		if(!dir.DirExists("user://Cafe/"))
+			dir.MakeDir("user://Cafe/");
+
+		var err = save.Open("user://Cafe/store.sav", File.ModeFlags.Write);
+		if (err == Error.Ok)
+		{
+			foreach (var item in purchasedItems)
+			{
+				save.Store16(item);
+			}
+			save.Close();
+			return true;
+		}
+        else
+        {
+			GD.PrintErr(err.ToString());
+        }
+		return false;
+    }
+
+	bool loadPurchaseData()
+	{
+		var save = new File();
+		var err = save.Open("user://Cafe/store.sav", File.ModeFlags.Read);
+		if (err == Error.Ok)
+		{
+			while(!save.EofReached())
+            {
+				purchasedItems.Add(save.Get16());
+				GD.Print(purchasedItems);
+			}
+			save.Close();
+			
+			return true;
+		}
+		else
+		{
+			GD.PrintErr(err.ToString());
+		}
+		return false;
+	}
 
 	public override void _Ready()
 	{
@@ -24,6 +75,7 @@ public class StoreMenu : Control
 		//cafe = GetTree().Root.FindNode("Cafe") as Cafe ?? throw new NullReferenceException("Failed to find cafe");
 
 		scrollBar = GetNodeOrNull<VScrollBar>("VScrollBar") ?? throw new NullReferenceException("Failed to find scroll bar");
+		loadPurchaseData();
 	}
 
 	public void Create()
@@ -79,9 +131,19 @@ public class StoreMenu : Control
 					loc = new Vector2(loc.x - 9 * (int)(loc.x / 9), loc.y - 9 * (int)(loc.y / 9));
 					if(loc.x <= 9 && loc.x >= 2 && loc.y <= 9 && loc.y >=2)
                     {
-						//TODO: Add setting which class will be placed via the data
+						//buy if not purchased
 						cafe.currentPlacingStoreItem = storeItems[id];
 						cafe.CurrentState = Cafe.State.Building;
+
+						purchasedItems.Add(0x1231);
+						purchasedItems.Add(1231);
+						purchasedItems.Add(9);
+						purchasedItems.Add(12);
+						purchasedItems.Add(1);
+						purchasedItems.Add(0);
+						purchasedItems.Add(0x69);
+						savePurchaseData();
+
 						GD.Print($"{loc} : {storeItems[id].ClassName}");
 					}
 					

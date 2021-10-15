@@ -79,6 +79,10 @@ public class Cafe : Node2D
 				//untoggle all of the buttons
 				storeMenuButton.Pressed = false;
 			}
+			if(currentState != State.Idle && currentState != State.UsingMenu)
+            {
+				exitToIdleModeButton.Visible = true;
+			}
 		}
 	}
 
@@ -167,6 +171,8 @@ public class Cafe : Node2D
 
 	protected Button storeMenuButton;
 
+	protected Button exitToIdleModeButton;
+
 	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
 
 	#region CookToDoList
@@ -210,6 +216,8 @@ public class Cafe : Node2D
 		storeMenu.Visible = false;
 
 		storeMenuButton = GetNodeOrNull<Button>("Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
+
+		exitToIdleModeButton = GetNodeOrNull<Button>("ExitToIdleModeButton") ?? throw new NullReferenceException("Failed to find mode reset button");
 
 
 		foreach (var loc in Locations)
@@ -657,5 +665,11 @@ public class Cafe : Node2D
 		{
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
+	}
+
+	private void _on_ExitToIdleModeButton_pressed()
+	{
+		exitToIdleModeButton.Visible = false;
+		currentState = State.Idle;
 	}
 }
