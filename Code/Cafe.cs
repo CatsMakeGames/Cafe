@@ -200,7 +200,7 @@ public class Cafe : Node2D
 
 		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
 
-		CustomerCountLabel = GetNodeOrNull<Label>("UI/CustomerCountLabel");
+		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
@@ -209,7 +209,7 @@ public class Cafe : Node2D
 		storeMenu.Create();
 		storeMenu.Visible = false;
 
-		storeMenuButton = GetNodeOrNull<Button>("UI/Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
+		storeMenuButton = GetNodeOrNull<Button>("Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
 
 
 		foreach (var loc in Locations)
