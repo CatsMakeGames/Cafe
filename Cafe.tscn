@@ -16,6 +16,7 @@
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
+Money = 9999
 CustomerTexture = ExtResource( 2 )
 CookTexture = ExtResource( 9 )
 WaiterTexture = ExtResource( 10 )

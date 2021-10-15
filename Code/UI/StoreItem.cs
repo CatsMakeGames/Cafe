@@ -2,6 +2,10 @@
 public class StoreItem : Godot.Object
 {
     protected RID rid;
+
+    /**<summart>Id of the item in the original item table<para/>This way id stays consitstent no matter what</summart>*/
+    public ushort tableId = 0x0;
+
     public string ClassName = nameof(Furniture);
 
     public string Name = nameof(Furniture);
@@ -25,6 +29,8 @@ public class StoreItem : Godot.Object
 
     void fillData(string[] subData)
     {
+        //because id is 16bit integer that is always bigger then 0
+        tableId = System.Convert.ToUInt16(subData[0]);
         Name = subData[1];
         TextureName = subData[2];
         Price = System.Convert.ToInt32(subData[4], System.Globalization.CultureInfo.InvariantCulture);
@@ -36,11 +42,25 @@ public class StoreItem : Godot.Object
     }
 
     /**<summary>Loads textures and creates item</summary>*/
-    public void Create(Vector2 position,StoreMenu menu,float size = 256)
+    public void Create(Vector2 position,StoreMenu menu,float size = 256,bool purchased = false)
     {
+        var color = 
         rid = VisualServer.CanvasItemCreate();
-        VisualServer.CanvasItemAddTextureRect(rid, new Rect2(position, new Vector2(size, size)), menu.cafe.Textures[TextureName].GetRid(), false, null, false, menu.cafe.Textures[TextureName].GetRid());
+        VisualServer.CanvasItemAddTextureRect(
+            rid,
+            new Rect2(position, new Vector2(size, size)),
+            menu.cafe.Textures[TextureName].GetRid(),
+            false,
+            purchased ? new Color(1,1,1) : new Color(0.5f, 0.5f, 0.5f),
+            false,
+            menu.cafe.Textures[TextureName].GetRid()
+            );
         VisualServer.CanvasItemSetParent(rid, menu.GetCanvasItem());
+    }
+
+    public void BePurchased()
+    {
+        VisualServer.CanvasItemSetModulate(rid, new Color(1,1,1));
     }
 
     /**<summary>Creates Store item data from csv string</summary>*/

@@ -18,7 +18,7 @@ public class StoreMenu : Control
 
 	VScrollBar scrollBar;
 
-	/**<summary>saves purchasedItems to the file<para/>Data is saved with 4 bytes for id next byte for either t or f </summary>*/
+	/**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/
 	bool savePurchaseData()
     {
 		var save = new File();
@@ -69,13 +69,14 @@ public class StoreMenu : Control
 	public override void _Ready()
 	{
 		base._Ready();
+		loadPurchaseData();
 		Load();
 		GD.Print("Loaded");
 		//show on screen
 		//cafe = GetTree().Root.FindNode("Cafe") as Cafe ?? throw new NullReferenceException("Failed to find cafe");
 
 		scrollBar = GetNodeOrNull<VScrollBar>("VScrollBar") ?? throw new NullReferenceException("Failed to find scroll bar");
-		loadPurchaseData();
+		
 	}
 
 	public void Create()
@@ -83,7 +84,7 @@ public class StoreMenu : Control
 		int id = 0;
 		foreach (StoreItem item in storeItems)
 		{
-			item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f);
+			item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f, purchasedItems.Contains(item.tableId));
 			id++;
 		}
 	}
@@ -118,7 +119,7 @@ public class StoreMenu : Control
 
 	private void _onGUIInput(object @event)
 	{
-		if (@event is InputEventMouseButton mouseEvent)
+		if (@event is InputEventMouseButton mouseEvent && !GetTree().IsInputHandled())
         {
 			if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
             {
@@ -132,17 +133,28 @@ public class StoreMenu : Control
 					if(loc.x <= 9 && loc.x >= 2 && loc.y <= 9 && loc.y >=2)
                     {
 						//buy if not purchased
+						if(!purchasedItems.Contains(storeItems[id].tableId))
+                        {
+							if(cafe.Money >= storeItems[id].Price)
+                            {
+								cafe.Money -= storeItems[id].Price;
+								purchasedItems.Add(storeItems[id].tableId);
+								storeItems[id].BePurchased();
+								//TODO:Add some sounds that would play when purchasing(like cash register or smth)
+								savePurchaseData();
+								GetTree().SetInputAsHandled();
+								GD.Print(cafe.Money);
+								return;
+							}
+                            else
+                            {
+								GetTree().SetInputAsHandled();
+								//we can not do anything so we give up
+								return;
+                            }
+                        }
 						cafe.currentPlacingStoreItem = storeItems[id];
-						cafe.CurrentState = Cafe.State.Building;
-
-						purchasedItems.Add(0x1231);
-						purchasedItems.Add(1231);
-						purchasedItems.Add(9);
-						purchasedItems.Add(12);
-						purchasedItems.Add(1);
-						purchasedItems.Add(0);
-						purchasedItems.Add(0x69);
-						savePurchaseData();
+						cafe.CurrentState = Cafe.State.Building;					
 
 						GD.Print($"{loc} : {storeItems[id].ClassName}");
 					}
