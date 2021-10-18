@@ -14,6 +14,9 @@ public class StoreMenu : Control
 	[Export]
 	int GridSize = 256;
 
+	[Export(PropertyHint.ResourceType, "Font")]
+	Font categoryFont;
+
 	/**<summary>Key is id of the item in the table and value is true if item is bought</summary>*/
 	Godot.Collections.Array<ushort> purchasedItems = new Godot.Collections.Array<ushort>();
 
@@ -79,6 +82,7 @@ public class StoreMenu : Control
 		
 	}
 
+	/**<summary>Creates items for ui display in orginised maner</summary>*/
 	public void Create()
 	{
 
@@ -94,6 +98,7 @@ public class StoreMenu : Control
 			var arr = storeItems.Where(p => p.DisplayCategory == (Furniture.Category)value);
 			if (arr.Any())
 			{
+				
 				foreach (StoreItem item in arr)
 				{
 					item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f, purchasedItems.Contains(item.tableId));
