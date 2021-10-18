@@ -80,7 +80,7 @@ public class Cafe : Node2D
 				storeMenuButton.Pressed = false;
 			}
 			if(currentState != State.Idle && currentState != State.UsingMenu)
-            {
+			{
 				exitToIdleModeButton.Visible = true;
 			}
 		}

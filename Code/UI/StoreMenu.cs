@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public class StoreMenu : Control
 {
@@ -73,7 +74,6 @@ public class StoreMenu : Control
 		Load();
 		GD.Print("Loaded");
 		//show on screen
-		//cafe = GetTree().Root.FindNode("Cafe") as Cafe ?? throw new NullReferenceException("Failed to find cafe");
 
 		scrollBar = GetNodeOrNull<VScrollBar>("VScrollBar") ?? throw new NullReferenceException("Failed to find scroll bar");
 		
@@ -81,11 +81,28 @@ public class StoreMenu : Control
 
 	public void Create()
 	{
+
 		int id = 0;
-		foreach (StoreItem item in storeItems)
+		//how many categories have we switched
+		int catCount = 0;
+		//update code to include categories
+		//easiest way is to reset id to start of line
+		//this is not the prettiest way but that's the most dynamic i could think of, and it only runs once per instance of the game
+		foreach (var value in Enum.GetValues(typeof(Furniture.Category)))
 		{
-			item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f, purchasedItems.Contains(item.tableId));
-			id++;
+			//draw only items that have this category
+			var arr = storeItems.Where(p => p.DisplayCategory == (Furniture.Category)value);
+			if (arr.Any())
+			{
+				foreach (StoreItem item in arr)
+				{
+					item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f, purchasedItems.Contains(item.tableId));
+					id++;
+				}
+				catCount++;
+				//reset to the line start
+				id = catCount * width;
+			}		
 		}
 	}
 

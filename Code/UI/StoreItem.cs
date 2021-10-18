@@ -16,6 +16,9 @@ public class StoreItem : Godot.Object
 
     public Furniture.Category FurnitureCategory = Furniture.Category.None;
 
+    /**<summary>This category will be used to display in StoreMenu</summary>*/
+    public Furniture.Category DisplayCategory = Furniture.Category.None;
+
     public Cafe cafe;
 
     public StoreItem(string className, string name, string textureName, int price, Furniture.Category furnitureCategory)
@@ -39,6 +42,7 @@ public class StoreItem : Godot.Object
         {
             FurnitureCategory |= (Furniture.Category)(1 << System.Convert.ToInt32(cat, System.Globalization.CultureInfo.InvariantCulture));
         }
+        DisplayCategory = (Furniture.Category)(1 << System.Convert.ToInt32(subData[6], System.Globalization.CultureInfo.InvariantCulture));
     }
 
     /**<summary>Loads textures and creates item</summary>*/
