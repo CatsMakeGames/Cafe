@@ -17,6 +17,9 @@ public class StoreMenu : Control
 	[Export(PropertyHint.ResourceType, "Font")]
 	Font categoryFont;
 
+	/**<summary>Key is the name of the category and value is index of the category</summary>*/
+	Godot.Collections.Dictionary<string, int> categoryNames = new Godot.Collections.Dictionary<string, int>();
+
 	/**<summary>Key is id of the item in the table and value is true if item is bought</summary>*/
 	Godot.Collections.Array<ushort> purchasedItems = new Godot.Collections.Array<ushort>();
 
@@ -98,12 +101,13 @@ public class StoreMenu : Control
 			var arr = storeItems.Where(p => p.DisplayCategory == (Furniture.Category)value);
 			if (arr.Any())
 			{
-				
+					
 				foreach (StoreItem item in arr)
 				{
 					item.Create(new Vector2((id - ((int)(id / width) * width) + 0.25f), ((int)(id / width)) + 0.25f) * GridSize, this, GridSize * 0.75f, purchasedItems.Contains(item.tableId));
 					id++;
 				}
+				categoryNames.Add(((Furniture.Category)value).ToString(), id / width);
 				catCount++;
 				//reset to the line start
 				id = catCount * width;
@@ -139,7 +143,24 @@ public class StoreMenu : Control
 		}
 	}
 
-	private void _onGUIInput(object @event)
+	public override void _Draw()
+	{
+		base._Draw();
+		foreach (var value in categoryNames)
+		{
+			DrawString(
+					categoryFont ?? throw new NullReferenceException("No font found"),
+					new Vector2
+						(
+							0,
+							value.Value + 0.2f//the offset is needed otherwise it's draw on top of the icons
+						) * GridSize,
+					value.Key
+					);
+		}
+	}
+
+    private void _onGUIInput(object @event)
 	{
 		if (@event is InputEventMouseButton mouseEvent && !GetTree().IsInputHandled())
         {
