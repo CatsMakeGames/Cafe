@@ -59,7 +59,7 @@ public class Cafe : Node2D
 	public int ClickTaken = 0;
 
 	/**<summary>Data for what object is going to be spawned via building system</summary>*/
-	public StoreItem currentPlacingStoreItem = null;
+	public StoreItemData currentPlacingItem = null;
 
 	public bool ShouldProcessMouse => ClickTaken == 0;
 
@@ -167,7 +167,7 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
-	protected StoreMenu storeMenu;
+	protected UI.StoreMenu storeMenu;
 
 	protected Button storeMenuButton;
 
@@ -210,9 +210,8 @@ public class Cafe : Node2D
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
-		storeMenu = GetNodeOrNull<StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
+		storeMenu = GetNodeOrNull<UI.StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
 		storeMenu.cafe = this;
-		storeMenu.Create();
 		storeMenu.Visible = false;
 
 		storeMenuButton = GetNodeOrNull<Button>("Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
@@ -356,22 +355,22 @@ public class Cafe : Node2D
 		{
 			try
 			{
-				Type type = Type.GetType(currentPlacingStoreItem.ClassName/*must include any namespace used*/, true);
+				Type type = Type.GetType(currentPlacingItem.ClassName/*must include any namespace used*/, true);
 
 				Furnitures.Add(System.Activator.CreateInstance
 								(
 									type,
-									Textures[currentPlacingStoreItem.TextureName],
+									Textures[currentPlacingItem.TextureName],
 									new Vector2(128, 128),//TODO: make this dynamic you fool
-									Textures[currentPlacingStoreItem.TextureName].GetSize(),
+									Textures[currentPlacingItem.TextureName].GetSize(),
 									this,
 									endLoc,
-									currentPlacingStoreItem.FurnitureCategory
+									currentPlacingItem.FurnitureCategory
 								) as Furniture);
 			}
 			catch (Exception e)
 			{
-				GD.PrintErr($"Unable to find or load type. Error: {e.Message}");
+				GD.PrintErr($"Unable to find or load type. Error: {e.Message} Type: {currentPlacingItem?.ClassName ?? null}");
 			}
 		}
 	}
@@ -394,7 +393,7 @@ public class Cafe : Node2D
 							case State.Building:
 								PlaceNewFurniture();
 								break;
-							case State.Idle:
+							default:
 								break;
 
 						}
