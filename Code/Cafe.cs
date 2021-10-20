@@ -347,6 +347,10 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
+		if(Money < currentPlacingItem.Price)
+        {
+			return;
+        }
 		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
 		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
 		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
@@ -356,7 +360,7 @@ public class Cafe : Node2D
 			try
 			{
 				Type type = Type.GetType(currentPlacingItem.ClassName/*must include any namespace used*/, true);
-
+				Money -= currentPlacingItem.Price;
 				Furnitures.Add(System.Activator.CreateInstance
 								(
 									type,

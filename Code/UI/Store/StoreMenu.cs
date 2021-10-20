@@ -115,8 +115,7 @@ namespace UI
 		public void OnButtonPressed(StoreItemData data, StoreMenuItemButton button)
 		{
 			if (cafe.Money >= data.Price)
-			{
-				cafe.Money -= data.Price;
+			{		
 				//check if was purchased
 				if (purchasedItems.Contains(data.tableId))
 				{
@@ -126,7 +125,7 @@ namespace UI
 				}
 				else
 				{
-
+					cafe.Money -= data.Price;
 					purchasedItems.Add(data.tableId);
 					button.Modulate = Color.Color8(255, 255, 255);
 					savePurchaseData();
