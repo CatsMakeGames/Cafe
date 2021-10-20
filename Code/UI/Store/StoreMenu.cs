@@ -96,33 +96,46 @@ namespace UI
 						if(!purchasedItems.Contains(item.tableId))
 							button.Modulate = Color.Color8(125,125,125);
 						container.AddChild(button);
-                    }
+						//price tag
+						Label price = new Label();
+						price.Text = item.Price.ToString();
+						if (categoryFont != null)
+							price.AddFontOverride("font", categoryFont);
+						price.Align = Label.AlignEnum.Center;
+						price.Valign = Label.VAlign.Center;
+						button.AddChild(price);
+
+					}
                 }
 			}
 			
 		}
 
 		/**<summary>Process child button being pressed<para/>Logic is placed here to avoid having refenced to cafe in buttons and because menu loads/saves data</summary>*/
-		public void OnButtonPressed(StoreItemData data,StoreMenuItemButton button)
-        {
-			//check if was purchased
-			if(purchasedItems.Contains(data.tableId))
-            {
-				//select the item
-				cafe.currentPlacingItem = data;
-				cafe.CurrentState = Cafe.State.Building;
-            }
-			//if not -> buy
-            else if(cafe.Money >= data.Price)
-            {
+		public void OnButtonPressed(StoreItemData data, StoreMenuItemButton button)
+		{
+			if (cafe.Money >= data.Price)
+			{
 				cafe.Money -= data.Price;
-				purchasedItems.Add(data.tableId);
-				button.Modulate = Color.Color8(255, 255, 255);
-				savePurchaseData();
-				//play some noise
-				//we don't jump to placing to let player know that it was purchased rather then selected
-            }
-        }
+				//check if was purchased
+				if (purchasedItems.Contains(data.tableId))
+				{
+					//select the item
+					cafe.currentPlacingItem = data;
+					cafe.CurrentState = Cafe.State.Building;
+				}
+				else
+				{
+
+					purchasedItems.Add(data.tableId);
+					button.Modulate = Color.Color8(255, 255, 255);
+					savePurchaseData();
+					//play some noise
+					//we don't jump to placing to let player know that it was purchased rather then selected
+
+				}
+			}
+		}
 
 		protected void Load()
 		{
