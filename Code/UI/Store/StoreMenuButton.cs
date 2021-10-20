@@ -18,7 +18,7 @@ namespace UI
 
         protected void onPressed()
         {
-            ParentMenu?.OnButtonPressed(ItemData);
+            ParentMenu?.OnButtonPressed(ItemData, this);
         }
     }
 }

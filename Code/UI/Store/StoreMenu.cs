@@ -93,6 +93,8 @@ namespace UI
 						button.TextureNormal = cafe.Textures[item.TextureName] ?? cafe.TableTexture;
 						button.ItemData = item;
 						button.ParentMenu = this;
+						if(!purchasedItems.Contains(item.tableId))
+							button.Modulate = Color.Color8(125,125,125);
 						container.AddChild(button);
                     }
                 }
@@ -101,7 +103,7 @@ namespace UI
 		}
 
 		/**<summary>Process child button being pressed<para/>Logic is placed here to avoid having refenced to cafe in buttons and because menu loads/saves data</summary>*/
-		public void OnButtonPressed(StoreItemData data)
+		public void OnButtonPressed(StoreItemData data,StoreMenuItemButton button)
         {
 			//check if was purchased
 			if(purchasedItems.Contains(data.tableId))
@@ -115,6 +117,7 @@ namespace UI
             {
 				cafe.Money -= data.Price;
 				purchasedItems.Add(data.tableId);
+				button.Modulate = Color.Color8(255, 255, 255);
 				savePurchaseData();
 				//play some noise
 				//we don't jump to placing to let player know that it was purchased rather then selected
