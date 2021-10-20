@@ -3,5 +3,6 @@
     Background = 0,
     Furniture = 1,
     Customer,
+    UI,
     MAX
 }

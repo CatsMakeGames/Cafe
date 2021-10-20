@@ -11,6 +11,20 @@ using Kitchen;
  */
 public class Cafe : Node2D
 {
+	/**<summary>Which state is player currently in<para/>
+	 * Depending on these states input will be handled differently</summary>*/
+	public enum State
+	{
+		/**<summary>Player is not in any special state</summary>*/
+		Idle,
+		/**<summary>Placing funriniture</summary>*/
+		Building,
+		/**<summary>Moving/deleting/selling furniture</summary>*/
+		Moving,
+		/**<summary>Player is currently browsing menu</summary>*/
+		UsingMenu
+	}
+
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -41,6 +55,37 @@ public class Cafe : Node2D
 	[Export]
 	public int GridSize = 32;
 
+	[Export(PropertyHint.Layers2dPhysics)]
+	public int ClickTaken = 0;
+
+	/**<summary>Data for what object is going to be spawned via building system</summary>*/
+	public StoreItemData currentPlacingItem = null;
+
+	public bool ShouldProcessMouse => ClickTaken == 0;
+
+	[Export(PropertyHint.Enum)]
+	protected State currentState;
+
+	public State CurrentState 
+	{
+		get => currentState;
+		set
+		{
+			currentState = value;
+			if (currentState != State.UsingMenu)
+			{
+				//hide all of the menus
+				storeMenu.Visible = false;
+				//untoggle all of the buttons
+				storeMenuButton.Pressed = false;
+			}
+			if(currentState != State.Idle && currentState != State.UsingMenu)
+			{
+				exitToIdleModeButton.Visible = true;
+			}
+		}
+	}
+
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
 	public int MaxSpawnedCustomersInQueue = 2;
@@ -60,6 +105,9 @@ public class Cafe : Node2D
 	[Export]
 	public float DecorRating = 1;
 
+	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
+	[Export]
+	public Godot.Collections.Dictionary<string, Texture> Textures = new Godot.Collections.Dictionary<string, Texture>();
 	/**<summary>Array of node names that correspond to a specific location node</summary>*/
 	[Export]
 	public Godot.Collections.Dictionary<string, string> Locations = new Godot.Collections.Dictionary<string, string>();
@@ -98,7 +146,11 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
 	public Godot.Collections.Array<Fridge> Fridges => fridges;
 
+	[Obsolete("Appliances array will be replaced with furniture array in next updates.")]
 	protected Godot.Collections.Array<Appliance> appliances = new Godot.Collections.Array<Appliance>();
+
+	/**<summary>Array containing every furniture object</summary>*/
+	public Godot.Collections.Array<Furniture> Furnitures = new Godot.Collections.Array<Furniture>();
 	#endregion
 
 	protected Floor floor;
@@ -115,10 +167,29 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
+	protected UI.StoreMenu storeMenu;
+
+	protected Button storeMenuButton;
+
+	protected Button exitToIdleModeButton;
+
+	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
+
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
 	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
 	#endregion
+
+	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
+	public bool NeedsProcessPress(Vector2 pressLocation)
+	{
+		return !(mouseBlockAreas.Where(p => (p.Visible) && 
+		(pressLocation.x >= p.RectPosition.x &&
+		pressLocation.y >= p.RectPosition.y && 
+		pressLocation.x < (p.RectSize.x + p.RectPosition.x )&&
+		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
+		)).Any();
+	}
 
 	public override void _Ready()
 	{
@@ -135,9 +206,18 @@ public class Cafe : Node2D
 
 		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
 
-		CustomerCountLabel = GetNodeOrNull<Label>("UI/CustomerCountLabel");
+		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
 
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
+
+		storeMenu = GetNodeOrNull<UI.StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
+		storeMenu.cafe = this;
+		storeMenu.Visible = false;
+
+		storeMenuButton = GetNodeOrNull<Button>("Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
+
+		exitToIdleModeButton = GetNodeOrNull<Button>("ExitToIdleModeButton") ?? throw new NullReferenceException("Failed to find mode reset button");
+
 
 		foreach (var loc in Locations)
 		{
@@ -155,6 +235,11 @@ public class Cafe : Node2D
 			people.Add(cook);
 			cooks.Add(cook);
 		}
+
+		foreach(var node in GetTree().GetNodesInGroup("MouseBlock"))
+		{
+			mouseBlockAreas.Add(node as MouseBlockArea);
+		}
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -163,7 +248,7 @@ public class Cafe : Node2D
 	}
 
 
-	public Appliance FindClosestApplience(Vector2 pos, Type type, out Vector2[] path)
+	public Appliance FindClosestAppliance(Vector2 pos, Type type, out Vector2[] path)
 	{
 		var apps = appliances.Where(p => p.GetType() == type);
 		if (apps.Any())
@@ -187,6 +272,7 @@ public class Cafe : Node2D
 		return null;
 	}
 
+	[Obsolete("Please use FindClosestAppliance")]
 	public Vector2[] FindClosestFridge(Vector2 pos)
 	{
 		//not the pretties way but it does the job done
@@ -259,48 +345,96 @@ public class Cafe : Node2D
 		}
 	}
 
+	public void PlaceNewFurniture()
+	{
+		if(Money < currentPlacingItem.Price)
+        {
+			return;
+        }
+		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
+		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
+		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
+
+		if (!fur.Any())
+		{
+			try
+			{
+				Type type = Type.GetType(currentPlacingItem.ClassName/*must include any namespace used*/, true);
+				Money -= currentPlacingItem.Price;
+				Furnitures.Add(System.Activator.CreateInstance
+								(
+									type,
+									Textures[currentPlacingItem.TextureName],
+									new Vector2(128, 128),//TODO: make this dynamic you fool
+									Textures[currentPlacingItem.TextureName].GetSize(),
+									this,
+									endLoc,
+									currentPlacingItem.FurnitureCategory
+								) as Furniture);
+			}
+			catch (Exception e)
+			{
+				GD.PrintErr($"Unable to find or load type. Error: {e.Message} Type: {currentPlacingItem?.ClassName ?? null}");
+			}
+		}
+	}
+
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
 
-		if (@event is InputEventMouseButton mouseEvent)
+		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
-			if (!pressed)
+			if (@event is InputEventMouseButton mouseEvent)
 			{
-				if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+				if (!pressed)
 				{
-					Vector2 resultLocation = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize));
-					tables.Add(new Table(TableTexture ?? ResourceLoader.Load<Texture>("res://icon.png"), new Vector2(256, 256), resultLocation * GridSize, this));
-					navigationTilemap.SetCell((int)resultLocation.x, (int)resultLocation.y, -1);
-				}
+					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
+					{
+						GD.Print("button");
+						switch (CurrentState)
+						{
+							case State.Building:
+								PlaceNewFurniture();
+								break;
+							default:
+								break;
 
-				else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
-				{
-					fridges.Add(
-						new Fridge(
-							FridgeTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-							new Vector2(64, 64),
-							new Vector2(128, 128),
-							this,
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-						);
+						}
+					}
+
+					else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
+					{
+						Furnitures.Add(System.Activator.CreateInstance
+							(
+								Type.GetType(nameof(Furniture)),
+								Textures[nameof(Furniture)],
+								new Vector2(128, 128),
+								Textures[nameof(Furniture)].GetSize(),
+								this,
+								GetLocalMousePosition(),
+								(int)ZOrderValues.Furniture
+							) as Furniture);
+
+					}
+					else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
+					{
+						appliances.Add(
+							new Stove(
+								StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
+								new Vector2(64, 64),
+								new Vector2(128, 128),
+								this,
+								new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
+								Furniture.Category.Kitchen
+							));
+					}
+					pressed = true;
 				}
-				else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
+				else if (!mouseEvent.Pressed)
 				{
-					appliances.Add(
-						new Stove(
-							StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-							new Vector2(64, 64),
-							new Vector2(128, 128),
-							this,
-							new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize)
-						);
+					pressed = false;
 				}
-				pressed = true;
-			}
-			else if (!mouseEvent.Pressed)
-			{
-				pressed = false;
 			}
 		}
 	}
@@ -524,5 +658,21 @@ public class Cafe : Node2D
 		{
 			QueuedNotSpawnedCustomersCount++;
 		}
+	}
+
+	private void _on_StoreButton_toggled(bool button_pressed)
+	{
+		GD.Print("Menu");
+		storeMenu.Visible = button_pressed;
+		if (currentState == State.UsingMenu || currentState == State.Idle )
+		{
+			currentState = button_pressed ? State.UsingMenu : State.Idle;
+		}
+	}
+
+	private void _on_ExitToIdleModeButton_pressed()
+	{
+		exitToIdleModeButton.Visible = false;
+		currentState = State.Idle;
 	}
 }
