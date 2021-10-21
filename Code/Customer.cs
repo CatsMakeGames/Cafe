@@ -36,11 +36,11 @@ public class Customer : Person
     public void FindAndMoveToTheTable()
     {
         //find table to move to
-        var table = cafe.FindTable(out pathToTheTarget, Position, out CurrentTableId);
+        var table = cafe.FindClosestFurniture<Table>(position, out pathToTheTarget);
 
         if (table != null)
         {
-            CurrentTableId = cafe.Tables.IndexOf(table);
+            CurrentTableId = cafe.Furnitures.IndexOf(table);
             table.CurrentState = Table.State.InUse;
             /* Line2D pathLine = new Line2D();
              System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
@@ -62,7 +62,7 @@ public class Customer : Person
         isAtTheTable = false;
         pathId = 0;
         ate = true;
-        pathToTheTarget = cafe.FindExit(Position);
+        pathToTheTarget = cafe.FindLocation("Exit",Position);
         //leave the cafe
         /*pathToTheTarget = cafe.FindExit(Position);
         if (pathToTheTarget.Length == 0)

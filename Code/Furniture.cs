@@ -28,6 +28,9 @@ public class Furniture : CafeObject
         }
     }
 
+    /**<summary>If false this furntiure will not be considered in FindClosestFurniture search</summary>*/
+    public virtual bool CanBeUsed => true;
+
     protected Category category = Category.Any;
 
     public Category ItemCategory => category;
@@ -36,5 +39,20 @@ public class Furniture : CafeObject
         category = _category;
     }
 
+    public override void Destroy()
+    {
+        //restore the tilemap
+        //calculate before hand to avoid recalculating each iteration
+        int width = ((int)(size.x + position.x)) >> 5;
+        int height = ((int)(size.y + position.y)) >> 5;
+        for (int x = ((int)(position.x)) >> 5/*convert location to tilemap location*/; x < width; x++)
+        {
+            for (int y = ((int)(position.y)) >> 5; y < height; y++)
+            {
+                cafe.NavigationTilemap.SetCell(x, y, 0);
+            }
+        }
+        base.Destroy();
+    }
 }
 
