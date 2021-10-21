@@ -119,6 +119,9 @@ public class Cafe : Node2D
 
 	protected TileMap navigationTilemap;
 
+	/**<summary>Navigation tilemap used for the cafe<para/>Set unwalkable areas to -1 and walkable to 0</summary>*/
+	public TileMap NavigationTilemap => navigationTilemap;
+
 	protected Navigation2D navigation;
 
 	#region LocationNodes
@@ -347,10 +350,10 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
-		if(Money < currentPlacingItem.Price)
-        {
+		if (currentPlacingItem == null || Money < currentPlacingItem.Price)
+		{
 			return;
-        }
+		}
 		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
 		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
 		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
@@ -371,6 +374,22 @@ public class Cafe : Node2D
 									endLoc,
 									currentPlacingItem.FurnitureCategory
 								) as Furniture);
+
+				//clear tilemap underneath
+				//tilemap is 32x32
+				var size = Furnitures.Last().Size;
+				var pos = Furnitures.Last().Position;
+				//calculate before hand to avoid recalculating each iteration
+				int width = ((int)(size.x + pos.x)) / 32;
+				int height = ((int)(size.y + pos.y)) / 32;
+				for (int x = ((int)(pos.x)) / 32/*convert location to tilemap location*/; x < width; x++)
+				{
+					for (int y = ((int)(pos.y)) / 32; y < height; y++)
+					{
+						navigationTilemap.SetCell(x, y, -1);
+					}
+				}
+
 			}
 			catch (Exception e)
 			{
