@@ -143,6 +143,7 @@ public class Cafe : Node2D
 	public Godot.Collections.Array<Person> People => people;
 
 	#region Furniture
+	[Obsolete("All furniture should be store in main Furnitures array")]
 	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
 	public Godot.Collections.Array<Table> Tables => tables;
 
@@ -250,10 +251,11 @@ public class Cafe : Node2D
 		return navigation?.GetSimplePath(locStart, locEnd) ?? null;
 	}
 
-
-	public Appliance FindClosestAppliance(Vector2 pos, Type type, out Vector2[] path)
+	/**<summary>Finds closest furniture of that type that can be used</summary>*/
+	public FurnitureType FindClosestFurniture<FurnitureType>(Vector2 pos, out Vector2[] path) where FurnitureType : Furniture
 	{
-		var apps = appliances.Where(p => p.GetType() == type);
+		var type_fur = typeof(FurnitureType);
+		var apps = Furnitures.Where(p => p.GetType() == type_fur && p.CanBeUsed);
 		if (apps.Any())
 		{
 			float distSq = apps.ElementAt(0).Position.DistanceSquaredTo(pos);
@@ -269,41 +271,26 @@ public class Cafe : Node2D
 				}
 			}
 			path = navigation?.GetSimplePath(pos, apps.ElementAt(smallestId).Position) ?? null;
-			return apps.ElementAt(smallestId);
+			return apps.ElementAt(smallestId) as FurnitureType;
 		}
 		path = null;
-		return null;
-	}
-
-	[Obsolete("Please use FindClosestAppliance")]
-	public Vector2[] FindClosestFridge(Vector2 pos)
-	{
-		//not the pretties way but it does the job done
-		//maybe sheer of fridges that are too far
-		if (fridges.Any())
-		{
-			float distSq = fridges[0].Position.DistanceSquaredTo(pos);
-			float dist = 0;
-			int smallestId = 0;
-			for (int i = 1; i < fridges.Count; i++)
-			{
-				dist = fridges[i].Position.DistanceSquaredTo(pos);
-				if (distSq >= dist)
-				{
-					distSq = dist;
-					smallestId = i;
-				}
-			}
-			return navigation?.GetSimplePath(pos, fridges[smallestId].Position) ?? null;
-		}
 		return null;
 	}
 
 	/**<summary>Find table that customer can use and can get to</summary>
 	 * <param name="path">Path to the table</param>
 	 *<returns>Table that customer was assigned to</returns>*/
+	[Obsolete]
 	public Table FindTable(out Vector2[] path, Vector2 customerLocation, out int tableId)
 	{
+		var tables = Furnitures.Where(p =>
+		{
+			if(p is Table table)
+            {
+				return table.CurrentState == Table.State.Free;
+            }
+			return false;
+		});
 		tableId = -1;
 		foreach (Table table in tables)
 		{
@@ -380,11 +367,11 @@ public class Cafe : Node2D
 				var size = Furnitures.Last().Size;
 				var pos = Furnitures.Last().Position;
 				//calculate before hand to avoid recalculating each iteration
-				int width = ((int)(size.x + pos.x)) / 32;
-				int height = ((int)(size.y + pos.y)) / 32;
-				for (int x = ((int)(pos.x)) / 32/*convert location to tilemap location*/; x < width; x++)
+				int width = ((int)(size.x + pos.x)) >> 5;
+				int height = ((int)(size.y + pos.y)) >> 5;
+				for (int x = ((int)(pos.x)) >> 5/*convert location to tilemap location*/; x < width; x++)
 				{
-					for (int y = ((int)(pos.y)) / 32; y < height; y++)
+					for (int y = ((int)(pos.y)) >> 5; y < height; y++)
 					{
 						navigationTilemap.SetCell(x, y, -1);
 					}
@@ -421,33 +408,6 @@ public class Cafe : Node2D
 
 						}
 					}
-
-					else if (mouseEvent.ButtonIndex == (int)ButtonList.Right)
-					{
-						Furnitures.Add(System.Activator.CreateInstance
-							(
-								Type.GetType(nameof(Furniture)),
-								Textures[nameof(Furniture)],
-								new Vector2(128, 128),
-								Textures[nameof(Furniture)].GetSize(),
-								this,
-								GetLocalMousePosition(),
-								(int)ZOrderValues.Furniture
-							) as Furniture);
-
-					}
-					else if (mouseEvent.ButtonIndex == (int)ButtonList.Middle)
-					{
-						appliances.Add(
-							new Stove(
-								StoveTexture ?? ResourceLoader.Load<Texture>("res://icon.png"),
-								new Vector2(64, 64),
-								new Vector2(128, 128),
-								this,
-								new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize,
-								Furniture.Category.Kitchen
-							));
-					}
 					pressed = true;
 				}
 				else if (!mouseEvent.Pressed)
@@ -477,14 +437,14 @@ public class Cafe : Node2D
 
 		if (completedOrders.Any())
 		{
-			changeTask(tables[completedOrders[0]].Position, Waiter.Goal.AcquireOrder, tables[completedOrders[0]].CurrentCustomer);
+			changeTask(Furnitures[completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (Furnitures[completedOrders[0]] as Table).CurrentCustomer);
 			completedOrders.RemoveAt(0);
 		}
 			
 		//search through the list and find tasks that can be completed
 		else if (tablesToTakeOrdersFrom.Any())
 		{
-			changeTask(tables[tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, tables[tablesToTakeOrdersFrom[0]].CurrentCustomer);
+			changeTask(Furnitures[tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (Furnitures[tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
 			tablesToTakeOrdersFrom.RemoveAt(0);
 		}
 
@@ -502,7 +462,9 @@ public class Cafe : Node2D
 		{
 			cook.currentGoal = Cook.Goal.TakeFood;
 			cook.goalOrderId = orders[0];
-			cook.PathToTheTarget = FindClosestFridge(Position);
+			Vector2[] temp;
+			FindClosestFurniture<Fridge>(cook.Position, out temp);
+			cook.PathToTheTarget = temp;
 			orders.RemoveAt(0);
 		}
 	}
@@ -555,7 +517,9 @@ public class Cafe : Node2D
 				var cook = freeCooks.ElementAt(0);
 				cook.currentGoal = Cook.Goal.TakeFood;
 				cook.goalOrderId = orderId;
-				cook.PathToTheTarget = FindClosestFridge(Position);
+				Vector2[] temp;
+				FindClosestFurniture<Fridge>(cook.Position, out temp);
+				cook.PathToTheTarget = temp;
 			}
 		}
 	}
@@ -564,7 +528,7 @@ public class Cafe : Node2D
 	{
 		if (customer.CurrentTableId != -1)
 		{
-			tables[customer.CurrentTableId].CurrentCustomer = customer;
+			(Furnitures[customer.CurrentTableId] as Table).CurrentCustomer = customer;
 			//make waiter go to the table
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
@@ -577,9 +541,9 @@ public class Cafe : Node2D
 			else
 			{
 				var waiter = freeWaiters.ElementAt(0);
-				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, tables[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				waiter.currentCustomer = tables[customer.CurrentTableId].CurrentCustomer;
+				waiter.currentCustomer = (Furnitures[customer.CurrentTableId] as Table).CurrentCustomer;
 			}
 		}
 	}
@@ -587,8 +551,8 @@ public class Cafe : Node2D
 	public void _onCustomerFinishedEating(Customer customer,int payment)
 	{
 		//we don't have cleaning service yet
-		tables[customer.CurrentTableId].CurrentState = Table.State.Free;
-		OnNewTableIsAvailable(tables[customer.CurrentTableId]);
+		(Furnitures[customer.CurrentTableId] as Table).CurrentState = Table.State.Free;
+		OnNewTableIsAvailable((Furnitures[customer.CurrentTableId] as Table));
 		Money += payment;
 		PaymentSoundPlayer?.Play();
 	}
@@ -633,7 +597,7 @@ public class Cafe : Node2D
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
-		CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
+		//CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
 
 		if (people.Any())
 		{

@@ -42,7 +42,7 @@ namespace Staff
                 case Goal.TakeFood:
                     await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
                     currentGoal = Goal.CookFood;
-                    cafe.FindClosestAppliance(Position, typeof(Kitchen.Stove),out pathToTheTarget);
+                    cafe.FindClosestFurniture<Kitchen.Stove>(Position,out pathToTheTarget);
                     pathId = 0;
                     //move to the cutting table
                     break;
