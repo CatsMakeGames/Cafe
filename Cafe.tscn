@@ -35,6 +35,7 @@ Textures = {
 }
 Locations = {
 "Entrance": "Entrance",
+"Exit": "Entrance",
 "Kitchen": "Kitchen"
 }
 

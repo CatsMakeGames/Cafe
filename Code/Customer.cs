@@ -62,7 +62,7 @@ public class Customer : Person
         isAtTheTable = false;
         pathId = 0;
         ate = true;
-        pathToTheTarget = cafe.FindExit(Position);
+        pathToTheTarget = cafe.FindLocation("Exit",Position);
         //leave the cafe
         /*pathToTheTarget = cafe.FindExit(Position);
         if (pathToTheTarget.Length == 0)

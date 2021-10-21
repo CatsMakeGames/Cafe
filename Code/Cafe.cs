@@ -143,9 +143,6 @@ public class Cafe : Node2D
 	public Godot.Collections.Array<Person> People => people;
 
 	#region Furniture
-	[Obsolete("All furniture should be store in main Furnitures array")]
-	protected Godot.Collections.Array<Table> tables = new Godot.Collections.Array<Table>();
-	public Godot.Collections.Array<Table> Tables => tables;
 
 	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
 	public Godot.Collections.Array<Fridge> Fridges => fridges;
@@ -205,10 +202,6 @@ public class Cafe : Node2D
 		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
 
 		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
-
-		customerEntranceLocationNode = GetNode<Node2D>("Entrance") ?? throw new NullReferenceException("Failed to find cafe entrance");
-
-		kitchenLocationNode = GetNode<Node2D>("Kitchen") ?? throw new NullReferenceException("Failed to find kitchen");
 
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
 
@@ -277,54 +270,10 @@ public class Cafe : Node2D
 		return null;
 	}
 
-	/**<summary>Find table that customer can use and can get to</summary>
-	 * <param name="path">Path to the table</param>
-	 *<returns>Table that customer was assigned to</returns>*/
-	[Obsolete]
-	public Table FindTable(out Vector2[] path, Vector2 customerLocation, out int tableId)
-	{
-		var tables = Furnitures.Where(p =>
-		{
-			if(p is Table table)
-            {
-				return table.CurrentState == Table.State.Free;
-            }
-			return false;
-		});
-		tableId = -1;
-		foreach (Table table in tables)
-		{
-			tableId++;
-			if (table.CurrentState == Table.State.Free)
-			{
-				path = navigation.GetSimplePath(customerLocation, table.Position);
-				if (path.Length > 0)
-				{
-					return table;
-				}
-			}
-		}
-		//no tables were found
-		path = null;
-		return null;
-	}
-
 	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliencies</summary>*/
 	public Vector2[] FindLocation(string locationName, Vector2 location)
 	{
 		return navigation?.GetSimplePath(location, LocationNodes[locationName]?.GlobalPosition ?? Vector2.Zero) ?? null;
-	}
-
-	[Obsolete]
-	public Vector2[] FindExit(Vector2 customerLocation)
-	{
-		return navigation?.GetSimplePath(customerLocation, customerEntranceLocationNode.GlobalPosition);
-	}
-
-	[Obsolete]
-	public Vector2[] FindKitchen(Vector2 staffLocation)
-	{
-		return navigation?.GetSimplePath(staffLocation, customerEntranceLocationNode.GlobalPosition); ;
 	}
 
 	public void _onCustomerLeft(Customer customer)
