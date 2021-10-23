@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using System.Linq;
 
 namespace Staff
 {
@@ -33,6 +34,20 @@ namespace Staff
         {
         }
 
+        void BeFree()
+        {
+            goalOrderId = -1;
+            currentGoal = Goal.None;
+            if (cafe.orders.Any())
+            {
+                currentGoal = Goal.TakeFood;
+                goalOrderId = cafe.orders[0];
+                Vector2[] temp;
+                cafe.FindClosestFurniture<Kitchen.Fridge>(Position, out temp);
+                PathToTheTarget = temp;
+                cafe.orders.RemoveAt(0);
+            }
+        }
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
@@ -58,9 +73,8 @@ namespace Staff
                     break;
                 case Goal.GiveFood:
                     cafe.OnOrderComplete(goalOrderId);
-                    goalOrderId = -1;
-                    currentGoal = Goal.None;
-                    cafe.OnCookIsFree(this);
+
+                    BeFree();
                     //seek next task
                     //cook is idling
                     break;

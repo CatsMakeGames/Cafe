@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using System.Linq;
 
 namespace Staff
 {
@@ -44,8 +45,34 @@ namespace Staff
             //forget about this customer
             currentCustomer = null;
             //since cafe is refenced for using node functions anyway, no need to use signals
-            cafe.OnWaiterIsFree(this);
+            if (cafe.completedOrders.Any())
+            {
+                changeTask(cafe.Furnitures[cafe.completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (cafe.Furnitures[cafe.completedOrders[0]] as Table).CurrentCustomer);
+                cafe.completedOrders.RemoveAt(0);
+            }
+
+            //search through the list and find tasks that can be completed
+            else if (cafe.tablesToTakeOrdersFrom.Any())
+            {
+                changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
+                cafe.tablesToTakeOrdersFrom.RemoveAt(0);
+            }
+
+            else
+            {
+                //move waiter to "staff location"
+                PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                CurrentGoal = Goal.Leave;
+            }
         }
+
+        void changeTask(Vector2 target, Waiter.Goal goal, Customer customer)
+        {
+            PathToTheTarget = cafe.navigation.GetSimplePath(Position, target) ?? throw new NullReferenceException("Failed to find path to the task!");
+            CurrentGoal = goal;
+            currentCustomer = customer;
+        }
+
 
 
         protected override async void onArrivedToTheTarget()

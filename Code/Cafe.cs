@@ -131,7 +131,7 @@ public class Cafe : Node2D
 	/**<summary>Navigation tilemap used for the cafe<para/>Set unwalkable areas to -1 and walkable to 0</summary>*/
 	public TileMap NavigationTilemap => navigationTilemap;
 
-	protected Navigation2D navigation;
+	public Navigation2D navigation;
 
 	#region LocationNodes
 	[Obsolete("Use LocationNodes instead")]
@@ -171,10 +171,10 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	protected Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
 	protected UI.StoreMenu storeMenu;
@@ -187,7 +187,7 @@ public class Cafe : Node2D
 
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
-	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
 	#endregion
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
@@ -386,6 +386,10 @@ public class Cafe : Node2D
 									CurrentlyMovedItem.UpdateNavigation(false);
 									CurrentlyMovedItem.Position = loc;
 									CurrentlyMovedItem.UpdateNavigation(true);
+
+									/*
+									 * Reset any person trying to get to this item
+									 */
 									CurrentlyMovedItem = null;
 									return;
 								}
@@ -442,49 +446,6 @@ public class Cafe : Node2D
 		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
 		return customer;
-	}
-
-	public void OnWaiterIsFree(Waiter waiter)
-	{
-		void changeTask(Vector2 target,Waiter.Goal goal,Customer customer)
-		{
-			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position,target) ?? throw new NullReferenceException("Failed to find path to the table!");
-			waiter.CurrentGoal = goal;
-			waiter.currentCustomer = customer;
-		}
-
-		if (completedOrders.Any())
-		{
-			changeTask(Furnitures[completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (Furnitures[completedOrders[0]] as Table).CurrentCustomer);
-			completedOrders.RemoveAt(0);
-		}
-			
-		//search through the list and find tasks that can be completed
-		else if (tablesToTakeOrdersFrom.Any())
-		{
-			changeTask(Furnitures[tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (Furnitures[tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
-			tablesToTakeOrdersFrom.RemoveAt(0);
-		}
-
-		else
-		{
-			//move waiter to "staff location"
-			waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
-			waiter.CurrentGoal = Waiter.Goal.Leave;
-		}
-	}
-
-	public void OnCookIsFree(Cook cook)
-	{
-		if(orders.Any())
-		{
-			cook.currentGoal = Cook.Goal.TakeFood;
-			cook.goalOrderId = orders[0];
-			Vector2[] temp;
-			FindClosestFurniture<Fridge>(cook.Position, out temp);
-			cook.PathToTheTarget = temp;
-			orders.RemoveAt(0);
-		}
 	}
 
 	public void OnOrderComplete(int orderId)
