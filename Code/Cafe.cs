@@ -55,6 +55,9 @@ public class Cafe : Node2D
 	[Export]
 	public int GridSize = 32;
 
+	/**<summary>2^n = GridSize</summary>*/
+	public int gridSizeP2;
+
 	[Export(PropertyHint.Layers2dPhysics)]
 	public int ClickTaken = 0;
 
@@ -62,6 +65,12 @@ public class Cafe : Node2D
 	public StoreItemData currentPlacingItem = null;
 
 	public bool ShouldProcessMouse => ClickTaken == 0;
+
+	/**<summary>Item currently being moved around by player</summary>*/
+	public Furniture CurrentlyMovedItem = null;
+
+	/**<summary>Location where currently moved item was taken from</summary>*/
+	protected Vector2 movedItemStartLocation;
 
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
@@ -197,6 +206,9 @@ public class Cafe : Node2D
 		base._Ready();
 		//SpawnCustomer();
 
+	
+		gridSizeP2 = (int)Math.Log(GridSize, 2);
+		GD.Print(gridSizeP2);
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
 		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
@@ -290,7 +302,12 @@ public class Cafe : Node2D
 		{
 			return;
 		}
-		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
+		//if we convert to int -> divide by grid size -> multiply by grid size we get location converted to grid
+		//for small speed benefit it bitshifts to the right to divide by two( int)GetLocalMousePosition().x  >> gridSizeP2 is same as int)GetLocalMousePosition().x /GridSize)
+		//and them bitshifts to the left to multiply by gridSize again
+		//2^gridSizeP2 = GridSize
+		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
+		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2, ((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2) ;
 		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
 		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
 
@@ -316,11 +333,11 @@ public class Cafe : Node2D
 				var size = Furnitures.Last().Size;
 				var pos = Furnitures.Last().Position;
 				//calculate before hand to avoid recalculating each iteration
-				int width = ((int)(size.x + pos.x)) >> 5;
-				int height = ((int)(size.y + pos.y)) >> 5;
-				for (int x = ((int)(pos.x)) >> 5/*convert location to tilemap location*/; x < width; x++)
+				int width = ((int)(size.x + pos.x)) >> gridSizeP2;
+				int height = ((int)(size.y + pos.y)) >> gridSizeP2;
+				for (int x = ((int)(pos.x)) >> gridSizeP2/*convert location to tilemap location*/; x < width; x++)
 				{
-					for (int y = ((int)(pos.y)) >> 5; y < height; y++)
+					for (int y = ((int)(pos.y)) >> gridSizeP2; y < height; y++)
 					{
 						navigationTilemap.SetCell(x, y, -1);
 					}
@@ -337,12 +354,17 @@ public class Cafe : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
-
+		if(Input.IsActionJustPressed("movemode"))
+		{
+			if(CurrentState == State.Idle)
+				CurrentState = State.Moving;
+			return;
+		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
 			if (@event is InputEventMouseButton mouseEvent)
 			{
-				if (!pressed)
+				if (!pressed && mouseEvent.Pressed)
 				{
 					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 					{
@@ -351,6 +373,41 @@ public class Cafe : Node2D
 						{
 							case State.Building:
 								PlaceNewFurniture();
+								break;
+							case State.Moving:
+								//first we allow player to select furniture to move
+								if (CurrentlyMovedItem != null)
+								{
+									GD.Print("placing item");
+									//make this be new place
+									var loc = CurrentlyMovedItem.Position;
+									CurrentlyMovedItem.Position = movedItemStartLocation;
+									//clear old place
+									CurrentlyMovedItem.UpdateNavigation(false);
+									CurrentlyMovedItem.Position = loc;
+									CurrentlyMovedItem.UpdateNavigation(true);
+									CurrentlyMovedItem = null;
+									return;
+								}
+								else
+								{
+									Vector2 mouseLoc = new Vector2
+										(
+											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+										);
+									//find based on click
+									//because items are not ordered based on the grid by rather based on the placement order
+									//we have to use basic iteration search
+									var arr = Furnitures.Where(p => (new Rect2(p.Position, p.Size).HasPoint(mouseLoc)));
+									if (arr.Any())
+									{
+										//take first element and work with it
+										CurrentlyMovedItem = arr.ElementAt(0);
+										movedItemStartLocation = CurrentlyMovedItem.Position;
+										GD.Print($"Started to move item: {CurrentlyMovedItem}");
+									}
+								}
 								break;
 							default:
 								break;
@@ -362,6 +419,18 @@ public class Cafe : Node2D
 				else if (!mouseEvent.Pressed)
 				{
 					pressed = false;
+				}
+			}
+			if (@event is InputEventMouseMotion motionEvent)
+			{
+				if (CurrentlyMovedItem != null)
+				{
+					CurrentlyMovedItem.Position = new Vector2
+										(
+											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+										);
+
 				}
 			}
 		}
@@ -606,5 +675,9 @@ public class Cafe : Node2D
 	{
 		exitToIdleModeButton.Visible = false;
 		currentState = State.Idle;
+		if(CurrentlyMovedItem != null)
+		{
+			CurrentlyMovedItem = null;
+		}
 	}
 }
