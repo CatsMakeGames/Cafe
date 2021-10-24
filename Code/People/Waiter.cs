@@ -22,6 +22,8 @@ namespace Staff
             /**<summary>Leave to the staff room(or kitchen)<para/>This goal can be overriten at any time</summary>*/
             Leave
         }
+        /**<summary>Current order that waiter is carrying.<para/>Used for when order is canceled</summary>*/
+        public int currentOrder = -1;
 
         public Goal CurrentGoal = Goal.None;
 
@@ -36,6 +38,59 @@ namespace Staff
         public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
+        }
+
+        public override void ResetOrCancelGoal(bool forceCancel = false)
+        {
+            base.ResetOrCancelGoal(forceCancel);
+            switch (CurrentGoal)
+            {
+                case Goal.DeliverOrder:
+                    //this means that person who ordered their food has been moved or lost their table
+
+                    //customer has been left table-less
+                    if (currentCustomer.CurrentTableId == -1 || forceCancel)
+                    {
+                        cafe.completedOrders.Add(currentOrder);
+                        BeFree();
+                    }
+                    else
+                    {
+                        PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+                    }
+                    break;
+                case Goal.TakeOrder:
+                    if (currentCustomer != null)
+                    {
+                        //table was moved and no other were found
+                        if (currentCustomer.CurrentTableId == -1 || forceCancel)
+                        {
+                            currentCustomer = null;
+                            BeFree();
+                        }
+                        else
+                        {
+                            PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+                        }
+                    }
+                    break;
+                    //those two tasks are for going towards kitchen
+                case Goal.AcquireOrder:
+                case Goal.PassOrder:
+                    if (forceCancel)
+                    {
+                        //this goal is not meant to be reset in this version of the game  and as such this does nothing
+                        GD.PrintErr("Warning: Attempted to cancel task when going towards kitchen. This should not happen and will be ignored");
+                    }
+                    else
+                    {
+                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    }
+                    break;
+                default:
+                    //it's not like we were doing anything anyway
+                    break;
+            }
         }
 
         private void BeFree()

@@ -33,7 +33,7 @@ public class Customer : Person
     [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
-    public void FindAndMoveToTheTable()
+    public bool FindAndMoveToTheTable()
     {
         //find table to move to
         var table = cafe.FindClosestFurniture<Table>(position, out pathToTheTarget);
@@ -42,6 +42,7 @@ public class Customer : Person
         {
             CurrentTableId = cafe.Furnitures.IndexOf(table);
             table.CurrentState = Table.State.InUse;
+            return true;
             /* Line2D pathLine = new Line2D();
              System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
              path.RemoveAt(0);
@@ -49,6 +50,7 @@ public class Customer : Person
              pathLine.ShowOnTop = true;
              cafe.AddChild(pathLine);*/
         }
+        return false;
     }
 
     private async void eat()

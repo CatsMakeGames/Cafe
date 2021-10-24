@@ -29,6 +29,12 @@ public class Person : CafeObject
     /**<summary>ID of the current location from pathToTheTarget</summary>*/
     protected int pathId = 0;
 
+    /**<summary>Forces ai to either find a new furniture for the goal or to cancel task if none were found</summary>*/
+    public virtual void ResetOrCancelGoal(bool forceCancel = false)
+    {
+
+    }
+
     public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
     {
         //load speed from the table

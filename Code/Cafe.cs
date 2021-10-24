@@ -451,15 +451,15 @@ public class Cafe : Node2D
 	public void OnOrderComplete(int orderId)
 	{
 		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None);
-		if (!freeWaiters.Any())
+		var freeWaiter = waiters.First(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+		if (freeWaiter == null)
 		{
 			completedOrders.Add(orderId);
 		}
 		else
 		{
 			//find customer target
-			var targets = people.Where
+			var target = people.First
 				(
 					p =>
 					{
@@ -470,12 +470,12 @@ public class Cafe : Node2D
 						return false;
 					}
 				);
-			if (targets.Any())
+			if (target != null)
 			{
-				var waiter = freeWaiters.First();
-				waiter.CurrentGoal = Waiter.Goal.AcquireOrder;
-				waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
-				waiter.currentCustomer = targets.First() as Customer;
+				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
+				freeWaiter.currentOrder = orderId;
+				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
+				freeWaiter.currentCustomer = target as Customer;
 			}
 		}
 	}
@@ -539,7 +539,7 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
 	{
-		var unSittedCustomers = people.Where
+		var unSittedCustomer = people.First
 				(
 					p =>
 					{
@@ -550,9 +550,9 @@ public class Cafe : Node2D
 						return false;
 					}
 				);
-		if(unSittedCustomers.Any())
+		if(unSittedCustomer != null)
 		{
-			(unSittedCustomers.First() as Customer).FindAndMoveToTheTable();
+			(unSittedCustomer as Customer).FindAndMoveToTheTable();
 		}
 		else if(QueuedNotSpawnedCustomersCount > 0)
 		{

@@ -16,6 +16,23 @@ public class Table : Furniture
 
     public Customer CurrentCustomer;
 
+    public override void ResetUserPaths()
+    {
+        base.ResetUserPaths();
+        if(CurrentState == State.InUse)
+        {
+            CurrentState = State.Free;
+        }
+        if (CurrentCustomer != null)
+        {
+            //make customer look for new table and go back to queue if none are found
+            if (!CurrentCustomer.FindAndMoveToTheTable())
+            {
+                throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
+            }
+        }
+    }
+
     public override bool CanBeUsed => CurrentState == State.Free;
 
     /**<summary>

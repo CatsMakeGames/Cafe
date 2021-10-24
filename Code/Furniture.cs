@@ -17,6 +17,9 @@ public class Furniture : CafeObject
 
     protected int level;
 
+    /**<summary>Person who is actively using this furniture<para/>If this is an applience this is meant for recording staff</summary>*/
+    public Person CurrentUser = null;
+
     public int Level
     {
         get => level;
@@ -39,6 +42,15 @@ public class Furniture : CafeObject
         category = _category;
     }
 
+    /**<summary>Forces any ai user to find a new furniture of the same type</summary>*/
+    public virtual void ResetUserPaths()
+    {
+        if(CurrentUser != null)
+        {
+            CurrentUser.ResetOrCancelGoal();
+        }
+    }
+
     /**<summary>Updates cafe navigation tiles
      * </summary><param name="clear">If true navigation tiles are removed</param>
      */
@@ -56,7 +68,8 @@ public class Furniture : CafeObject
                 cafe.NavigationTilemap.SetCell(x, y, tile);
             }
         }
-        
+        //force any using ai to get reset
+        ResetUserPaths();
     }
 
     public override void Destroy()
