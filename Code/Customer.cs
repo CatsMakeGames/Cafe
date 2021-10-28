@@ -94,8 +94,12 @@ public class Customer : Person
         if (!ate)
         {
             isAtTheTable = true;
-            //tell cafe that they are ready to order
-            cafe._onCustomerArrivedAtTheTable(this);
+            //check to make sure no waiters are already serving this table
+            if (cafe.Furnitures[CurrentTableId].CurrentUser == null)
+            {
+                //tell cafe that they are ready to order
+                cafe._onCustomerArrivedAtTheTable(this);
+            }
         }
         else
         {
