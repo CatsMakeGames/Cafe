@@ -43,6 +43,12 @@ public class Table : Furniture
 
     public override bool CanBeUsed => CurrentState == State.Free;
 
+    public override void Init()
+    {
+        base.Init();
+        cafe.OnNewTableIsAvailable(this);
+    }
+
     /**<summary>
      * Spawns table object into the world
      * </summary>
@@ -52,6 +58,6 @@ public class Table : Furniture
      * */
     public Table(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category category) :base(texture,size,textureSize,cafe,pos,category)
     {
-        cafe.OnNewTableIsAvailable(this);
+       
     }
 }

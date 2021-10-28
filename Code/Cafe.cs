@@ -262,22 +262,23 @@ public class Cafe : Node2D
 	{
 		var type_fur = typeof(FurnitureType);
 		var apps = Furnitures.Where(p => p.GetType() == type_fur && p.CanBeUsed);
-		if (apps.Any())
+		var furnitures = apps as Furniture[] ?? apps.ToArray();
+		if (furnitures.Any())
 		{
-			float distSq = apps.ElementAt(0).Position.DistanceSquaredTo(pos);
+			float distSq = furnitures.ElementAt(0).Position.DistanceSquaredTo(pos);
 			float dist = 0;
 			int smallestId = 0;
-			for (int i = 1; i < apps.Count(); i++)
+			for (int i = 1; i < furnitures.Count(); i++)
 			{
-				dist = apps.ElementAt(i).Position.DistanceSquaredTo(pos);
+				dist = furnitures.ElementAt(i).Position.DistanceSquaredTo(pos);
 				if (distSq >= dist)
 				{
 					distSq = dist;
 					smallestId = i;
 				}
 			}
-			path = navigation?.GetSimplePath(pos, apps.ElementAt(smallestId).Position) ?? null;
-			return apps.ElementAt(smallestId) as FurnitureType;
+			path = navigation?.GetSimplePath(pos, furnitures.ElementAt(smallestId).Position) ?? null;
+			return furnitures.ElementAt(smallestId) as FurnitureType;
 		}
 		path = null;
 		return null;
@@ -328,11 +329,11 @@ public class Cafe : Node2D
 									endLoc,
 									currentPlacingItem.FurnitureCategory
 								) as Furniture);
-
+				Furniture lastFur = Furnitures.Last();
 				//clear tilemap underneath
 				//tilemap is 32x32
-				var size = Furnitures.Last().Size;
-				var pos = Furnitures.Last().Position;
+				var size = lastFur.Size;
+				var pos = lastFur.Position;
 				//calculate before hand to avoid recalculating each iteration
 				int width = ((int)(size.x + pos.x)) >> gridSizeP2;
 				int height = ((int)(size.y + pos.y)) >> gridSizeP2;
@@ -344,6 +345,7 @@ public class Cafe : Node2D
 					}
 				}
 
+				lastFur.Init();
 			}
 			catch (Exception e)
 			{
@@ -359,6 +361,8 @@ public class Cafe : Node2D
 		{
 			if(CurrentState == State.Idle)
 				CurrentState = State.Moving;
+			else if (currentState == State.Moving)
+				currentState = State.Idle;
 			return;
 		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
@@ -548,27 +552,34 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
 	{
-		var unSittedCustomer = people.First
-				(
-					p =>
+		try
+		{
+			var unSittedCustomer = people.First
+			(
+				p =>
+				{
+					if (p is Customer customer)
 					{
-						if (p is Customer customer)
-						{
-							return !customer.IsAtTheTable && !customer.Eating;
-						}
-						return false;
+						return !customer.IsAtTheTable && !customer.Eating;
 					}
-				);
-		if(unSittedCustomer != null)
-		{
-			(unSittedCustomer as Customer).FindAndMoveToTheTable();
+
+					return false;
+				}
+			);
+			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
 		}
-		else if(QueuedNotSpawnedCustomersCount > 0)
+		catch (System.InvalidOperationException e)
 		{
-			SpawnCustomer().FindAndMoveToTheTable();
-			QueuedNotSpawnedCustomersCount--;
+			//no unsitted customers and spawned customers were found
+			if (QueuedNotSpawnedCustomersCount > 0)
+			{
+				SpawnCustomer().FindAndMoveToTheTable();
+				QueuedNotSpawnedCustomersCount--;
+			}
 		}
 	}
+	
+
 
 	public void OnCustomerServed(Customer customer)
 	{

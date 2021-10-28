@@ -48,6 +48,12 @@ public class CafeObject : Godot.Object
         }
     }
 
+    /**<summary>Custom alternative to _Ready.<para/>Meant to be called by whatever class spawns the object to notify that that class has finished spawning it</summary>*/
+    public virtual void Init()
+    {
+        
+    }
+
     public virtual void Destroy()
     {
         GD.Print($"{ToString()}: Destroyed");
