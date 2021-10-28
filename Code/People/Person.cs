@@ -3,7 +3,7 @@ using System;
 
 public class Person : CafeObject
 {
-    protected float movementSpeed = 20;
+    protected float movementSpeed = 2;
 
     protected float actionSpeed = 1;
 

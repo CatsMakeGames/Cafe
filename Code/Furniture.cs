@@ -15,6 +15,10 @@ public class Furniture : CafeObject
         Toilet = 1 << 4
     }
 
+    protected bool isInUse = false;
+
+    public virtual bool IsInUse => false;
+
     protected int level;
 
     /**<summary>Person who is actively using this furniture<para/>If this is an applience this is meant for recording staff</summary>*/

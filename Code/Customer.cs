@@ -37,18 +37,23 @@ public class Customer : Person
     {
         //find table to move to
         var table = cafe.FindClosestFurniture<Table>(position, out pathToTheTarget);
-
+        pathId = 0;
         if (table != null)
         {
             CurrentTableId = cafe.Furnitures.IndexOf(table);
             table.CurrentState = Table.State.InUse;
+            
+            table.CurrentCustomer = this;
+            //handle table being moved via build mode
+            if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
+            {
+                isAtTheTable = false;
+            }
+            else if(isAtTheTable)
+            {
+                GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
+            }
             return true;
-            /* Line2D pathLine = new Line2D();
-             System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
-             path.RemoveAt(0);
-             pathLine.Points = path.ToArray();
-             pathLine.ShowOnTop = true;
-             cafe.AddChild(pathLine);*/
         }
         return false;
     }

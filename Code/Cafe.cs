@@ -25,6 +25,7 @@ public class Cafe : Node2D
 		UsingMenu
 	}
 
+	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -458,8 +459,10 @@ public class Cafe : Node2D
 		}
 		else
 		{
-			//find customer target
-			var target = people.First
+			try
+			{
+				//find customer target
+				var target = people.First
 				(
 					p =>
 					{
@@ -467,15 +470,19 @@ public class Cafe : Node2D
 						{
 							return customer.OrderId == orderId && customer.IsAtTheTable && !customer.Eating;
 						}
+
 						return false;
 					}
 				);
-			if (target != null)
-			{
 				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
 				freeWaiter.currentOrder = orderId;
 				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
 				freeWaiter.currentCustomer = target as Customer;
+
+			}
+			catch (InvalidOperationException e)
+			{
+				//no fitting customers were found
 			}
 		}
 	}
@@ -520,9 +527,11 @@ public class Cafe : Node2D
 			else
 			{
 				var waiter = freeWaiters.ElementAt(0);
+				var table = (Furnitures[customer.CurrentTableId] as Table);
 				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				waiter.currentCustomer = (Furnitures[customer.CurrentTableId] as Table).CurrentCustomer;
+				waiter.currentCustomer = table.CurrentCustomer;
+				table.CurrentUser = waiter;
 			}
 		}
 	}
@@ -573,32 +582,38 @@ public class Cafe : Node2D
 		*/
 		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
 	}
+
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
 		//CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
-
-		if (people.Any())
+		if (!Paused)
 		{
-			foreach (Person person in people)
+			if (people.Any())
 			{
-				if (IsInstanceValid(person))
+				foreach (Person person in people)
 				{
-					if (person.ShouldUpdate)
-						person.Update(delta);
+					if (IsInstanceValid(person))
+					{
+						if (person.ShouldUpdate)
+							person.Update(delta);
+					}
 				}
 			}
+
 			for (int i = people.Count - 1; i >= 0; i--)
 			{
 				if (IsInstanceValid(people[i]) && !people[i].Valid)
 				{
-					if(IsInstanceValid(people[i])) 
+					if (IsInstanceValid(people[i]))
 						people[i].Destroy();
 					people.RemoveAt(i);
 				}
 			}
 		}
+
 	}
+
 	private void _on_CustomerSpawnTimer_timeout()
 	{
 		var cust = people.Where

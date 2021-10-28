@@ -12,6 +12,8 @@ public class Table : Furniture
     }
     public State CurrentState = State.Free;
 
+    public override bool IsInUse => CurrentState == State.InUse;
+
     protected Vector2 tableTextureSize;
 
     public Customer CurrentCustomer;
@@ -25,9 +27,15 @@ public class Table : Furniture
         }
         if (CurrentCustomer != null)
         {
+            //temporary value so we could still call the customer fucns
+            var temp = CurrentCustomer;
+            //clear it out to avoid stuck references and if this table is selected again customer will update this value itself
+            CurrentCustomer = null;
             //make customer look for new table and go back to queue if none are found
-            if (!CurrentCustomer.FindAndMoveToTheTable())
+            if (!temp.FindAndMoveToTheTable())
             {
+                //If customer has to wait back in the queue then waiter has to be reset
+                CurrentUser.ResetOrCancelGoal(true);
                 throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
             }
         }
