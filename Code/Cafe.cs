@@ -25,6 +25,9 @@ public class Cafe : Node2D
 		UsingMenu
 	}
 
+	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
+	private RID _placementPreviewTextureRID;
+
 	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
@@ -90,6 +93,22 @@ public class Cafe : Node2D
 			if (currentState != State.Building)
 			{
 				currentPlacingItem = null;
+				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+			}
+			else if(currentState == State.Building && currentPlacingItem != null)
+			{
+				VisualServer.CanvasItemAddTextureRect
+			(
+				_placementPreviewTextureRID,
+				new Rect2(new Vector2(0, 0),
+				new Vector2(128, 128)),
+				Textures[currentPlacingItem.TextureName].GetRid(),
+				true,
+				new Color(155, 0, 0),
+				false,
+				Textures[currentPlacingItem.TextureName].GetRid()
+			);
+				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, true);
 			}
 			if (currentState != State.UsingMenu)
 			{
@@ -216,7 +235,7 @@ public class Cafe : Node2D
 		base._Ready();
 		//SpawnCustomer();
 
-	
+
 		gridSizeP2 = (int)Math.Log(GridSize, 2);
 		GD.Print(gridSizeP2);
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
@@ -255,10 +274,26 @@ public class Cafe : Node2D
 			cooks.Add(cook);
 		}
 
-		foreach(var node in GetTree().GetNodesInGroup("MouseBlock"))
+		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
+
+		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
+		VisualServer.CanvasItemAddTextureRect
+			(
+				_placementPreviewTextureRID,
+				new Rect2(new Vector2(0, 0),
+				new Vector2(128, 128)),
+				TableTexture.GetRid(),
+				true,
+				new Color(155, 0, 0),
+				false,
+				TableTexture.GetRid()
+			);
+		VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+		VisualServer.CanvasItemSetParent(_placementPreviewTextureRID, GetCanvasItem());
+		VisualServer.CanvasItemSetZIndex(_placementPreviewTextureRID, (int)ZOrderValues.MAX);
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -323,8 +358,8 @@ public class Cafe : Node2D
 				((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2,
 				((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2
 			);
-		//TODO: size of the  rect should be determined from the settings
-		Rect2 rect2 = new Rect2(endLoc, new Vector2(128, 128));
+		
+		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 
 		if (!fur.Any())
@@ -337,7 +372,7 @@ public class Cafe : Node2D
 								(
 									type,
 									Textures[currentPlacingItem.TextureName],
-									new Vector2(128, 128),//TODO: make this dynamic you fool
+									currentPlacingItem.Size,
 									Textures[currentPlacingItem.TextureName].GetSize(),
 									this,
 									endLoc,
@@ -631,6 +666,36 @@ public class Cafe : Node2D
 					people.RemoveAt(i);
 				}
 			}
+		}
+		else if (currentState == State.Building)
+		{
+			//notexactly happy with this check running nearly every frame
+			//but testing shows that is has not much effect on the performance
+			Vector2 endLoc = new Vector2
+			(
+				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+			);
+
+			Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
+			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
+			if (!fur.Any())
+			{
+				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(0, 1, 0));
+			}
+			else
+			{
+				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(1, 0, 0));
+			}
+			VisualServer.CanvasItemSetTransform(_placementPreviewTextureRID, new Transform2D
+				(
+					0,
+					new Vector2
+					(
+						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+					)
+				));
 		}
 
 	}

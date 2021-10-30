@@ -1,5 +1,5 @@
-id;name;textureName;category;price;class;mainCategory
-1;Stove;Stove;3;454;Kitchen.Stove;3
-2;Fridge;Fridge;3;454;Kitchen.Fridge;3
-5;Table;Table;1|2;865;Table;2
+id;name;textureName;category;price;class;mainCategory,sizex;sizey
+1;Stove;Stove;3;454;Kitchen.Stove;3;128;128
+2;Fridge;Fridge;3;454;Kitchen.Fridge;3;128;128
+5;Table;Table;1|2;865;Table;2;128;128
 
