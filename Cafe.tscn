@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -14,6 +14,9 @@
 [ext_resource path="res://Code/UI/Store/StoreMenu.cs" type="Script" id=12]
 [ext_resource path="res://Code/UI/MouseBlockArea.cs" type="Script" id=13]
 [ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=14]
+[ext_resource path="res://Art/UI/Stove.tres" type="Texture" id=15]
+[ext_resource path="res://MouseLocl.gd" type="Script" id=16]
+[ext_resource path="res://Art/UI/Fridge.tres" type="Texture" id=17]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -85,12 +88,13 @@ layer = 2
 follow_viewport_enable = true
 
 [node name="CustomerCountLabel" type="Label" parent="UI"]
-margin_left = 8.0
-margin_top = -208.0
-margin_right = 98.0
-margin_bottom = -194.0
+margin_left = 4.76837e-07
+margin_top = -88.0
+margin_right = 90.0
+margin_bottom = -74.0
 rect_scale = Vector2( 5, 5 )
 text = "asdadasdadfdf"
+script = ExtResource( 16 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -104,16 +108,38 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 categoryFont = ExtResource( 14 )
+_iconTextures = [ ExtResource( 15 ), ExtResource( 17 ) ]
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UI/StoreMenu"]
-margin_top = 80.0
-margin_right = 704.0
-margin_bottom = 704.0
+margin_right = 1024.0
+margin_bottom = 576.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/StoreMenu/ScrollContainer"]
+margin_right = 1024.0
+margin_bottom = 192.0
+rect_min_size = Vector2( 192, 192 )
+size_flags_horizontal = 3
+custom_constants/separation = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="UI/StoreMenu/ScrollContainer/VBoxContainer"]
+margin_right = 1024.0
+margin_bottom = 192.0
+rect_min_size = Vector2( 384, 192 )
+size_flags_vertical = 0
+
+[node name="Button" type="Button" parent="UI/StoreMenu/ScrollContainer/VBoxContainer/HBoxContainer"]
+margin_right = 510.0
+margin_bottom = 192.0
+size_flags_horizontal = 3
+
+[node name="Button3" type="Button" parent="UI/StoreMenu/ScrollContainer/VBoxContainer/HBoxContainer"]
+margin_left = 514.0
+margin_right = 1024.0
+margin_bottom = 192.0
+size_flags_horizontal = 3
 
 [node name="MenuArea" type="Control" parent="UI" groups=[
 "MouseBlock",

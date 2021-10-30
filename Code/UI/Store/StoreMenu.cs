@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Linq;
+using Godot.Collections;
 
 namespace UI
 {
@@ -19,6 +20,23 @@ namespace UI
 
 		Godot.Collections.Array<StoreItemData> data = new Godot.Collections.Array<StoreItemData>();
 
+		[Export()] 
+		private Godot.Collections.Array<Texture> _iconTextures = new Array<Texture>();
+
+		Texture this[string name]
+		{
+			get
+			{
+				try
+				{
+					return _iconTextures.First(p => p.ResourceName == name);
+				}
+				catch (InvalidOperationException e)
+				{
+					return null;
+				}
+			}
+		}
 		/**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/
 		bool savePurchaseData()
 		{
@@ -85,27 +103,45 @@ namespace UI
 					itemContainer.AddChild(name);
 					//make horizontal container
 					HBoxContainer container = new HBoxContainer();
+					container.RectMinSize = new Vector2(192, 192);
 					itemContainer.AddChild(container);
+					int elemCount = 0;
 					foreach (var item in arr)
-                    {
-						//make this a custom class that can store additional data
-						UI.StoreMenuItemButton button = new UI.StoreMenuItemButton();
-						button.TextureNormal = cafe.Textures[item.TextureName] ?? cafe.TableTexture;
-						button.ItemData = item;
-						button.ParentMenu = this;
-						if(!purchasedItems.Contains(item.tableId))
-							button.Modulate = Color.Color8(125,125,125);
+					{
+						UI.StoreMenuItemButton button = new UI.StoreMenuItemButton
+						{
+							MouseDefaultCursorShape = CursorShape.PointingHand,
+							ItemData = item,
+							ParentMenu = this
+						};
+						TextureRect buttonIcon = new TextureRect
+						{
+							MouseFilter = MouseFilterEnum.Ignore,
+							Texture = this["UI_Icon_" + item.TextureName] ?? cafe.TableTexture
+						};
+						button.AddChild(buttonIcon);
+						button.RectMinSize = new Vector2(192, 192);
+						//button.RectSize = new Vector2(192, 192);
+						button.SizeFlagsHorizontal |= (int)SizeFlags.Expand;
+	                    if(!purchasedItems.Contains(item.tableId))
+							//{button.Modulate = Color.Color8(125,125,125);}
+						{button.Modulate = Color.Color8(125,0,0);}
 						container.AddChild(button);
 						//price tag
-						Label price = new Label();
-						price.Text = item.Price.ToString();
+						Label price = new Label
+						{
+							Text = item.Price.ToString(),
+							Align = Label.AlignEnum.Center,
+							Valign = Label.VAlign.Center,
+							MouseFilter = MouseFilterEnum.Ignore
+						};
 						if (categoryFont != null)
 							price.AddFontOverride("font", categoryFont);
-						price.Align = Label.AlignEnum.Center;
-						price.Valign = Label.VAlign.Center;
 						button.AddChild(price);
-
+						elemCount++;
 					}
+
+					container.RectMinSize = new Vector2( 192 * elemCount,192);
                 }
 			}
 			
