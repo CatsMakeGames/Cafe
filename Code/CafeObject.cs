@@ -32,6 +32,8 @@ public class CafeObject : Godot.Object
         }
     }
 
+    public Color TextureColor { set => VisualServer.CanvasItemSetModulate(textureRID, value); }
+
     public CafeObject(Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
     {
         this.cafe = cafe;

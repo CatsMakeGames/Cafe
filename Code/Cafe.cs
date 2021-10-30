@@ -432,19 +432,27 @@ public class Cafe : Node2D
 								//first we allow player to select furniture to move
 								if (CurrentlyMovedItem != null)
 								{
-									GD.Print("placing item");
-									//make this be new place
-									var loc = CurrentlyMovedItem.Position;
-									CurrentlyMovedItem.Position = movedItemStartLocation;
-									//clear old place
-									CurrentlyMovedItem.UpdateNavigation(false);
-									CurrentlyMovedItem.Position = loc;
-									CurrentlyMovedItem.UpdateNavigation(true);
+									//make sure we actually can place this item here
+									if(!Furnitures.Where(p =>
+										(
+											p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+											&& p != CurrentlyMovedItem
+										).Any())
+									{ 
+										GD.Print("placing item");
+										//make this be new place
+										var loc = CurrentlyMovedItem.Position;
+										CurrentlyMovedItem.Position = movedItemStartLocation;
+										//clear old place
+										CurrentlyMovedItem.UpdateNavigation(false);
+										CurrentlyMovedItem.Position = loc;
+										CurrentlyMovedItem.UpdateNavigation(true);
 
-									/*
-									 * Reset any person trying to get to this item
-									 */
-									CurrentlyMovedItem = null;
+										/*
+										 * Reset any person trying to get to this item
+										 */
+										CurrentlyMovedItem = null;
+									}
 									return;
 								}
 								else
@@ -697,7 +705,21 @@ public class Cafe : Node2D
 					)
 				));
 		}
-
+		else if (currentState == State.Moving && CurrentlyMovedItem != null)
+		{
+			if (!Furnitures.Where(p => 
+			(
+			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+			&& p != CurrentlyMovedItem
+			).Any())
+			{
+				CurrentlyMovedItem.TextureColor = new Color(1, 1, 1);
+			}
+			else
+			{
+				CurrentlyMovedItem.TextureColor = new Color(1, 0, 0);
+			}
+		}
 	}
 
 	private void _on_CustomerSpawnTimer_timeout()
