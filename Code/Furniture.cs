@@ -15,6 +15,9 @@ public class Furniture : CafeObject
         Toilet = 1 << 4
     }
 
+    /**<summary>Space that is taken up by this furniture</summary>*/
+    public Rect2 CollisionRect => new Rect2(Position, size);
+
     protected bool isInUse = false;
 
     public virtual bool IsInUse => false;

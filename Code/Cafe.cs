@@ -318,9 +318,14 @@ public class Cafe : Node2D
 		//and them bitshifts to the left to multiply by gridSize again
 		//2^gridSizeP2 = GridSize
 		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
-		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2, ((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2) ;
-		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
-		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
+		Vector2 endLoc = new Vector2
+			(
+				((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2
+			);
+		//TODO: size of the  rect should be determined from the settings
+		Rect2 rect2 = new Rect2(endLoc, new Vector2(128, 128));
+		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 
 		if (!fur.Any())
 		{

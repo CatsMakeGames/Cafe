@@ -18,9 +18,7 @@ namespace Kitchen
         {
             var temp = CurrentUser;
             CurrentUser = null;
-            temp.ResetOrCancelGoal();
-           
-           
+            temp.ResetOrCancelGoal();        
         }
     }
 }
