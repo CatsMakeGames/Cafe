@@ -82,6 +82,15 @@ public class Cafe : Node2D
 		set
 		{
 			currentState = value;
+			if (currentState != State.Moving)
+			{
+				CurrentlyMovedItem = null;
+			}
+
+			if (currentState != State.Building)
+			{
+				currentPlacingItem = null;
+			}
 			if (currentState != State.UsingMenu)
 			{
 				//hide all of the menus
@@ -300,7 +309,7 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
-		if (currentPlacingItem == null || Money < currentPlacingItem.Price)
+		if (currentPlacingItem == null || Money < currentPlacingItem.Price || currentState != State.Building)
 		{
 			return;
 		}
@@ -651,9 +660,10 @@ public class Cafe : Node2D
 	private void _on_StoreButton_toggled(bool button_pressed)
 	{
 		GD.Print("Menu");
-		storeMenu.Visible = button_pressed;
+		
 		if (currentState == State.UsingMenu || currentState == State.Idle )
 		{
+			storeMenu.Visible = button_pressed;
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
 	}

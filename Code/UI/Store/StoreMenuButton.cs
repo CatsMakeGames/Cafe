@@ -15,7 +15,7 @@ namespace UI
             base._Ready();
             Connect("pressed", this, nameof(onPressed));
             //hide the button part of button
-            Flat = true;
+            //Flat = true;
         }
 
         protected void onPressed()
@@ -29,9 +29,10 @@ namespace UI
             //why? your guess is as good as mine, but it could do with how scrollbox thing works
             if ((new Rect2(/*RectPosition.x + */170, 0, 128, 128)).HasPoint(GetLocalMousePosition()))
             {
-                ParentMenu?.OnButtonPressed(ItemData, this);
+               // ParentMenu?.OnButtonPressed(ItemData, this);
             }
-
+            //ignoring that "fix" because ui looks bad either way
+            ParentMenu?.OnButtonPressed(ItemData, this);
             GD.PrintErr
             (
                 $"Mouse: {GetLocalMousePosition()}, Rect: {RectPosition}, Item: {Name}"

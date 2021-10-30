@@ -28,9 +28,9 @@ TableTexture = ExtResource( 3 )
 FloorTexture = ExtResource( 5 )
 FridgeTexture = ExtResource( 8 )
 StoveTexture = ExtResource( 7 )
-currentState = 1
 MaxSpawnedCustomersInQueue = 1
 Textures = {
+"Fridge": ExtResource( 8 ),
 "Furniture": ExtResource( 11 ),
 "Stove": ExtResource( 7 ),
 "Table": ExtResource( 3 )
@@ -123,23 +123,6 @@ margin_bottom = 192.0
 rect_min_size = Vector2( 192, 192 )
 size_flags_horizontal = 3
 custom_constants/separation = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="UI/StoreMenu/ScrollContainer/VBoxContainer"]
-margin_right = 1024.0
-margin_bottom = 192.0
-rect_min_size = Vector2( 384, 192 )
-size_flags_vertical = 0
-
-[node name="Button" type="Button" parent="UI/StoreMenu/ScrollContainer/VBoxContainer/HBoxContainer"]
-margin_right = 510.0
-margin_bottom = 192.0
-size_flags_horizontal = 3
-
-[node name="Button3" type="Button" parent="UI/StoreMenu/ScrollContainer/VBoxContainer/HBoxContainer"]
-margin_left = 514.0
-margin_right = 1024.0
-margin_bottom = 192.0
-size_flags_horizontal = 3
 
 [node name="MenuArea" type="Control" parent="UI" groups=[
 "MouseBlock",

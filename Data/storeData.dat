@@ -1,10 +1,5 @@
 id;name;textureName;category;price;class;mainCategory
 1;Stove;Stove;3;454;Kitchen.Stove;3
-2;Stove2;Fridge;3;454;Kitchen.Stove;3
-3;Stove3;Stove;3;454;Kitchen.Stove;3
-4;Stove2;Fridge;3;454;Kitchen.Stove;3
-2;Stove2;Fridge;3;454;Kitchen.Stove;3
-3;Stove3;Stove;3;454;Kitchen.Stove;3
-4;Stove2;Fridge;3;454;Kitchen.Stove;3
+2;Fridge;Fridge;3;454;Kitchen.Fridge;3
 5;Table;Table;1|2;865;Table;2
 
