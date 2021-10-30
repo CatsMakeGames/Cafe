@@ -105,6 +105,7 @@ namespace UI
 					HBoxContainer container = new HBoxContainer();
 					container.RectMinSize = new Vector2(192, 192);
 					itemContainer.AddChild(container);
+					HBoxContainer currentContainer = container;
 					int elemCount = 0;
 					foreach (var item in arr)
 					{
@@ -126,7 +127,7 @@ namespace UI
 	                    if(!purchasedItems.Contains(item.tableId))
 							//{button.Modulate = Color.Color8(125,125,125);}
 						{button.Modulate = Color.Color8(125,0,0);}
-						container.AddChild(button);
+	                    currentContainer.AddChild(button);
 						//price tag
 						Label price = new Label
 						{
@@ -139,6 +140,13 @@ namespace UI
 							price.AddFontOverride("font", categoryFont);
 						button.AddChild(price);
 						elemCount++;
+						if (elemCount >= 4)
+						{
+							currentContainer = new HBoxContainer();
+							currentContainer .RectMinSize = new Vector2(192, 192);
+							itemContainer.AddChild(currentContainer );
+							elemCount = 0;
+						}
 					}
 
 					container.RectMinSize = new Vector2( 192 * elemCount,192);
