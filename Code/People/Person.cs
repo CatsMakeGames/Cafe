@@ -19,6 +19,9 @@ public class Person : CafeObject
         }
     }
 
+    /**<summary>Applience currently used by this person or null if none are used<para/>Mostly meant for staff that works in the kitchen</summary>*/
+    protected Kitchen.Appliance appliance;
+
     protected bool shouldUpdate = true;
 
     public virtual bool ShouldUpdate => shouldUpdate;
@@ -32,7 +35,6 @@ public class Person : CafeObject
     /**<summary>Forces ai to either find a new furniture for the goal or to cancel task if none were found</summary>*/
     public virtual void ResetOrCancelGoal(bool forceCancel = false)
     {
-
     }
 
     public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)

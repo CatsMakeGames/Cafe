@@ -514,11 +514,7 @@ public class Cafe : Node2D
 			{
 				//cache the refernce to avoid iteration
 				var cook = freeCooks.ElementAt(0);
-				cook.currentGoal = Cook.Goal.TakeFood;
-				cook.goalOrderId = orderId;
-				Vector2[] temp;
-				FindClosestFurniture<Fridge>(cook.Position, out temp);
-				cook.PathToTheTarget = temp;
+				cook.TakeNewOrder(orderId);
 			}
 		}
 	}
