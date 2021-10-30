@@ -11,5 +11,14 @@ namespace Kitchen
         {
             
         }
+
+        /**<summary>Forces any ai user to find a new furniture of the same type<para/>
+         * Because there is no difference between which applience should ai use it's easier to just clear user each time</summary>*/
+        public override void ResetUserPaths()
+        {
+            var temp = CurrentUser;
+            CurrentUser = null;
+            temp.ResetOrCancelGoal();        
+        }
     }
 }

@@ -32,6 +32,8 @@ public class CafeObject : Godot.Object
         }
     }
 
+    public Color TextureColor { set => VisualServer.CanvasItemSetModulate(textureRID, value); }
+
     public CafeObject(Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
     {
         this.cafe = cafe;
@@ -46,6 +48,12 @@ public class CafeObject : Godot.Object
             VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
             VisualServer.CanvasItemSetZIndex(textureRID, zorder);
         }
+    }
+
+    /**<summary>Custom alternative to _Ready.<para/>Meant to be called by whatever class spawns the object to notify that that class has finished spawning it</summary>*/
+    public virtual void Init()
+    {
+        
     }
 
     public virtual void Destroy()

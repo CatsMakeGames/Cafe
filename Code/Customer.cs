@@ -33,22 +33,29 @@ public class Customer : Person
     [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
-    public void FindAndMoveToTheTable()
+    public bool FindAndMoveToTheTable()
     {
         //find table to move to
         var table = cafe.FindClosestFurniture<Table>(position, out pathToTheTarget);
-
+        pathId = 0;
         if (table != null)
         {
             CurrentTableId = cafe.Furnitures.IndexOf(table);
             table.CurrentState = Table.State.InUse;
-            /* Line2D pathLine = new Line2D();
-             System.Collections.Generic.List<Vector2> path = new System.Collections.Generic.List<Vector2>(pathToTheTarget);
-             path.RemoveAt(0);
-             pathLine.Points = path.ToArray();
-             pathLine.ShowOnTop = true;
-             cafe.AddChild(pathLine);*/
+            
+            table.CurrentCustomer = this;
+            //handle table being moved via build mode
+            if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
+            {
+                isAtTheTable = false;
+            }
+            else if(isAtTheTable)
+            {
+                GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
+            }
+            return true;
         }
+        return false;
     }
 
     private async void eat()
@@ -87,8 +94,12 @@ public class Customer : Person
         if (!ate)
         {
             isAtTheTable = true;
-            //tell cafe that they are ready to order
-            cafe._onCustomerArrivedAtTheTable(this);
+            //check to make sure no waiters are already serving this table
+            if (cafe.Furnitures[CurrentTableId].CurrentUser == null)
+            {
+                //tell cafe that they are ready to order
+                cafe._onCustomerArrivedAtTheTable(this);
+            }
         }
         else
         {

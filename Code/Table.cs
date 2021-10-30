@@ -12,11 +12,42 @@ public class Table : Furniture
     }
     public State CurrentState = State.Free;
 
+    public override bool IsInUse => CurrentState == State.InUse;
+
     protected Vector2 tableTextureSize;
 
     public Customer CurrentCustomer;
 
+    public override void ResetUserPaths()
+    {
+        base.ResetUserPaths();
+        if(CurrentState == State.InUse)
+        {
+            CurrentState = State.Free;
+        }
+        if (CurrentCustomer != null)
+        {
+            //temporary value so we could still call the customer fucns
+            var temp = CurrentCustomer;
+            //clear it out to avoid stuck references and if this table is selected again customer will update this value itself
+            CurrentCustomer = null;
+            //make customer look for new table and go back to queue if none are found
+            if (!temp.FindAndMoveToTheTable())
+            {
+                //If customer has to wait back in the queue then waiter has to be reset
+                CurrentUser.ResetOrCancelGoal(true);
+                throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
+            }
+        }
+    }
+
     public override bool CanBeUsed => CurrentState == State.Free;
+
+    public override void Init()
+    {
+        base.Init();
+        cafe.OnNewTableIsAvailable(this);
+    }
 
     /**<summary>
      * Spawns table object into the world
@@ -27,6 +58,6 @@ public class Table : Furniture
      * */
     public Table(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category category) :base(texture,size,textureSize,cafe,pos,category)
     {
-        cafe.OnNewTableIsAvailable(this);
+       
     }
 }

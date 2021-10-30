@@ -3,7 +3,7 @@ using System;
 
 public class Person : CafeObject
 {
-    protected float movementSpeed = 20;
+    protected float movementSpeed = 2;
 
     protected float actionSpeed = 1;
 
@@ -19,6 +19,9 @@ public class Person : CafeObject
         }
     }
 
+    /**<summary>Applience currently used by this person or null if none are used<para/>Mostly meant for staff that works in the kitchen</summary>*/
+    protected Kitchen.Appliance appliance;
+
     protected bool shouldUpdate = true;
 
     public virtual bool ShouldUpdate => shouldUpdate;
@@ -28,6 +31,11 @@ public class Person : CafeObject
 
     /**<summary>ID of the current location from pathToTheTarget</summary>*/
     protected int pathId = 0;
+
+    /**<summary>Forces ai to either find a new furniture for the goal or to cancel task if none were found</summary>*/
+    public virtual void ResetOrCancelGoal(bool forceCancel = false)
+    {
+    }
 
     public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
     {

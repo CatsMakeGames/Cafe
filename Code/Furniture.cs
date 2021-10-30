@@ -15,7 +15,17 @@ public class Furniture : CafeObject
         Toilet = 1 << 4
     }
 
+    /**<summary>Space that is taken up by this furniture</summary>*/
+    public Rect2 CollisionRect => new Rect2(Position, size);
+
+    protected bool isInUse = false;
+
+    public virtual bool IsInUse => false;
+
     protected int level;
+
+    /**<summary>Person who is actively using this furniture<para/>If this is an applience this is meant for recording staff</summary>*/
+    public Person CurrentUser = null;
 
     public int Level
     {
@@ -39,19 +49,39 @@ public class Furniture : CafeObject
         category = _category;
     }
 
-    public override void Destroy()
+    /**<summary>Forces any ai user to find a new furniture of the same type</summary>*/
+    public virtual void ResetUserPaths()
     {
+        if(CurrentUser != null)
+        {
+            CurrentUser.ResetOrCancelGoal();
+        }
+    }
+
+    /**<summary>Updates cafe navigation tiles
+     * </summary><param name="clear">If true navigation tiles are removed</param>
+     */
+    public void UpdateNavigation(bool clear)
+    {
+        int tile = clear ? -1 : 0;
         //restore the tilemap
         //calculate before hand to avoid recalculating each iteration
-        int width = ((int)(size.x + position.x)) >> 5;
-        int height = ((int)(size.y + position.y)) >> 5;
-        for (int x = ((int)(position.x)) >> 5/*convert location to tilemap location*/; x < width; x++)
+        int width = ((int)(size.x + position.x)) >> cafe.gridSizeP2;
+        int height = ((int)(size.y + position.y)) >> cafe.gridSizeP2;
+        for (int x = ((int)(position.x)) >> cafe.gridSizeP2/*convert location to tilemap location*/; x < width; x++)
         {
-            for (int y = ((int)(position.y)) >> 5; y < height; y++)
+            for (int y = ((int)(position.y)) >> cafe.gridSizeP2; y < height; y++)
             {
-                cafe.NavigationTilemap.SetCell(x, y, 0);
+                cafe.NavigationTilemap.SetCell(x, y, tile);
             }
         }
+        //force any using ai to get reset
+        ResetUserPaths();
+    }
+
+    public override void Destroy()
+    {
+        UpdateNavigation(true);
         base.Destroy();
     }
 }

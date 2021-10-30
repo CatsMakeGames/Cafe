@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using System.Linq;
 
 namespace Staff
 {
@@ -21,6 +22,8 @@ namespace Staff
             /**<summary>Leave to the staff room(or kitchen)<para/>This goal can be overriten at any time</summary>*/
             Leave
         }
+        /**<summary>Current order that waiter is carrying.<para/>Used for when order is canceled</summary>*/
+        public int currentOrder = -1;
 
         public Goal CurrentGoal = Goal.None;
 
@@ -37,6 +40,59 @@ namespace Staff
             EmitSignal(nameof(OnWaiterIsFree), this);
         }
 
+        public override void ResetOrCancelGoal(bool forceCancel = false)
+        {
+            base.ResetOrCancelGoal(forceCancel);
+            switch (CurrentGoal)
+            {
+                case Goal.DeliverOrder:
+                    //this means that person who ordered their food has been moved or lost their table
+
+                    //customer has been left table-less
+                    if (currentCustomer.CurrentTableId == -1 || forceCancel)
+                    {
+                        cafe.completedOrders.Add(currentOrder);
+                        BeFree();
+                    }
+                    else
+                    {
+                        PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+                    }
+                    break;
+                case Goal.TakeOrder:
+                    if (currentCustomer != null)
+                    {
+                        //table was moved and no other were found
+                        if (currentCustomer.CurrentTableId == -1 || forceCancel)
+                        {
+                            currentCustomer = null;
+                            BeFree();
+                        }
+                        else
+                        {
+                            PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+                        }
+                    }
+                    break;
+                    //those two tasks are for going towards kitchen
+                case Goal.AcquireOrder:
+                case Goal.PassOrder:
+                    if (forceCancel)
+                    {
+                        //this goal is not meant to be reset in this version of the game  and as such this does nothing
+                        GD.PrintErr("Warning: Attempted to cancel task when going towards kitchen. This should not happen and will be ignored");
+                    }
+                    else
+                    {
+                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    }
+                    break;
+                default:
+                    //it's not like we were doing anything anyway
+                    break;
+            }
+        }
+
         private void BeFree()
         {
             //waiter is now free
@@ -44,8 +100,36 @@ namespace Staff
             //forget about this customer
             currentCustomer = null;
             //since cafe is refenced for using node functions anyway, no need to use signals
-            cafe.OnWaiterIsFree(this);
+            if (cafe.completedOrders.Any())
+            {
+                cafe.Furnitures[cafe.completedOrders[0]].CurrentUser = this;
+                changeTask(cafe.Furnitures[cafe.completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (cafe.Furnitures[cafe.completedOrders[0]] as Table).CurrentCustomer);
+                cafe.completedOrders.RemoveAt(0);
+            }
+
+            //search through the list and find tasks that can be completed
+            else if (cafe.tablesToTakeOrdersFrom.Any())
+            {
+                cafe.Furnitures[cafe.completedOrders[0]].CurrentUser = this;
+                changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
+                cafe.tablesToTakeOrdersFrom.RemoveAt(0);
+            }
+
+            else
+            {
+                //move waiter to "staff location"
+                PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                CurrentGoal = Goal.Leave;
+            }
         }
+
+        void changeTask(Vector2 target, Waiter.Goal goal, Customer customer)
+        {
+            PathToTheTarget = cafe.navigation.GetSimplePath(Position, target) ?? throw new NullReferenceException("Failed to find path to the task!");
+            CurrentGoal = goal;
+            currentCustomer = customer;
+        }
+
 
 
         protected override async void onArrivedToTheTarget()

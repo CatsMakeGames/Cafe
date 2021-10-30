@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using System.Linq;
 
 namespace Staff
 {
@@ -33,6 +34,76 @@ namespace Staff
         {
         }
 
+        public void TakeNewOrder(int orderId)
+        {
+            
+            currentGoal = Cook.Goal.TakeFood;
+            goalOrderId = orderId;
+            Vector2[] temp;
+            var fridge = cafe.FindClosestFurniture<Kitchen.Fridge>(Position, out temp);
+            //mark this fridge as used by this cook for movement mode 
+            fridge.CurrentUser = this;
+            PathToTheTarget = temp;
+           
+        }
+
+        void BeFree()
+        {
+            goalOrderId = -1;
+            currentGoal = Goal.None;
+            if (cafe.orders.Any())
+            {
+                TakeNewOrder(cafe.orders[0]);
+                cafe.orders.RemoveAt(0);
+            }
+        }
+
+        public override void ResetOrCancelGoal(bool forceCancel = false)
+        {
+            base.ResetOrCancelGoal(forceCancel);
+            Vector2[] temp = null;
+            bool found = false;
+            switch (currentGoal)
+            {
+                //find new applience and move food there
+                case Goal.CookFood:
+                    //true we found new applience suitable to continue work
+                    var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position, out temp);
+                    if (forceCancel || stove == null)
+                    {
+                        cafe.orders.Add(goalOrderId);
+                        BeFree();
+                    }
+                    else
+                    {
+                        stove.CurrentUser = this;
+                        PathToTheTarget = temp;
+                    }
+                    break;
+                //uninteraptable event(output table is unmoveable because it's not an entity)
+                case Goal.GiveFood:
+                    break;
+                    //unused goal
+                case Goal.PrepareFood:
+                    break;
+                    //the only solution is to find new fridge
+                case Goal.TakeFood:
+                    //true we found new applience suitable to continue work
+                    var fridge = cafe.FindClosestFurniture<Kitchen.Fridge>(Position, out temp);
+                    if (forceCancel || fridge == null)
+                    {
+                        cafe.orders.Add(goalOrderId);
+                        BeFree();
+                    }
+                    else
+                    {
+                        fridge.CurrentUser = this;
+                        PathToTheTarget = temp;
+                    }
+                    break;
+            }
+        }
+
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
@@ -42,7 +113,8 @@ namespace Staff
                 case Goal.TakeFood:
                     await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
                     currentGoal = Goal.CookFood;
-                    cafe.FindClosestFurniture<Kitchen.Stove>(Position,out pathToTheTarget);
+                    var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position,out pathToTheTarget);
+                    stove.CurrentUser = this;
                     pathId = 0;
                     //move to the cutting table
                     break;
@@ -58,9 +130,8 @@ namespace Staff
                     break;
                 case Goal.GiveFood:
                     cafe.OnOrderComplete(goalOrderId);
-                    goalOrderId = -1;
-                    currentGoal = Goal.None;
-                    cafe.OnCookIsFree(this);
+
+                    BeFree();
                     //seek next task
                     //cook is idling
                     break;

@@ -25,6 +25,10 @@ public class Cafe : Node2D
 		UsingMenu
 	}
 
+	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
+	private RID _placementPreviewTextureRID;
+
+	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -55,6 +59,9 @@ public class Cafe : Node2D
 	[Export]
 	public int GridSize = 32;
 
+	/**<summary>2^n = GridSize</summary>*/
+	public int gridSizeP2;
+
 	[Export(PropertyHint.Layers2dPhysics)]
 	public int ClickTaken = 0;
 
@@ -62,6 +69,12 @@ public class Cafe : Node2D
 	public StoreItemData currentPlacingItem = null;
 
 	public bool ShouldProcessMouse => ClickTaken == 0;
+
+	/**<summary>Item currently being moved around by player</summary>*/
+	public Furniture CurrentlyMovedItem = null;
+
+	/**<summary>Location where currently moved item was taken from</summary>*/
+	protected Vector2 movedItemStartLocation;
 
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
@@ -72,6 +85,31 @@ public class Cafe : Node2D
 		set
 		{
 			currentState = value;
+			if (currentState != State.Moving)
+			{
+				CurrentlyMovedItem = null;
+			}
+
+			if (currentState != State.Building)
+			{
+				currentPlacingItem = null;
+				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+			}
+			else if(currentState == State.Building && currentPlacingItem != null)
+			{
+				VisualServer.CanvasItemAddTextureRect
+			(
+				_placementPreviewTextureRID,
+				new Rect2(new Vector2(0, 0),
+				new Vector2(128, 128)),
+				Textures[currentPlacingItem.TextureName].GetRid(),
+				true,
+				new Color(155, 0, 0),
+				false,
+				Textures[currentPlacingItem.TextureName].GetRid()
+			);
+				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, true);
+			}
 			if (currentState != State.UsingMenu)
 			{
 				//hide all of the menus
@@ -122,7 +160,7 @@ public class Cafe : Node2D
 	/**<summary>Navigation tilemap used for the cafe<para/>Set unwalkable areas to -1 and walkable to 0</summary>*/
 	public TileMap NavigationTilemap => navigationTilemap;
 
-	protected Navigation2D navigation;
+	public Navigation2D navigation;
 
 	#region LocationNodes
 	[Obsolete("Use LocationNodes instead")]
@@ -162,10 +200,10 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	protected Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	protected Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
 	protected UI.StoreMenu storeMenu;
@@ -178,7 +216,7 @@ public class Cafe : Node2D
 
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
-	protected Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
+	public Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
 	#endregion
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
@@ -197,6 +235,9 @@ public class Cafe : Node2D
 		base._Ready();
 		//SpawnCustomer();
 
+
+		gridSizeP2 = (int)Math.Log(GridSize, 2);
+		GD.Print(gridSizeP2);
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
 		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
@@ -233,10 +274,26 @@ public class Cafe : Node2D
 			cooks.Add(cook);
 		}
 
-		foreach(var node in GetTree().GetNodesInGroup("MouseBlock"))
+		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
+
+		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
+		VisualServer.CanvasItemAddTextureRect
+			(
+				_placementPreviewTextureRID,
+				new Rect2(new Vector2(0, 0),
+				new Vector2(128, 128)),
+				TableTexture.GetRid(),
+				true,
+				new Color(155, 0, 0),
+				false,
+				TableTexture.GetRid()
+			);
+		VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+		VisualServer.CanvasItemSetParent(_placementPreviewTextureRID, GetCanvasItem());
+		VisualServer.CanvasItemSetZIndex(_placementPreviewTextureRID, (int)ZOrderValues.MAX);
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -249,22 +306,23 @@ public class Cafe : Node2D
 	{
 		var type_fur = typeof(FurnitureType);
 		var apps = Furnitures.Where(p => p.GetType() == type_fur && p.CanBeUsed);
-		if (apps.Any())
+		var furnitures = apps as Furniture[] ?? apps.ToArray();
+		if (furnitures.Any())
 		{
-			float distSq = apps.ElementAt(0).Position.DistanceSquaredTo(pos);
+			float distSq = furnitures.ElementAt(0).Position.DistanceSquaredTo(pos);
 			float dist = 0;
 			int smallestId = 0;
-			for (int i = 1; i < apps.Count(); i++)
+			for (int i = 1; i < furnitures.Count(); i++)
 			{
-				dist = apps.ElementAt(i).Position.DistanceSquaredTo(pos);
+				dist = furnitures.ElementAt(i).Position.DistanceSquaredTo(pos);
 				if (distSq >= dist)
 				{
 					distSq = dist;
 					smallestId = i;
 				}
 			}
-			path = navigation?.GetSimplePath(pos, apps.ElementAt(smallestId).Position) ?? null;
-			return apps.ElementAt(smallestId) as FurnitureType;
+			path = navigation?.GetSimplePath(pos, furnitures.ElementAt(smallestId).Position) ?? null;
+			return furnitures.ElementAt(smallestId) as FurnitureType;
 		}
 		path = null;
 		return null;
@@ -286,13 +344,23 @@ public class Cafe : Node2D
 
 	public void PlaceNewFurniture()
 	{
-		if (currentPlacingItem == null || Money < currentPlacingItem.Price)
+		if (currentPlacingItem == null || Money < currentPlacingItem.Price || currentState != State.Building)
 		{
 			return;
 		}
-		Vector2 endLoc = new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize)) * GridSize;
-		Rect2 rect2 = new Rect2(endLoc, new Vector2(GridSize, GridSize));
-		var fur = Furnitures.Where(p => rect2.Intersects(new Rect2(p.Position, p.Size)));
+		//if we convert to int -> divide by grid size -> multiply by grid size we get location converted to grid
+		//for small speed benefit it bitshifts to the right to divide by two( int)GetLocalMousePosition().x  >> gridSizeP2 is same as int)GetLocalMousePosition().x /GridSize)
+		//and them bitshifts to the left to multiply by gridSize again
+		//2^gridSizeP2 = GridSize
+		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
+		Vector2 endLoc = new Vector2
+			(
+				((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2
+			);
+		
+		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
+		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 
 		if (!fur.Any())
 		{
@@ -304,28 +372,29 @@ public class Cafe : Node2D
 								(
 									type,
 									Textures[currentPlacingItem.TextureName],
-									new Vector2(128, 128),//TODO: make this dynamic you fool
+									currentPlacingItem.Size,
 									Textures[currentPlacingItem.TextureName].GetSize(),
 									this,
 									endLoc,
 									currentPlacingItem.FurnitureCategory
 								) as Furniture);
-
+				Furniture lastFur = Furnitures.Last();
 				//clear tilemap underneath
 				//tilemap is 32x32
-				var size = Furnitures.Last().Size;
-				var pos = Furnitures.Last().Position;
+				var size = lastFur.Size;
+				var pos = lastFur.Position;
 				//calculate before hand to avoid recalculating each iteration
-				int width = ((int)(size.x + pos.x)) >> 5;
-				int height = ((int)(size.y + pos.y)) >> 5;
-				for (int x = ((int)(pos.x)) >> 5/*convert location to tilemap location*/; x < width; x++)
+				int width = ((int)(size.x + pos.x)) >> gridSizeP2;
+				int height = ((int)(size.y + pos.y)) >> gridSizeP2;
+				for (int x = ((int)(pos.x)) >> gridSizeP2/*convert location to tilemap location*/; x < width; x++)
 				{
-					for (int y = ((int)(pos.y)) >> 5; y < height; y++)
+					for (int y = ((int)(pos.y)) >> gridSizeP2; y < height; y++)
 					{
 						navigationTilemap.SetCell(x, y, -1);
 					}
 				}
 
+				lastFur.Init();
 			}
 			catch (Exception e)
 			{
@@ -337,12 +406,19 @@ public class Cafe : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
-
+		if(Input.IsActionJustPressed("movemode"))
+		{
+			if(CurrentState == State.Idle)
+				CurrentState = State.Moving;
+			else if (currentState == State.Moving)
+				currentState = State.Idle;
+			return;
+		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
 			if (@event is InputEventMouseButton mouseEvent)
 			{
-				if (!pressed)
+				if (!pressed && mouseEvent.Pressed)
 				{
 					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 					{
@@ -351,6 +427,53 @@ public class Cafe : Node2D
 						{
 							case State.Building:
 								PlaceNewFurniture();
+								break;
+							case State.Moving:
+								//first we allow player to select furniture to move
+								if (CurrentlyMovedItem != null)
+								{
+									//make sure we actually can place this item here
+									if(!Furnitures.Where(p =>
+										(
+											p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+											&& p != CurrentlyMovedItem
+										).Any())
+									{ 
+										GD.Print("placing item");
+										//make this be new place
+										var loc = CurrentlyMovedItem.Position;
+										CurrentlyMovedItem.Position = movedItemStartLocation;
+										//clear old place
+										CurrentlyMovedItem.UpdateNavigation(false);
+										CurrentlyMovedItem.Position = loc;
+										CurrentlyMovedItem.UpdateNavigation(true);
+
+										/*
+										 * Reset any person trying to get to this item
+										 */
+										CurrentlyMovedItem = null;
+									}
+									return;
+								}
+								else
+								{
+									Vector2 mouseLoc = new Vector2
+										(
+											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+										);
+									//find based on click
+									//because items are not ordered based on the grid by rather based on the placement order
+									//we have to use basic iteration search
+									var arr = Furnitures.Where(p => (new Rect2(p.Position, p.Size).HasPoint(mouseLoc)));
+									if (arr.Any())
+									{
+										//take first element and work with it
+										CurrentlyMovedItem = arr.ElementAt(0);
+										movedItemStartLocation = CurrentlyMovedItem.Position;
+										GD.Print($"Started to move item: {CurrentlyMovedItem}");
+									}
+								}
 								break;
 							default:
 								break;
@@ -364,6 +487,18 @@ public class Cafe : Node2D
 					pressed = false;
 				}
 			}
+			if (@event is InputEventMouseMotion motionEvent)
+			{
+				if (CurrentlyMovedItem != null)
+				{
+					CurrentlyMovedItem.Position = new Vector2
+										(
+											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+										);
+
+				}
+			}
 		}
 	}
 
@@ -375,61 +510,20 @@ public class Cafe : Node2D
 		return customer;
 	}
 
-	public void OnWaiterIsFree(Waiter waiter)
-	{
-		void changeTask(Vector2 target,Waiter.Goal goal,Customer customer)
-		{
-			waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position,target) ?? throw new NullReferenceException("Failed to find path to the table!");
-			waiter.CurrentGoal = goal;
-			waiter.currentCustomer = customer;
-		}
-
-		if (completedOrders.Any())
-		{
-			changeTask(Furnitures[completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (Furnitures[completedOrders[0]] as Table).CurrentCustomer);
-			completedOrders.RemoveAt(0);
-		}
-			
-		//search through the list and find tasks that can be completed
-		else if (tablesToTakeOrdersFrom.Any())
-		{
-			changeTask(Furnitures[tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (Furnitures[tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
-			tablesToTakeOrdersFrom.RemoveAt(0);
-		}
-
-		else
-		{
-			//move waiter to "staff location"
-			waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
-			waiter.CurrentGoal = Waiter.Goal.Leave;
-		}
-	}
-
-	public void OnCookIsFree(Cook cook)
-	{
-		if(orders.Any())
-		{
-			cook.currentGoal = Cook.Goal.TakeFood;
-			cook.goalOrderId = orders[0];
-			Vector2[] temp;
-			FindClosestFurniture<Fridge>(cook.Position, out temp);
-			cook.PathToTheTarget = temp;
-			orders.RemoveAt(0);
-		}
-	}
-
 	public void OnOrderComplete(int orderId)
 	{
 		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None);
-		if (!freeWaiters.Any())
+		var freeWaiter = waiters.First(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+		if (freeWaiter == null)
 		{
 			completedOrders.Add(orderId);
 		}
 		else
 		{
-			//find customer target
-			var targets = people.Where
+			try
+			{
+				//find customer target
+				var target = people.First
 				(
 					p =>
 					{
@@ -437,15 +531,19 @@ public class Cafe : Node2D
 						{
 							return customer.OrderId == orderId && customer.IsAtTheTable && !customer.Eating;
 						}
+
 						return false;
 					}
 				);
-			if (targets.Any())
+				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
+				freeWaiter.currentOrder = orderId;
+				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
+				freeWaiter.currentCustomer = target as Customer;
+
+			}
+			catch (InvalidOperationException e)
 			{
-				var waiter = freeWaiters.First();
-				waiter.CurrentGoal = Waiter.Goal.AcquireOrder;
-				waiter.PathToTheTarget = FindLocation("Kitchen", waiter.Position);
-				waiter.currentCustomer = targets.First() as Customer;
+				//no fitting customers were found
 			}
 		}
 	}
@@ -464,11 +562,7 @@ public class Cafe : Node2D
 			{
 				//cache the refernce to avoid iteration
 				var cook = freeCooks.ElementAt(0);
-				cook.currentGoal = Cook.Goal.TakeFood;
-				cook.goalOrderId = orderId;
-				Vector2[] temp;
-				FindClosestFurniture<Fridge>(cook.Position, out temp);
-				cook.PathToTheTarget = temp;
+				cook.TakeNewOrder(orderId);
 			}
 		}
 	}
@@ -490,9 +584,11 @@ public class Cafe : Node2D
 			else
 			{
 				var waiter = freeWaiters.ElementAt(0);
+				var table = (Furnitures[customer.CurrentTableId] as Table);
 				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				waiter.currentCustomer = (Furnitures[customer.CurrentTableId] as Table).CurrentCustomer;
+				waiter.currentCustomer = table.CurrentCustomer;
+				table.CurrentUser = waiter;
 			}
 		}
 	}
@@ -509,27 +605,34 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
 	{
-		var unSittedCustomers = people.Where
-				(
-					p =>
+		try
+		{
+			var unSittedCustomer = people.First
+			(
+				p =>
+				{
+					if (p is Customer customer)
 					{
-						if (p is Customer customer)
-						{
-							return !customer.IsAtTheTable && !customer.Eating;
-						}
-						return false;
+						return !customer.IsAtTheTable && !customer.Eating;
 					}
-				);
-		if(unSittedCustomers.Any())
-		{
-			(unSittedCustomers.First() as Customer).FindAndMoveToTheTable();
+
+					return false;
+				}
+			);
+			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
 		}
-		else if(QueuedNotSpawnedCustomersCount > 0)
+		catch (System.InvalidOperationException e)
 		{
-			SpawnCustomer().FindAndMoveToTheTable();
-			QueuedNotSpawnedCustomersCount--;
+			//no unsitted customers and spawned customers were found
+			if (QueuedNotSpawnedCustomersCount > 0)
+			{
+				SpawnCustomer().FindAndMoveToTheTable();
+				QueuedNotSpawnedCustomersCount--;
+			}
 		}
 	}
+	
+
 
 	public void OnCustomerServed(Customer customer)
 	{
@@ -543,32 +646,82 @@ public class Cafe : Node2D
 		*/
 		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
 	}
+
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
 		//CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
-
-		if (people.Any())
+		if (!Paused)
 		{
-			foreach (Person person in people)
+			if (people.Any())
 			{
-				if (IsInstanceValid(person))
+				foreach (Person person in people)
 				{
-					if (person.ShouldUpdate)
-						person.Update(delta);
+					if (IsInstanceValid(person))
+					{
+						if (person.ShouldUpdate)
+							person.Update(delta);
+					}
 				}
 			}
+
 			for (int i = people.Count - 1; i >= 0; i--)
 			{
 				if (IsInstanceValid(people[i]) && !people[i].Valid)
 				{
-					if(IsInstanceValid(people[i])) 
+					if (IsInstanceValid(people[i]))
 						people[i].Destroy();
 					people.RemoveAt(i);
 				}
 			}
 		}
+		else if (currentState == State.Building)
+		{
+			//notexactly happy with this check running nearly every frame
+			//but testing shows that is has not much effect on the performance
+			Vector2 endLoc = new Vector2
+			(
+				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+			);
+
+			Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
+			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
+			if (!fur.Any())
+			{
+				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(0, 1, 0));
+			}
+			else
+			{
+				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(1, 0, 0));
+			}
+			VisualServer.CanvasItemSetTransform(_placementPreviewTextureRID, new Transform2D
+				(
+					0,
+					new Vector2
+					(
+						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+					)
+				));
+		}
+		else if (currentState == State.Moving && CurrentlyMovedItem != null)
+		{
+			if (!Furnitures.Where(p => 
+			(
+			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+			&& p != CurrentlyMovedItem
+			).Any())
+			{
+				CurrentlyMovedItem.TextureColor = new Color(1, 1, 1);
+			}
+			else
+			{
+				CurrentlyMovedItem.TextureColor = new Color(1, 0, 0);
+			}
+		}
 	}
+
 	private void _on_CustomerSpawnTimer_timeout()
 	{
 		var cust = people.Where
@@ -595,9 +748,10 @@ public class Cafe : Node2D
 	private void _on_StoreButton_toggled(bool button_pressed)
 	{
 		GD.Print("Menu");
-		storeMenu.Visible = button_pressed;
+		
 		if (currentState == State.UsingMenu || currentState == State.Idle )
 		{
+			storeMenu.Visible = button_pressed;
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
 	}
@@ -606,5 +760,9 @@ public class Cafe : Node2D
 	{
 		exitToIdleModeButton.Visible = false;
 		currentState = State.Idle;
+		if(CurrentlyMovedItem != null)
+		{
+			CurrentlyMovedItem = null;
+		}
 	}
 }
