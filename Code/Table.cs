@@ -35,13 +35,14 @@ public class Table : Furniture
             if (!temp.FindAndMoveToTheTable())
             {
                 //If customer has to wait back in the queue then waiter has to be reset
-                CurrentUser.ResetOrCancelGoal(true);
-                throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
+                CurrentUser?.ResetOrCancelGoal(true);
+                //throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
+                GD.PrintErr("Function for moving customer back to queue is not yet implemented");
             }
         }
     }
 
-    public override bool CanBeUsed => CurrentState == State.Free;
+    public override bool CanBeUsed => CurrentState == State.Free && base.CanBeUsed;
 
     public override void Init()
     {

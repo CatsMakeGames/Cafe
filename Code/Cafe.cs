@@ -614,7 +614,7 @@ public class Cafe : Node2D
 				{
 					if (p is Customer customer)
 					{
-						return !customer.IsAtTheTable && !customer.Eating;
+						return !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable;
 					}
 
 					return false;
