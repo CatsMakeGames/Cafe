@@ -379,6 +379,7 @@ public class Cafe : Node2D
 									currentPlacingItem.FurnitureCategory
 								) as Furniture);
 				Furniture lastFur = Furnitures.Last();
+				lastFur.Price = currentPlacingItem.Price;
 				//clear tilemap underneath
 				//tilemap is 32x32
 				var size = lastFur.Size;
@@ -764,5 +765,19 @@ public class Cafe : Node2D
 		{
 			CurrentlyMovedItem = null;
 		}
+	}
+
+	private void _on_SellButton_pressed()
+	{
+		if(CurrentlyMovedItem != null)
+        {
+			CurrentlyMovedItem.Position = movedItemStartLocation;
+			Money += CurrentlyMovedItem.Price;
+			Furnitures.Remove(CurrentlyMovedItem);
+			CurrentlyMovedItem.ResetUserPaths();
+			CurrentlyMovedItem.Destroy();		
+			CurrentlyMovedItem = null;
+			currentState = State.Idle;
+        }
 	}
 }

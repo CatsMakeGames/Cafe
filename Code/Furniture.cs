@@ -15,6 +15,9 @@ public class Furniture : CafeObject
         Toilet = 1 << 4
     }
 
+    /**<summary>Price of the funriture in store<para/>Mostly meant for when it's being sold</summary>*/
+    public int Price =0;
+
     /**<summary>Space that is taken up by this furniture</summary>*/
     public Rect2 CollisionRect => new Rect2(Position, size);
 
