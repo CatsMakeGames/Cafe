@@ -12,6 +12,10 @@ public class Customer : Person
 
     public bool IsAtTheTable => isAtTheTable;
 
+    protected bool movingToTheTable = false;
+
+    public bool MovingToTheTable => movingToTheTable;
+
     protected bool ate = false;
 
     protected bool eating = false;
@@ -42,7 +46,8 @@ public class Customer : Person
         {
             CurrentTableId = cafe.Furnitures.IndexOf(table);
             table.CurrentState = Table.State.InUse;
-            
+
+            movingToTheTable = true;
             table.CurrentCustomer = this;
             //handle table being moved via build mode
             if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
@@ -53,6 +58,7 @@ public class Customer : Person
             {
                 GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
             }
+           
             return true;
         }
         return false;

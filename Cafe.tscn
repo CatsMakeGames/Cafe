@@ -64,6 +64,7 @@ position = Vector2( 960, 840 )
 stream = ExtResource( 6 )
 
 [node name="CustomerSpawnTimer" type="Timer" parent="."]
+one_shot = true
 autostart = true
 
 [node name="Menu" type="VBoxContainer" parent="."]
@@ -139,7 +140,6 @@ __meta__ = {
 areaId = 1
 
 [node name="ExitToIdleModeButton" type="Button" parent="."]
-visible = false
 margin_left = -240.0
 margin_top = 640.0
 margin_right = -220.0
@@ -150,6 +150,18 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="SellButton" type="Button" parent="."]
+margin_left = -248.0
+margin_top = 392.0
+margin_right = -213.0
+margin_bottom = 412.0
+rect_scale = Vector2( 4.875, 4.875 )
+text = "Sell"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="toggled" from="Menu/StoreButton" to="." method="_on_StoreButton_toggled"]
 [connection signal="pressed" from="ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
+[connection signal="pressed" from="SellButton" to="." method="_on_SellButton_pressed"]
