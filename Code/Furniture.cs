@@ -84,7 +84,7 @@ public class Furniture : CafeObject
 
     public override void Destroy()
     {
-        UpdateNavigation(true);
+        UpdateNavigation(false);
         base.Destroy();
     }
 }

@@ -770,7 +770,7 @@ public class Cafe : Node2D
 	private void _on_SellButton_pressed()
 	{
 		if(CurrentlyMovedItem != null)
-        {
+		{
 			CurrentlyMovedItem.Position = movedItemStartLocation;
 			Money += CurrentlyMovedItem.Price;
 			Furnitures.Remove(CurrentlyMovedItem);
@@ -778,6 +778,6 @@ public class Cafe : Node2D
 			CurrentlyMovedItem.Destroy();		
 			CurrentlyMovedItem = null;
 			currentState = State.Idle;
-        }
+		}
 	}
 }
