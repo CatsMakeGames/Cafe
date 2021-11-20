@@ -45,6 +45,11 @@ public class Person : CafeObject
         //load speed from the table
     }
 
+    public Person(Cafe cafe,uint[] saveData):base(cafe,saveData)
+    {
+        
+    }
+
     /**<summary>Executed when staff member arrives to their goal</summary>*/
     protected virtual void onArrivedToTheTarget()
     {

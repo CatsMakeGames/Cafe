@@ -54,7 +54,7 @@ public class Furniture : CafeObject
         return baseSaveData;
     }
 
-    public override void LoadData(Array<uint> data)
+    public override void LoadData(uint[] data)
     {
         base.LoadData(data);
         Price = (int)data[5];

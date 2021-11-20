@@ -43,6 +43,14 @@ namespace Staff
             EmitSignal(nameof(OnWaiterIsFree), this);
         }
 
+
+        public Waiter(Cafe cafe,uint[] saveData) : base(cafe,saveData)
+        {
+            textureSize = cafe.Textures["Waiter"].GetSize();
+            size = new Vector2(128, 128);
+            GenerateRIDBasedOnTexture(cafe.Textures["Waiter"], ZOrderValues.Customer);
+        }
+
         public override Array<uint> GetSaveData()
         {
 

@@ -34,7 +34,10 @@ public class CafeObject : Godot.Object
         set
         {
             position = value;
-            VisualServer.CanvasItemSetTransform(textureRID, new Transform2D(0, value));
+            if (textureRID != null)
+            {
+                VisualServer.CanvasItemSetTransform(textureRID, new Transform2D(0, value));
+            }
         }
     }
 
@@ -45,15 +48,34 @@ public class CafeObject : Godot.Object
         this.cafe = cafe;
         this.textureSize = textureSize;
         this.size = size;
+        this.Position = pos;
+
+        GenerateRIDBasedOnTexture(texture, (ZOrderValues)zorder);
+    }
+
+    /**<summary>Construstor used for loading from save data<para/>
+     * Note that if using this constructor you need to hard code texture name in every class to avoid usin wrong textures</summary>*/
+    public CafeObject(Cafe cafe, uint[] saveData)
+    {
+        this.cafe = cafe;
+        Id = saveData[0];
+        this.size = new Vector2(128, 128);
+        LoadData(saveData);
+    }
+
+    /**<summary>Creates and Initialises RID based on provided texture</summary>*/
+    protected void GenerateRIDBasedOnTexture(Texture texture,ZOrderValues zOrder)
+    {
         //spawn image in the world
         if (texture != null && cafe != null)
         {
             textureRID = VisualServer.CanvasItemCreate();
             VisualServer.CanvasItemAddTextureRectRegion(textureRID, new Rect2(0, 0, size.x, size.y), texture.GetRid(), new Rect2(0, 0, textureSize), null, false, texture.GetRid());
-            Position = pos;
+ 
             VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
-            VisualServer.CanvasItemSetZIndex(textureRID, zorder);
+            VisualServer.CanvasItemSetZIndex(textureRID, (int)zOrder);
         }
+        Position = position;
     }
 
     /**<summary>Gets save data for this object as array of bytes</summary>*/
@@ -88,9 +110,8 @@ public class CafeObject : Godot.Object
         return result;
     }
 
-    public virtual void LoadData(Godot.Collections.Array<uint> data)
+    public virtual void LoadData(uint[] data)
     {
-        Id = data[0];
         position = new Vector2(data[1], data[2]);
         textureSize = new Vector2(data[3], data[4]);
     }

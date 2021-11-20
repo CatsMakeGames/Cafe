@@ -33,7 +33,8 @@ Textures = {
 "Fridge": ExtResource( 8 ),
 "Furniture": ExtResource( 11 ),
 "Stove": ExtResource( 7 ),
-"Table": ExtResource( 3 )
+"Table": ExtResource( 3 ),
+"Waiter": ExtResource( 10 )
 }
 Locations = {
 "Entrance": "Entrance",

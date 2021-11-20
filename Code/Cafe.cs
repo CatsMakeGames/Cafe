@@ -441,19 +441,39 @@ public class Cafe : Node2D
 		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
 		if (err == Error.Ok)
 		{
+			//clear the world because we will fill it with new data
+			//TODO: Make sure i actually cleaned everything
+			people.Clear();
+			Furnitures.Clear();
+
+
 			while(!saveFile.EofReached())
 			{
 				saveData.Add(saveFile.Get32());
 			}
 			//read data for each person
-			int i = 8;
-			for (;i < saveData.Count;i += _maxSaveObjectSize)
+			;
+			try
 			{
-				//each segment is _maxSaveObjectSize*4(because int and float are 4 bytes) bytes long
-				//read in blocks of that size
-				//first get the type that we will pass data to
-				GD.PrintErr(TypeSearch.GetTypeByName(((Class)saveData[i + 1]).ToString()));
+				for (int i = 8; i < saveData.Count; i += _maxSaveObjectSize)
+				{
+					//each segment is _maxSaveObjectSize*4(because int and float are 4 bytes) bytes long
+					//read in blocks of that size
+					//first get the type that we will pass data to
+					Type classType = TypeSearch.GetTypeByName(((Class)saveData[i + 1]).ToString());
+					if (classType != null)
+					{
+						people.Add(System.Activator.CreateInstance
+							(
+								classType,
+								this,
+								//while less efficient it's way more compact
+								saveData.Skip(i).Take(_maxSaveObjectSize).ToArray()
+							) as Person);
+					}
+				}
 			}
+            catch (System.IndexOutOfRangeException) { }
 			return true;
 		}
 		
