@@ -1,6 +1,7 @@
 ﻿using System;
 using Godot;
 using System.Linq;
+using Godot.Collections;
 
 namespace Staff
 {
@@ -27,6 +28,8 @@ namespace Staff
 
         public Goal CurrentGoal = Goal.None;
 
+        public override Class Type => Class.Waiter; 
+
         public override bool ShouldUpdate => base.ShouldUpdate && CurrentGoal != Goal.None;
 
         [Signal]
@@ -38,6 +41,13 @@ namespace Staff
         public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
+        }
+
+        public override Array<uint> GetSaveData()
+        {
+
+            return base.GetSaveData();
+            
         }
 
         public override void ResetOrCancelGoal(bool forceCancel = false)

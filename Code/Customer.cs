@@ -37,6 +37,8 @@ public class Customer : Person
     [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
+    public static new Class Type = Class.Customer;
+
     public bool FindAndMoveToTheTable()
     {
         //find table to move to

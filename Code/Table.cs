@@ -12,6 +12,8 @@ public class Table : Furniture
     }
     public State CurrentState = State.Free;
 
+    public static new Class Type = Class.Table;
+
     public override bool IsInUse => CurrentState == State.InUse;
 
     protected Vector2 tableTextureSize;

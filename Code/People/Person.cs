@@ -1,4 +1,5 @@
 ﻿using Godot;
+using Godot.Collections;
 using System;
 
 public class Person : CafeObject
@@ -18,6 +19,8 @@ public class Person : CafeObject
             pathId = 0;
         }
     }
+
+    static HumanTypes Type;
 
     /**<summary>Applience currently used by this person or null if none are used<para/>Mostly meant for staff that works in the kitchen</summary>*/
     protected Kitchen.Appliance appliance;
@@ -46,6 +49,20 @@ public class Person : CafeObject
     protected virtual void onArrivedToTheTarget()
     {
 
+    }
+
+    public override Array<uint> GetSaveData()
+    {   Array<uint> data = new Array<uint>();
+        if(pathToTheTarget != null)
+        {
+
+        }
+        //if there is no target or player is at the target -> just set
+        else
+        {
+
+        }
+        return base.GetSaveData();
     }
 
     public void Update(float deltaTime)

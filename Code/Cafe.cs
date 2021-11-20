@@ -28,6 +28,14 @@ public class Cafe : Node2D
 	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
 	private RID _placementPreviewTextureRID;
 
+	/**<summary>Size that every saved object will have no matter how much data they actually save.<para/>
+	 * Should be exact size of the biggest object to avoid misreading of data<para/>
+	 * It's byte to avoid having data >255 bytes
+	 * if setting directly please note what class it's based on
+	 * <para/> 6 is based on current save data of person</summary>*/
+	[Export]
+	private byte _maxSaveObjectSize = 6;
+
 	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
@@ -262,16 +270,16 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
 			people.Add(waiter);
 			waiters.Add(waiter);
 
-			Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			/*Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			people.Add(cook);
-			cooks.Add(cook);
+			cooks.Add(cook);*/
 		}
 
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
@@ -340,6 +348,116 @@ public class Cafe : Node2D
 		{
 			
 		}
+	}
+
+	/**<summary>Saves entire save data
+	 * <para>The save system uses json to allow simplier addition of additional data,but to avoid having variable names copied over several times</para>
+	 * <para>it will store the object data as array of ints(with each character representing the unsigned it value)</para></summary>*/
+	public void Save()
+	{
+		/*first 8 entiries are reserved for various save data
+		1 byte - save version
+
+		6-8 size of the various blocks where save data is contained
+		*/
+		Godot.Collections.Array<uint> blocks = new Godot.Collections.Array<uint>(0,0,0,0,0,0,0,0);
+
+		Godot.Collections.Array<uint> save = new Godot.Collections.Array<uint>();
+		//current save version
+		//only change when doing big changes
+		blocks[0] = 1;
+
+		//first save block is for people
+		
+		blocks[2] = 0;
+
+		////second block is for furniture
+		//foreach (Furniture furniture in Furnitures)
+		//{
+		//	save += furniture.GetSaveData();
+		//}
+		//blocks[3] = (uint)save.Count - blocks[2];
+
+		//push special save data to the front
+		save = blocks + save;
+
+		var saveFile = new File();
+		Directory dir = new Directory();
+		//file fails to create file if directory does not exist
+		if (!dir.DirExists("user://Cafe/"))
+			dir.MakeDir("user://Cafe/");
+
+		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Write);
+		if (err == Error.Ok)
+		{
+			for (int i = 0; i < 8; i++)
+			{
+				//fill up space for future writting
+				saveFile.Store32(0);
+			}
+			foreach (Person person in people)
+			{
+				byte cur_size = 0;
+				//there is no need to mark how long each block is because 
+				//class itself will know how long the block is supposed to be
+				foreach(uint dat in person.GetSaveData())
+				{
+					saveFile.Store32(dat);
+					blocks[2] += 1;
+					cur_size++;
+				}
+				foreach(float dat in person.GetSaveDataFloat())
+				{
+					saveFile.StoreFloat(dat);
+					blocks[2] += 1;
+					cur_size++;
+				}
+				if (cur_size < _maxSaveObjectSize)
+				{
+					for(; cur_size <= _maxSaveObjectSize;cur_size++)
+					{
+						saveFile.Store32(0);
+					}
+				}
+				long endPos = saveFile.GetPosition();
+				saveFile.Seek(8);
+				saveFile.Store32(blocks[2]);
+				saveFile.Seek(endPos);
+			}
+			saveFile.Close();
+		}
+		else
+		{
+			GD.PrintErr($"Failed to save game. Error: {err}");
+		}
+	}
+
+
+	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
+	public bool Load()
+	{
+		var saveFile = new File();
+		Godot.Collections.Array<uint> saveData = new Godot.Collections.Array<uint>();
+		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
+		if (err == Error.Ok)
+		{
+			while(!saveFile.EofReached())
+			{
+				saveData.Add(saveFile.Get32());
+			}
+			//read data for each person
+			int i = 8;
+			for (;i < saveData.Count;i += _maxSaveObjectSize)
+			{
+				//each segment is _maxSaveObjectSize*4(because int and float are 4 bytes) bytes long
+				//read in blocks of that size
+				//first get the type that we will pass data to
+				GD.PrintErr(TypeSearch.GetTypeByName(((Class)saveData[i + 1]).ToString()));
+			}
+			return true;
+		}
+		
+		return false;
 	}
 
 	public void PlaceNewFurniture()
@@ -413,6 +531,17 @@ public class Cafe : Node2D
 				CurrentState = State.Moving;
 			else if (currentState == State.Moving)
 				currentState = State.Idle;
+			return;
+		}
+		if (Input.IsActionJustPressed("save"))
+		{
+			Save();
+			return;
+		}
+
+		if (Input.IsActionJustPressed("load"))
+		{
+			Load();
 			return;
 		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))

@@ -6,6 +6,9 @@ namespace Kitchen
     /**<summary>Fridge is more of a decorative item with no logic attached. <para/>Only used by cooks as location and by player as decorative itemto take food from</summary>*/
     public class Fridge : Furniture
     {
+        
+        public static new Class Type = Class.Fridge;
+
         /**<summary>
          * Spawns table object into the world
         * </summary>
