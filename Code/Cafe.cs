@@ -87,7 +87,7 @@ public class Cafe : Node2D
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
 
-	public State CurrentState 
+	public State CurrentState
 	{
 		get => currentState;
 		set
@@ -103,7 +103,7 @@ public class Cafe : Node2D
 				currentPlacingItem = null;
 				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
 			}
-			else if(currentState == State.Building && currentPlacingItem != null)
+			else if (currentState == State.Building && currentPlacingItem != null)
 			{
 				VisualServer.CanvasItemAddTextureRect
 			(
@@ -125,7 +125,7 @@ public class Cafe : Node2D
 				//untoggle all of the buttons
 				storeMenuButton.Pressed = false;
 			}
-			if(currentState != State.Idle && currentState != State.UsingMenu)
+			if (currentState != State.Idle && currentState != State.UsingMenu)
 			{
 				exitToIdleModeButton.Visible = true;
 			}
@@ -186,6 +186,8 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<Cook> cooks = new Godot.Collections.Array<Cook>();
 	#endregion
 
+	/**<summary>Collection of all people in the cafe.<para/> Used for global updates or any function that applies to any human<para/>
+	 * for working with specific staff members use dedicated arrays</summary>*/
 	public Godot.Collections.Array<Person> People => people;
 
 	#region Furniture
@@ -230,10 +232,10 @@ public class Cafe : Node2D
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
 	{
-		return !(mouseBlockAreas.Where(p => (p.Visible) && 
+		return !(mouseBlockAreas.Where(p => (p.Visible) &&
 		(pressLocation.x >= p.RectPosition.x &&
-		pressLocation.y >= p.RectPosition.y && 
-		pressLocation.x < (p.RectSize.x + p.RectPosition.x )&&
+		pressLocation.y >= p.RectPosition.y &&
+		pressLocation.x < (p.RectSize.x + p.RectPosition.x) &&
 		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
 		)).Any();
 	}
@@ -344,10 +346,7 @@ public class Cafe : Node2D
 
 	public void _onCustomerLeft(Customer customer)
 	{
-		if (people.Contains(customer))
-		{
-			
-		}
+
 	}
 
 	/**<summary>Saves entire save data
@@ -360,7 +359,7 @@ public class Cafe : Node2D
 
 		6-8 size of the various blocks where save data is contained
 		*/
-		Godot.Collections.Array<uint> blocks = new Godot.Collections.Array<uint>(0,0,0,0,0,0,0,0);
+		Godot.Collections.Array<uint> blocks = new Godot.Collections.Array<uint>(0, 0, 0, 0, 0, 0, 0, 0);
 
 		Godot.Collections.Array<uint> save = new Godot.Collections.Array<uint>();
 		//current save version
@@ -368,7 +367,7 @@ public class Cafe : Node2D
 		blocks[0] = 1;
 
 		//first save block is for people
-		
+
 		blocks[2] = 0;
 
 		////second block is for furniture
@@ -400,13 +399,13 @@ public class Cafe : Node2D
 				byte cur_size = 0;
 				//there is no need to mark how long each block is because 
 				//class itself will know how long the block is supposed to be
-				foreach(uint dat in person.GetSaveData())
+				foreach (uint dat in person.GetSaveData())
 				{
 					saveFile.Store32(dat);
 					blocks[2] += 1;
 					cur_size++;
 				}
-				foreach(float dat in person.GetSaveDataFloat())
+				foreach (float dat in person.GetSaveDataFloat())
 				{
 					saveFile.StoreFloat(dat);
 					blocks[2] += 1;
@@ -414,7 +413,7 @@ public class Cafe : Node2D
 				}
 				if (cur_size < _maxSaveObjectSize)
 				{
-					for(; cur_size <= _maxSaveObjectSize;cur_size++)
+					for (; cur_size <= _maxSaveObjectSize; cur_size++)
 					{
 						saveFile.Store32(0);
 					}
@@ -456,7 +455,7 @@ public class Cafe : Node2D
 			Furnitures.Clear();
 
 
-			while(!saveFile.EofReached())
+			while (!saveFile.EofReached())
 			{
 				saveData.Add(saveFile.Get32());
 			}
@@ -485,7 +484,7 @@ public class Cafe : Node2D
 			catch (System.IndexOutOfRangeException) { }
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -502,10 +501,10 @@ public class Cafe : Node2D
 		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
 		Vector2 endLoc = new Vector2
 			(
-				((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2,
-				((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2
+				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
 			);
-		
+
 		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 
@@ -554,9 +553,9 @@ public class Cafe : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
-		if(Input.IsActionJustPressed("movemode"))
+		if (Input.IsActionJustPressed("movemode"))
 		{
-			if(CurrentState == State.Idle)
+			if (CurrentState == State.Idle)
 				CurrentState = State.Moving;
 			else if (currentState == State.Moving)
 				currentState = State.Idle;
@@ -592,12 +591,12 @@ public class Cafe : Node2D
 								if (CurrentlyMovedItem != null)
 								{
 									//make sure we actually can place this item here
-									if(!Furnitures.Where(p =>
-										(
-											p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
-											&& p != CurrentlyMovedItem
+									if (!Furnitures.Where(p =>
+										 (
+											 p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+											 && p != CurrentlyMovedItem
 										).Any())
-									{ 
+									{
 										GD.Print("placing item");
 										//make this be new place
 										var loc = CurrentlyMovedItem.Position;
@@ -651,11 +650,10 @@ public class Cafe : Node2D
 				if (CurrentlyMovedItem != null)
 				{
 					CurrentlyMovedItem.Position = new Vector2
-										(
-											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-										);
-
+					(
+						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+					);
 				}
 			}
 		}
@@ -673,37 +671,21 @@ public class Cafe : Node2D
 	public void OnOrderComplete(int orderId)
 	{
 		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiter = waiters.First(p => p.CurrentGoal == Staff.Waiter.Goal.None);
-		if (freeWaiter == null)
+		var freeWaiter = waiters.FirstOrDefault(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+		if (freeWaiter is null)
 		{
 			completedOrders.Add(orderId);
 		}
 		else
 		{
-			try
+			var target = people.OfType<Customer>().FirstOrDefault(p => p.OrderId == orderId && p.IsAtTheTable && !p.Eating);
+			if (target != null)
 			{
-				//find customer target
-				var target = people.First
-				(
-					p =>
-					{
-						if (p is Customer customer)
-						{
-							return customer.OrderId == orderId && customer.IsAtTheTable && !customer.Eating;
-						}
-
-						return false;
-					}
-				);
 				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
 				freeWaiter.currentOrder = orderId;
 				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
-				freeWaiter.currentCustomer = target as Customer;
-
-			}
-			catch (InvalidOperationException e)
-			{
-				//no fitting customers were found
+				freeWaiter
+				.currentCustomer = target as Customer;
 			}
 		}
 	}
@@ -736,21 +718,19 @@ public class Cafe : Node2D
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
-			var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.None);
-			if (!freeWaiters.Any())
+			Waiter freeWaiter = waiters.FirstOrDefault(p => p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave);
+			if (freeWaiter != null)
 			{
-				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+				Table table = (Furnitures[customer.CurrentTableId] as Table);
+				freeWaiter.PathToTheTarget = navigation.GetSimplePath(freeWaiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+				freeWaiter.CurrentGoal = Waiter.Goal.TakeOrder;
+				freeWaiter.currentCustomer = table.CurrentCustomer;
+				table.CurrentUser = freeWaiter;
 			}
-			else
-			{
-				var waiter = freeWaiters.ElementAt(0);
-				var table = (Furnitures[customer.CurrentTableId] as Table);
-				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				waiter.currentCustomer = table.CurrentCustomer;
-				table.CurrentUser = waiter;
-			}
+			tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
 		}
+
+
 	}
 
 	public void _onCustomerFinishedEating(Customer customer,int payment)
@@ -765,23 +745,12 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
 	{
-		try
+		var unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
+		if (unSittedCustomer != null)
 		{
-			var unSittedCustomer = people.First
-			(
-				p =>
-				{
-					if (p is Customer customer)
-					{
-						return !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable;
-					}
-
-					return false;
-				}
-			);
-			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
+			(unSittedCustomer as Customer)?.FindAndMoveToTheTable(); 
 		}
-		catch (System.InvalidOperationException e)
+		else
 		{
 			//no unsitted customers and spawned customers were found
 			if (QueuedNotSpawnedCustomersCount > 0)
@@ -884,18 +853,8 @@ public class Cafe : Node2D
 
 	private void _on_CustomerSpawnTimer_timeout()
 	{
-		var cust = people.Where
-				(
-					p =>
-					{
-						if (p is Customer customer)
-						{
-							return !customer.IsAtTheTable;
-						}
-						return false;
-					}
-				);
-		if (cust.Count() < MaxSpawnedCustomersInQueue)
+		int customerCount = people.OfType<Customer>().Count(customer => !customer.IsAtTheTable);
+		if (customerCount < MaxSpawnedCustomersInQueue)
 		{
 			SpawnCustomer();
 		}
