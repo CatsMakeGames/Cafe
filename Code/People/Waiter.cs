@@ -128,7 +128,7 @@ namespace Staff
             //search through the list and find tasks that can be completed
             else if (cafe.tablesToTakeOrdersFrom.Any())
             {
-                cafe.Furnitures[cafe.completedOrders[0]].CurrentUser = this;
+                cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].CurrentUser = this;
                 changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
                 cafe.tablesToTakeOrdersFrom.RemoveAt(0);
             }

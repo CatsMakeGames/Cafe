@@ -277,9 +277,9 @@ public class Cafe : Node2D
 			people.Add(waiter);
 			waiters.Add(waiter);
 
-			/*Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			people.Add(cook);
-			cooks.Add(cook);*/
+			cooks.Add(cook);
 		}
 
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
@@ -443,7 +443,16 @@ public class Cafe : Node2D
 		{
 			//clear the world because we will fill it with new data
 			//TODO: Make sure i actually cleaned everything
+			for (int i = people.Count - 1; i >= 0; i--)
+			{
+				people[i].Destroy();
+			}
 			people.Clear();
+
+			for (int i = Furnitures.Count - 1; i >= 0; i--)
+			{
+				Furnitures[i].Destroy();
+			}
 			Furnitures.Clear();
 
 
@@ -473,7 +482,7 @@ public class Cafe : Node2D
 					}
 				}
 			}
-            catch (System.IndexOutOfRangeException) { }
+			catch (System.IndexOutOfRangeException) { }
 			return true;
 		}
 		
@@ -657,6 +666,7 @@ public class Cafe : Node2D
 	{
 		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
+		customer.FindAndMoveToTheTable();
 		return customer;
 	}
 

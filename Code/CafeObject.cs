@@ -3,7 +3,6 @@ using System;
 
 public class CafeObject : Godot.Object
 {
-
     /**<summary>Object id in the cafe</summary>*/
     public uint Id = 0;
 
@@ -27,7 +26,7 @@ public class CafeObject : Godot.Object
 
     public virtual Class Type => Class.Default;
 
-  
+    
     public virtual Vector2 Position
     {
         get => position;

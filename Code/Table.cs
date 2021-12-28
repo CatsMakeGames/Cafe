@@ -31,6 +31,8 @@ public class Table : Furniture
         {
             //temporary value so we could still call the customer fucns
             var temp = CurrentCustomer;
+            //reset table id for better context
+            temp.CurrentTableId = -1;
             //clear it out to avoid stuck references and if this table is selected again customer will update this value itself
             CurrentCustomer = null;
             //make customer look for new table and go back to queue if none are found

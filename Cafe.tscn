@@ -65,6 +65,7 @@ position = Vector2( 960, 840 )
 stream = ExtResource( 6 )
 
 [node name="CustomerSpawnTimer" type="Timer" parent="."]
+autostart = true
 
 [node name="Menu" type="VBoxContainer" parent="."]
 margin_left = -256.0
