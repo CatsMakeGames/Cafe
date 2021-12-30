@@ -272,7 +272,7 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
@@ -288,7 +288,7 @@ public class Cafe : Node2D
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
-
+		
 		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
 		VisualServer.CanvasItemAddTextureRect
 			(
@@ -507,7 +507,7 @@ public class Cafe : Node2D
 
 		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-
+		
 		if (!fur.Any())
 		{
 			try
@@ -571,6 +571,10 @@ public class Cafe : Node2D
 		{
 			Load();
 			return;
+		}
+		if (Input.IsActionJustPressed("debug_fire"))
+		{
+			waiters.FirstOrDefault()?.GetFired();
 		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
@@ -684,8 +688,7 @@ public class Cafe : Node2D
 				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
 				freeWaiter.currentOrder = orderId;
 				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
-				freeWaiter
-				.currentCustomer = target as Customer;
+				freeWaiter.currentCustomer = target;
 			}
 		}
 	}
@@ -695,16 +698,14 @@ public class Cafe : Node2D
 	{
 		if (orderId != -1)
 		{
-			var freeCooks = cooks.Where(p => p.currentGoal == 0/*because "None" is the first in the enum anyway*/);
-			if (!freeCooks.Any())
+			var freeCook = cooks.FirstOrDefault(p => p.currentGoal == Cook.Goal.None && !p.Fired);
+			if (freeCook is null)
 			{
 				orders.Add(orderId);
 			}
 			else
 			{
-				//cache the refernce to avoid iteration
-				var cook = freeCooks.ElementAt(0);
-				cook.TakeNewOrder(orderId);
+				freeCook.TakeNewOrder(orderId);
 			}
 		}
 	}
@@ -718,7 +719,7 @@ public class Cafe : Node2D
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
-			Waiter freeWaiter = waiters.FirstOrDefault(p => p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave);
+			Waiter freeWaiter = waiters.FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
 			if (freeWaiter != null)
 			{
 				Table table = (Furnitures[customer.CurrentTableId] as Table);
@@ -727,7 +728,10 @@ public class Cafe : Node2D
 				freeWaiter.currentCustomer = table.CurrentCustomer;
 				table.CurrentUser = freeWaiter;
 			}
-			tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+			else
+			{
+				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+			}
 		}
 
 

@@ -10,6 +10,11 @@ public class Person : CafeObject
 
     protected Vector2[] pathToTheTarget = null;
 
+    protected bool fired = false;
+
+    /**<summary> If true no tasks can be assigned</summary>*/
+    public bool Fired => fired;
+
     public Vector2[] PathToTheTarget
     {
         get => pathToTheTarget;
@@ -40,6 +45,15 @@ public class Person : CafeObject
     {
     }
 
+    /**<summary>Put current task in the the task array and leave through the main door</summary>*/
+    public virtual void GetFired()
+    {
+        fired = true;
+
+        pathToTheTarget =  cafe.FindLocation("Exit", Position);
+        pathId = 0;
+    }
+
     public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
     {
         //load speed from the table
@@ -53,7 +67,10 @@ public class Person : CafeObject
     /**<summary>Executed when staff member arrives to their goal</summary>*/
     protected virtual void onArrivedToTheTarget()
     {
-
+        if (fired)
+        {
+            Destroy();
+        }
     }
 
     public override Array<uint> GetSaveData()

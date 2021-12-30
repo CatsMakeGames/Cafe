@@ -25,7 +25,7 @@ public class Customer : Person
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
 
-    protected float defaultOrderTime = 1;
+    protected float defaultOrderTime = 5;
 
     public float OrderTime => defaultOrderTime;
 

@@ -57,6 +57,28 @@ namespace Staff
             return base.GetSaveData();
             
         }
+        public override void GetFired()
+        {
+            base.GetFired();
+            //first do proper cancelation or tasks so other waiters could 
+            switch (CurrentGoal)
+            {
+                case Goal.TakeOrder:
+                    cafe.tablesToTakeOrdersFrom.Add(currentCustomer.CurrentTableId);
+                    break;
+                case Goal.PassOrder:
+                    cafe.tablesToTakeOrdersFrom.Add(currentCustomer.CurrentTableId);
+                    break;
+                case Goal.AcquireOrder:
+                    cafe.completedOrders.Add(currentCustomer.OrderId);
+                    break;
+                case Goal.DeliverOrder:
+                    cafe.completedOrders.Add(currentCustomer.OrderId);
+                    break;
+                default:
+                    break;
+            }
+        }
 
         public override void ResetOrCancelGoal(bool forceCancel = false)
         {
@@ -162,43 +184,46 @@ namespace Staff
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
-            switch (CurrentGoal)
+            if (!Fired)
             {
-                case Goal.TakeOrder:
-                    //goal changes to new one
-                    CurrentGoal = Goal.PassOrder;
+                switch (CurrentGoal)
+                {
+                    case Goal.TakeOrder:
+                        //goal changes to new one
+                        CurrentGoal = Goal.PassOrder;
+                        //this way we don't hold the execution
+                        await System.Threading.Tasks.Task.Delay((int)(currentCustomer.OrderTime * 1000));
 
-                    //this way we don't hold the execution
-                    await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+                        //await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+                        //don't reset current customer because we still need to know the order
+                        //find path to the kitchen
+                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                        break;
+                    case Goal.PassOrder:
+                        //kitchen is now making the order                           
+                        cafe.OnNewOrder(currentCustomer.OrderId);
+                        BeFree();
+                        break;
+                    case Goal.AcquireOrder:
+                        //make way towards customer now
+                        PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                        CurrentGoal = Goal.DeliverOrder;
+                        break;
+                    case Goal.DeliverOrder:
+                        var cust = currentCustomer;
+                        BeFree();
+                        if (cust.IsAtTheTable && !cust.Eating)
+                        {
+                            cust.Eat();
+                            GD.Print($"Feeding: {cust.ToString()}");
+                        }
 
-                    //don't reset current customer because we still need to know the order
-                    //find path to the kitchen
-                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
-                    break;
-                case Goal.PassOrder:
-                    //kitchen is now making the order                           
-                    cafe.OnNewOrder(currentCustomer.OrderId);
-                    BeFree();
-                    break;
-                case Goal.AcquireOrder:
-                    //make way towards customer now
-                    PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
-                    CurrentGoal = Goal.DeliverOrder;
-                    break;
-                case Goal.DeliverOrder:
-                    var cust = currentCustomer;
-                    BeFree();
-                    if (cust.IsAtTheTable && !cust.Eating)
-                    {
-                        cust.Eat();
-                        GD.Print($"Feeding: {cust.ToString()}");
-                    }
-                    
-                    break;
+                        break;
 
-                case Goal.Leave:
-                    CurrentGoal = Goal.None;
-                    break;
+                    case Goal.Leave:
+                        CurrentGoal = Goal.None;
+                        break;
+                }
             }
 
         }
