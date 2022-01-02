@@ -69,7 +69,7 @@ public class Person : CafeObject
     {
         if (fired)
         {
-            Destroy();
+            pendingKill = true;
         }
     }
 

@@ -214,6 +214,8 @@ public class Cafe : Node2D
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
 	public Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
+
+	public Godot.Collections.Array<int> halfFinishedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
 	protected UI.StoreMenu storeMenu;
@@ -574,7 +576,7 @@ public class Cafe : Node2D
 		}
 		if (Input.IsActionJustPressed("debug_fire"))
 		{
-			waiters.FirstOrDefault()?.GetFired();
+			people.OfType<Cook>().FirstOrDefault()?.GetFired();
 		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
@@ -675,7 +677,7 @@ public class Cafe : Node2D
 	public void OnOrderComplete(int orderId)
 	{
 		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiter = waiters.FirstOrDefault(p => p.CurrentGoal == Staff.Waiter.Goal.None);
+		var freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.Leave) && !p.Fired);
 		if (freeWaiter is null)
 		{
 			completedOrders.Add(orderId);
@@ -698,7 +700,7 @@ public class Cafe : Node2D
 	{
 		if (orderId != -1)
 		{
-			var freeCook = cooks.FirstOrDefault(p => p.currentGoal == Cook.Goal.None && !p.Fired);
+			var freeCook = people.OfType<Cook>().FirstOrDefault(p => p.currentGoal == Cook.Goal.None && !p.Fired);
 			if (freeCook is null)
 			{
 				orders.Add(orderId);
@@ -719,7 +721,7 @@ public class Cafe : Node2D
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
-			Waiter freeWaiter = waiters.FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
+			Waiter freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
 			if (freeWaiter != null)
 			{
 				Table table = (Furnitures[customer.CurrentTableId] as Table);

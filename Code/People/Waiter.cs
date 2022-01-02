@@ -64,18 +64,14 @@ namespace Staff
             switch (CurrentGoal)
             {
                 case Goal.TakeOrder:
-                    cafe.tablesToTakeOrdersFrom.Add(currentCustomer.CurrentTableId);
-                    break;
                 case Goal.PassOrder:
-                    cafe.tablesToTakeOrdersFrom.Add(currentCustomer.CurrentTableId);
+                    //we reset by telling that new waiter needs to attend this customer
+                    cafe._onCustomerArrivedAtTheTable(currentCustomer);
                     break;
-                case Goal.AcquireOrder:
-                    cafe.completedOrders.Add(currentCustomer.OrderId);
-                    break;
+                case Goal.AcquireOrder:   
                 case Goal.DeliverOrder:
-                    cafe.completedOrders.Add(currentCustomer.OrderId);
-                    break;
-                default:
+                    //reset order back to kitchen
+                    cafe.OnOrderComplete(currentOrder);
                     break;
             }
         }

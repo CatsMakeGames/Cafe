@@ -26,6 +26,8 @@ namespace Staff
 
         public int goalOrderId = -1;
 
+        protected int currentApplienceId = -1;
+
         //prepare and cook are basically wait tasks done using timers so no need for update function
         public override bool ShouldUpdate => base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1;
 
@@ -47,8 +49,37 @@ namespace Staff
            
         }
 
+
+        public override void GetFired()
+        {
+            base.GetFired();
+            if (currentApplienceId > -1)
+            {
+                cafe.Furnitures[currentApplienceId].CurrentUser = null;
+            }
+            /**
+             * Raw food that needs to be cut just dissapears as it would be no different from raw food that was not touched
+             * Cut food that was not finished is added as separate incase other chef would want to finish it
+             */
+
+            if (currentGoal == Goal.CookFood)
+            {
+                cafe.halfFinishedOrders.Add(goalOrderId);
+            }
+            switch (currentGoal)
+            {         
+                case Goal.CookFood:
+                case Goal.PrepareFood:
+                case Goal.TakeFood:
+                    //notify cafe about order needing to be finished
+                    cafe.OnNewOrder(goalOrderId);
+                    break;
+            }
+            GD.PrintErr("Cooks are not complete!");
+        }
         void BeFree()
         {
+            currentApplienceId = -1;
             goalOrderId = -1;
             currentGoal = Goal.None;
             if (cafe.orders.Any())
@@ -107,34 +138,39 @@ namespace Staff
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
-            //possible feature -> if all capable cooks are busy lower level cooks do preparations(first two steps) and leave food there
-            switch (currentGoal)
+            if (!Fired)
             {
-                case Goal.TakeFood:
-                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
-                    currentGoal = Goal.CookFood;
-                    var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position,out pathToTheTarget);
-                    stove.CurrentUser = this;
-                    pathId = 0;
-                    //move to the cutting table
-                    break;
-                case Goal.PrepareFood:
-                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
-                    //move to the applience
-                    break;
-                case Goal.CookFood:
-                    await ToSignal(cafe.GetTree().CreateTimer(1), "timeout");
-                    currentGoal = Goal.GiveFood;
-                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
-                    //move to the finish table
-                    break;
-                case Goal.GiveFood:
-                    cafe.OnOrderComplete(goalOrderId);
+                //possible feature -> if all capable cooks are busy lower level cooks do preparations(first two steps) and leave food there
+                switch (currentGoal)
+                {
+                    case Goal.TakeFood:
+                        await System.Threading.Tasks.Task.Delay(1000);
+                        currentGoal = Goal.CookFood;
+                        var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position, out pathToTheTarget);
+                        stove.CurrentUser = this;
+                        currentApplienceId = (int)stove.Id;
+                        pathId = 0;
+                        //move to the cutting table
+                        break;
+                    //this step is currently missing
+                    case Goal.PrepareFood:
+                        await System.Threading.Tasks.Task.Delay(1000);
+                        //move to the applience
+                        break;
+                    case Goal.CookFood:
+                        await System.Threading.Tasks.Task.Delay(1000);
+                        currentGoal = Goal.GiveFood;
+                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                        //move to the finish table
+                        break;
+                    case Goal.GiveFood:
+                        cafe.OnOrderComplete(goalOrderId);
 
-                    BeFree();
-                    //seek next task
-                    //cook is idling
-                    break;
+                        BeFree();
+                        //seek next task
+                        //cook is idling
+                        break;
+                }
             }
         }
     }
