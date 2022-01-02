@@ -1,6 +1,7 @@
 ﻿using System;
 using Godot;
 using System.Linq;
+using Godot.Collections;
 
 namespace Staff
 {
@@ -27,6 +28,8 @@ namespace Staff
 
         public Goal CurrentGoal = Goal.None;
 
+        public override Class Type => Class.Waiter; 
+
         public override bool ShouldUpdate => base.ShouldUpdate && CurrentGoal != Goal.None;
 
         [Signal]
@@ -38,6 +41,39 @@ namespace Staff
         public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
+        }
+
+
+        public Waiter(Cafe cafe,uint[] saveData) : base(cafe,saveData)
+        {
+            textureSize = cafe.Textures["Waiter"].GetSize();
+            size = new Vector2(128, 128);
+            GenerateRIDBasedOnTexture(cafe.Textures["Waiter"], ZOrderValues.Customer);
+        }
+
+        public override Array<uint> GetSaveData()
+        {
+
+            return base.GetSaveData();
+            
+        }
+        public override void GetFired()
+        {
+            base.GetFired();
+            //first do proper cancelation or tasks so other waiters could 
+            switch (CurrentGoal)
+            {
+                case Goal.TakeOrder:
+                case Goal.PassOrder:
+                    //we reset by telling that new waiter needs to attend this customer
+                    cafe._onCustomerArrivedAtTheTable(currentCustomer);
+                    break;
+                case Goal.AcquireOrder:   
+                case Goal.DeliverOrder:
+                    //reset order back to kitchen
+                    cafe.OnOrderComplete(currentOrder);
+                    break;
+            }
         }
 
         public override void ResetOrCancelGoal(bool forceCancel = false)
@@ -97,20 +133,29 @@ namespace Staff
         {
             //waiter is now free
             CurrentGoal = Goal.None;
+            (cafe.Furnitures[currentCustomer.CurrentTableId] as Table).CurrentUser = null;
             //forget about this customer
             currentCustomer = null;
             //since cafe is refenced for using node functions anyway, no need to use signals
             if (cafe.completedOrders.Any())
             {
-                cafe.Furnitures[cafe.completedOrders[0]].CurrentUser = this;
-                changeTask(cafe.Furnitures[cafe.completedOrders[0]].Position, Waiter.Goal.AcquireOrder, (cafe.Furnitures[cafe.completedOrders[0]] as Table).CurrentCustomer);
-                cafe.completedOrders.RemoveAt(0);
+                //(cafe.Furnitures[cafe.completedOrders[0]] as Table) is actually incorrect because completedOrders stores meal ids not where they should be placed
+                //so instead we will find (from first to last) first customer that wants this meal
+                //this way whoever came firts will get the meal served first
+
+                Table table = cafe.Furnitures.OfType<Table>().FirstOrDefault(p => p.CurrentCustomer.OrderId == cafe.completedOrders[0]);
+                if (table != null)
+                {
+                    table.CurrentUser = this;
+                    changeTask(table.Position, Waiter.Goal.AcquireOrder, table.CurrentCustomer);
+                    cafe.completedOrders.RemoveAt(0);
+                }
             }
 
             //search through the list and find tasks that can be completed
             else if (cafe.tablesToTakeOrdersFrom.Any())
             {
-                cafe.Furnitures[cafe.completedOrders[0]].CurrentUser = this;
+                cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].CurrentUser = this;
                 changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
                 cafe.tablesToTakeOrdersFrom.RemoveAt(0);
             }
@@ -135,43 +180,46 @@ namespace Staff
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
-            switch (CurrentGoal)
+            if (!Fired)
             {
-                case Goal.TakeOrder:
-                    //goal changes to new one
-                    CurrentGoal = Goal.PassOrder;
+                switch (CurrentGoal)
+                {
+                    case Goal.TakeOrder:
+                        //goal changes to new one
+                        CurrentGoal = Goal.PassOrder;
+                        //this way we don't hold the execution
+                        await System.Threading.Tasks.Task.Delay((int)(currentCustomer.OrderTime * 1000));
 
-                    //this way we don't hold the execution
-                    await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+                        //await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
+                        //don't reset current customer because we still need to know the order
+                        //find path to the kitchen
+                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                        break;
+                    case Goal.PassOrder:
+                        //kitchen is now making the order                           
+                        cafe.OnNewOrder(currentCustomer.OrderId);
+                        BeFree();
+                        break;
+                    case Goal.AcquireOrder:
+                        //make way towards customer now
+                        PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                        CurrentGoal = Goal.DeliverOrder;
+                        break;
+                    case Goal.DeliverOrder:
+                        var cust = currentCustomer;
+                        BeFree();
+                        if (cust.IsAtTheTable && !cust.Eating)
+                        {
+                            cust.Eat();
+                            GD.Print($"Feeding: {cust.ToString()}");
+                        }
 
-                    //don't reset current customer because we still need to know the order
-                    //find path to the kitchen
-                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
-                    break;
-                case Goal.PassOrder:
-                    //kitchen is now making the order                           
-                    cafe.OnNewOrder(currentCustomer.OrderId);
-                    BeFree();
-                    break;
-                case Goal.AcquireOrder:
-                    //make way towards customer now
-                    PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
-                    CurrentGoal = Goal.DeliverOrder;
-                    break;
-                case Goal.DeliverOrder:
-                    var cust = currentCustomer;
-                    BeFree();
-                    if (cust.IsAtTheTable && !cust.Eating)
-                    {
-                        cust.Eat();
-                        GD.Print($"Feeding: {cust.ToString()}");
-                    }
-                    
-                    break;
+                        break;
 
-                case Goal.Leave:
-                    CurrentGoal = Goal.None;
-                    break;
+                    case Goal.Leave:
+                        CurrentGoal = Goal.None;
+                        break;
+                }
             }
 
         }

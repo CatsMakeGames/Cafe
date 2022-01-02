@@ -27,14 +27,7 @@ namespace UI
 		{
 			get
 			{
-				try
-				{
-					return _iconTextures.First(p => p.ResourceName == name);
-				}
-				catch (InvalidOperationException e)
-				{
-					return null;
-				}
+				return _iconTextures.FirstOrDefault(p => p.ResourceName == name);
 			}
 		}
 		/**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/

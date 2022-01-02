@@ -28,6 +28,14 @@ public class Cafe : Node2D
 	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
 	private RID _placementPreviewTextureRID;
 
+	/**<summary>Size that every saved object will have no matter how much data they actually save.<para/>
+	 * Should be exact size of the biggest object to avoid misreading of data<para/>
+	 * It's byte to avoid having data >255 bytes
+	 * if setting directly please note what class it's based on
+	 * <para/> 6 is based on current save data of person</summary>*/
+	[Export]
+	private byte _maxSaveObjectSize = 6;
+
 	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
@@ -79,7 +87,7 @@ public class Cafe : Node2D
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
 
-	public State CurrentState 
+	public State CurrentState
 	{
 		get => currentState;
 		set
@@ -95,7 +103,7 @@ public class Cafe : Node2D
 				currentPlacingItem = null;
 				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
 			}
-			else if(currentState == State.Building && currentPlacingItem != null)
+			else if (currentState == State.Building && currentPlacingItem != null)
 			{
 				VisualServer.CanvasItemAddTextureRect
 			(
@@ -117,7 +125,7 @@ public class Cafe : Node2D
 				//untoggle all of the buttons
 				storeMenuButton.Pressed = false;
 			}
-			if(currentState != State.Idle && currentState != State.UsingMenu)
+			if (currentState != State.Idle && currentState != State.UsingMenu)
 			{
 				exitToIdleModeButton.Visible = true;
 			}
@@ -178,6 +186,8 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<Cook> cooks = new Godot.Collections.Array<Cook>();
 	#endregion
 
+	/**<summary>Collection of all people in the cafe.<para/> Used for global updates or any function that applies to any human<para/>
+	 * for working with specific staff members use dedicated arrays</summary>*/
 	public Godot.Collections.Array<Person> People => people;
 
 	#region Furniture
@@ -204,6 +214,8 @@ public class Cafe : Node2D
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
 	public Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
+
+	public Godot.Collections.Array<int> halfFinishedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
 	protected UI.StoreMenu storeMenu;
@@ -222,10 +234,10 @@ public class Cafe : Node2D
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
 	{
-		return !(mouseBlockAreas.Where(p => (p.Visible) && 
+		return !(mouseBlockAreas.Where(p => (p.Visible) &&
 		(pressLocation.x >= p.RectPosition.x &&
-		pressLocation.y >= p.RectPosition.y && 
-		pressLocation.x < (p.RectSize.x + p.RectPosition.x )&&
+		pressLocation.y >= p.RectPosition.y &&
+		pressLocation.x < (p.RectSize.x + p.RectPosition.x) &&
 		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
 		)).Any();
 	}
@@ -262,7 +274,7 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 2; i++)
 		{
 			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
@@ -278,7 +290,7 @@ public class Cafe : Node2D
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
-
+		
 		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
 		VisualServer.CanvasItemAddTextureRect
 			(
@@ -336,10 +348,146 @@ public class Cafe : Node2D
 
 	public void _onCustomerLeft(Customer customer)
 	{
-		if (people.Contains(customer))
+
+	}
+
+	/**<summary>Saves entire save data
+	 * <para>The save system uses json to allow simplier addition of additional data,but to avoid having variable names copied over several times</para>
+	 * <para>it will store the object data as array of ints(with each character representing the unsigned it value)</para></summary>*/
+	public void Save()
+	{
+		/*first 8 entiries are reserved for various save data
+		1 byte - save version
+
+		6-8 size of the various blocks where save data is contained
+		*/
+		Godot.Collections.Array<uint> blocks = new Godot.Collections.Array<uint>(0, 0, 0, 0, 0, 0, 0, 0);
+
+		Godot.Collections.Array<uint> save = new Godot.Collections.Array<uint>();
+		//current save version
+		//only change when doing big changes
+		blocks[0] = 1;
+
+		//first save block is for people
+
+		blocks[2] = 0;
+
+		////second block is for furniture
+		//foreach (Furniture furniture in Furnitures)
+		//{
+		//	save += furniture.GetSaveData();
+		//}
+		//blocks[3] = (uint)save.Count - blocks[2];
+
+		//push special save data to the front
+		save = blocks + save;
+
+		var saveFile = new File();
+		Directory dir = new Directory();
+		//file fails to create file if directory does not exist
+		if (!dir.DirExists("user://Cafe/"))
+			dir.MakeDir("user://Cafe/");
+
+		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Write);
+		if (err == Error.Ok)
 		{
-			
+			for (int i = 0; i < 8; i++)
+			{
+				//fill up space for future writting
+				saveFile.Store32(0);
+			}
+			foreach (Person person in people)
+			{
+				byte cur_size = 0;
+				//there is no need to mark how long each block is because 
+				//class itself will know how long the block is supposed to be
+				foreach (uint dat in person.GetSaveData())
+				{
+					saveFile.Store32(dat);
+					blocks[2] += 1;
+					cur_size++;
+				}
+				foreach (float dat in person.GetSaveDataFloat())
+				{
+					saveFile.StoreFloat(dat);
+					blocks[2] += 1;
+					cur_size++;
+				}
+				if (cur_size < _maxSaveObjectSize)
+				{
+					for (; cur_size <= _maxSaveObjectSize; cur_size++)
+					{
+						saveFile.Store32(0);
+					}
+				}
+				long endPos = saveFile.GetPosition();
+				saveFile.Seek(8);
+				saveFile.Store32(blocks[2]);
+				saveFile.Seek(endPos);
+			}
+			saveFile.Close();
 		}
+		else
+		{
+			GD.PrintErr($"Failed to save game. Error: {err}");
+		}
+	}
+
+
+	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
+	public bool Load()
+	{
+		var saveFile = new File();
+		Godot.Collections.Array<uint> saveData = new Godot.Collections.Array<uint>();
+		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
+		if (err == Error.Ok)
+		{
+			//clear the world because we will fill it with new data
+			//TODO: Make sure i actually cleaned everything
+			for (int i = people.Count - 1; i >= 0; i--)
+			{
+				people[i].Destroy();
+			}
+			people.Clear();
+
+			for (int i = Furnitures.Count - 1; i >= 0; i--)
+			{
+				Furnitures[i].Destroy();
+			}
+			Furnitures.Clear();
+
+
+			while (!saveFile.EofReached())
+			{
+				saveData.Add(saveFile.Get32());
+			}
+			//read data for each person
+			;
+			try
+			{
+				for (int i = 8; i < saveData.Count; i += _maxSaveObjectSize)
+				{
+					//each segment is _maxSaveObjectSize*4(because int and float are 4 bytes) bytes long
+					//read in blocks of that size
+					//first get the type that we will pass data to
+					Type classType = TypeSearch.GetTypeByName(((Class)saveData[i + 1]).ToString());
+					if (classType != null)
+					{
+						people.Add(System.Activator.CreateInstance
+							(
+								classType,
+								this,
+								//while less efficient it's way more compact
+								saveData.Skip(i).Take(_maxSaveObjectSize).ToArray()
+							) as Person);
+					}
+				}
+			}
+			catch (System.IndexOutOfRangeException) { }
+			return true;
+		}
+
+		return false;
 	}
 
 	public void PlaceNewFurniture()
@@ -355,13 +503,13 @@ public class Cafe : Node2D
 		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
 		Vector2 endLoc = new Vector2
 			(
-				((int)GetLocalMousePosition().x  >> gridSizeP2) << gridSizeP2,
-				((int)GetLocalMousePosition().y  >> gridSizeP2) << gridSizeP2
+				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
 			);
-		
+
 		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-
+		
 		if (!fur.Any())
 		{
 			try
@@ -407,13 +555,28 @@ public class Cafe : Node2D
 	public override void _Input(InputEvent @event)
 	{
 		base._Input(@event);
-		if(Input.IsActionJustPressed("movemode"))
+		if (Input.IsActionJustPressed("movemode"))
 		{
-			if(CurrentState == State.Idle)
+			if (CurrentState == State.Idle)
 				CurrentState = State.Moving;
 			else if (currentState == State.Moving)
 				currentState = State.Idle;
 			return;
+		}
+		if (Input.IsActionJustPressed("save"))
+		{
+			Save();
+			return;
+		}
+
+		if (Input.IsActionJustPressed("load"))
+		{
+			Load();
+			return;
+		}
+		if (Input.IsActionJustPressed("debug_fire"))
+		{
+			people.OfType<Cook>().FirstOrDefault()?.GetFired();
 		}
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
@@ -434,12 +597,12 @@ public class Cafe : Node2D
 								if (CurrentlyMovedItem != null)
 								{
 									//make sure we actually can place this item here
-									if(!Furnitures.Where(p =>
-										(
-											p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
-											&& p != CurrentlyMovedItem
+									if (!Furnitures.Where(p =>
+										 (
+											 p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
+											 && p != CurrentlyMovedItem
 										).Any())
-									{ 
+									{
 										GD.Print("placing item");
 										//make this be new place
 										var loc = CurrentlyMovedItem.Position;
@@ -493,11 +656,10 @@ public class Cafe : Node2D
 				if (CurrentlyMovedItem != null)
 				{
 					CurrentlyMovedItem.Position = new Vector2
-										(
-											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-										);
-
+					(
+						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
+						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
+					);
 				}
 			}
 		}
@@ -508,43 +670,27 @@ public class Cafe : Node2D
 	{
 		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
+		customer.FindAndMoveToTheTable();
 		return customer;
 	}
 
 	public void OnOrderComplete(int orderId)
 	{
 		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiter = waiters.First(p => p.CurrentGoal == Staff.Waiter.Goal.None);
-		if (freeWaiter == null)
+		var freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.Leave) && !p.Fired);
+		if (freeWaiter is null)
 		{
 			completedOrders.Add(orderId);
 		}
 		else
 		{
-			try
+			var target = people.OfType<Customer>().FirstOrDefault(p => p.OrderId == orderId && p.IsAtTheTable && !p.Eating);
+			if (target != null)
 			{
-				//find customer target
-				var target = people.First
-				(
-					p =>
-					{
-						if (p is Customer customer)
-						{
-							return customer.OrderId == orderId && customer.IsAtTheTable && !customer.Eating;
-						}
-
-						return false;
-					}
-				);
 				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
 				freeWaiter.currentOrder = orderId;
 				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
-				freeWaiter.currentCustomer = target as Customer;
-
-			}
-			catch (InvalidOperationException e)
-			{
-				//no fitting customers were found
+				freeWaiter.currentCustomer = target;
 			}
 		}
 	}
@@ -554,16 +700,14 @@ public class Cafe : Node2D
 	{
 		if (orderId != -1)
 		{
-			var freeCooks = cooks.Where(p => p.currentGoal == 0/*because "None" is the first in the enum anyway*/);
-			if (!freeCooks.Any())
+			var freeCook = people.OfType<Cook>().FirstOrDefault(p => p.currentGoal == Cook.Goal.None && !p.Fired);
+			if (freeCook is null)
 			{
 				orders.Add(orderId);
 			}
 			else
 			{
-				//cache the refernce to avoid iteration
-				var cook = freeCooks.ElementAt(0);
-				cook.TakeNewOrder(orderId);
+				freeCook.TakeNewOrder(orderId);
 			}
 		}
 	}
@@ -577,21 +721,22 @@ public class Cafe : Node2D
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
 			//lists priority goes in the order opposite of the values in Goal enum
-			var freeWaiters = waiters.Where(p => p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.None);
-			if (!freeWaiters.Any())
+			Waiter freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
+			if (freeWaiter != null)
 			{
-				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+				Table table = (Furnitures[customer.CurrentTableId] as Table);
+				freeWaiter.PathToTheTarget = navigation.GetSimplePath(freeWaiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+				freeWaiter.CurrentGoal = Waiter.Goal.TakeOrder;
+				freeWaiter.currentCustomer = table.CurrentCustomer;
+				table.CurrentUser = freeWaiter;
 			}
 			else
 			{
-				var waiter = freeWaiters.ElementAt(0);
-				var table = (Furnitures[customer.CurrentTableId] as Table);
-				waiter.PathToTheTarget = navigation.GetSimplePath(waiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-				waiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				waiter.currentCustomer = table.CurrentCustomer;
-				table.CurrentUser = waiter;
+				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
 			}
 		}
+
+
 	}
 
 	public void _onCustomerFinishedEating(Customer customer,int payment)
@@ -606,23 +751,12 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Table table)
 	{
-		try
+		var unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
+		if (unSittedCustomer != null)
 		{
-			var unSittedCustomer = people.First
-			(
-				p =>
-				{
-					if (p is Customer customer)
-					{
-						return !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable;
-					}
-
-					return false;
-				}
-			);
-			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
+			(unSittedCustomer as Customer)?.FindAndMoveToTheTable(); 
 		}
-		catch (System.InvalidOperationException e)
+		else
 		{
 			//no unsitted customers and spawned customers were found
 			if (QueuedNotSpawnedCustomersCount > 0)
@@ -725,18 +859,8 @@ public class Cafe : Node2D
 
 	private void _on_CustomerSpawnTimer_timeout()
 	{
-		var cust = people.Where
-				(
-					p =>
-					{
-						if (p is Customer customer)
-						{
-							return !customer.IsAtTheTable;
-						}
-						return false;
-					}
-				);
-		if (cust.Count() < MaxSpawnedCustomersInQueue)
+		int customerCount = people.OfType<Customer>().Count(customer => !customer.IsAtTheTable);
+		if (customerCount < MaxSpawnedCustomersInQueue)
 		{
 			SpawnCustomer();
 		}

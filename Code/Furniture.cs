@@ -1,5 +1,6 @@
 ﻿using System;
 using Godot;
+using Godot.Collections;
 
 public class Furniture : CafeObject
 {
@@ -14,6 +15,8 @@ public class Furniture : CafeObject
         Kitchen = 1 << 3,
         Toilet = 1 << 4
     }
+    /**<summary>Type of the class used purely to allow compact way of stroing what type is this object</summary>*/
+    public static new Class Type = Class.Default;
 
     /**<summary>Price of the funriture in store<para/>Mostly meant for when it's being sold</summary>*/
     public int Price =0;
@@ -25,12 +28,45 @@ public class Furniture : CafeObject
 
     public virtual bool IsInUse => false;
 
-    protected int level;
+    /**<summary>Current level of the furniture.<para/>Used to store same types of furniture under same class<para/>
+     * Only affects timing,texture and sometimes price<para/>
+     * Only 1 byte of data because there should not be >255 ovens in this damn game </summary>*/
+    protected byte level;
+
+    public override Array<uint> GetSaveData()
+    {
+        var baseSaveData = base.GetSaveData();
+        //save structure for this:
+        //base
+        // Price(to avoid making it reread the price table at spawn)
+        //category(a bit wasteful but okay)
+        //a weird mix of data saving by store bool values as last byte, furniture type as third category as second byte and store level as first byte
+        //note that for now this class dicataes how much data is stored but in future there should be predefined value
+        baseSaveData.Add((uint)Price);
+        baseSaveData.Add((uint)((isInUse ? 0x01 : 0x00) << 24 | (byte)category << 8 | level));
+
+        //next thing to save is id of the current user
+        //this might be a strange solution but if it's 0 then no id was recored if it's anything but 0 then it's a proper id
+        //upon loading we will just subtract or ignore this value(storing signed it would waste a lot of possible space)
+        //note that id of 0 is possible in the game itself
+        baseSaveData.Add(CurrentUser?.Id + 1 ?? 0x0);
+
+        return baseSaveData;
+    }
+
+    public override void LoadData(uint[] data)
+    {
+        base.LoadData(data);
+        Price = (int)data[5];
+        level = (byte)(data[6] & 0x000000ff);
+        category = (Furniture.Category)((data[6] & 0x0000ff00) >> 8);
+        isInUse = ((data[6] & 0x0000ff00) >> 24) == 1;
+    }
 
     /**<summary>Person who is actively using this furniture<para/>If this is an applience this is meant for recording staff</summary>*/
     public Person CurrentUser = null;
 
-    public int Level
+    public byte Level
     {
         get => level;
         set

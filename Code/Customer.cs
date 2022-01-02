@@ -25,7 +25,7 @@ public class Customer : Person
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
 
-    protected float defaultOrderTime = 1;
+    protected float defaultOrderTime = 5;
 
     public float OrderTime => defaultOrderTime;
 
@@ -37,29 +37,40 @@ public class Customer : Person
     [Signal]
     public delegate void ArivedToTheTable(Customer customer);
 
+    public static new Class Type = Class.Customer;
+
     public bool FindAndMoveToTheTable()
     {
-        //find table to move to
-        var table = cafe.FindClosestFurniture<Table>(position, out pathToTheTarget);
-        pathId = 0;
-        if (table != null)
-        {
-            CurrentTableId = cafe.Furnitures.IndexOf(table);
-            table.CurrentState = Table.State.InUse;
 
-            movingToTheTable = true;
-            table.CurrentCustomer = this;
-            //handle table being moved via build mode
-            if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
+        Vector2[] path = null;
+        
+        //find table to move to
+        var table = cafe.FindClosestFurniture<Table>(position, out path);
+        //we don't want to reset paths accidentally
+        if (path != null)
+        {
+            pathToTheTarget = path;
+        }
+            pathId = 0;
+            if (table != null)
             {
-                isAtTheTable = false;
-            }
-            else if(isAtTheTable)
-            {
-                GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
-            }
-           
-            return true;
+                CurrentTableId = cafe.Furnitures.IndexOf(table);
+                table.CurrentState = Table.State.InUse;
+
+                movingToTheTable = true;
+                table.CurrentCustomer = this;
+                //handle table being moved via build mode
+                if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
+                {
+                    isAtTheTable = false;
+                }
+                else if (isAtTheTable)
+                {
+                    GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
+                }
+
+                return true;
+            
         }
         return false;
     }
@@ -91,7 +102,6 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
-        FindAndMoveToTheTable();
     }
 
     protected override void onArrivedToTheTarget()
