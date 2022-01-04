@@ -120,10 +120,15 @@ public class Cafe : Node2D
 			}
 			if (currentState != State.UsingMenu)
 			{
-				//hide all of the menus
-				storeMenu.Visible = false;
-				//untoggle all of the buttons
-				storeMenuButton.Pressed = false;
+				foreach(Control cont in menus)
+				{
+					cont.Visible = false;
+				}
+
+				foreach(Button but in menuToggleButtons)
+				{
+					but.Pressed = false;
+				}
 			}
 			if (currentState != State.Idle && currentState != State.UsingMenu)
 			{
@@ -218,7 +223,13 @@ public class Cafe : Node2D
 	public Godot.Collections.Array<int> halfFinishedOrders = new Godot.Collections.Array<int>();
 	#endregion
 
+	protected System.Collections.Generic.List<Control> menus;
+
+	protected System.Collections.Generic.List<Button> menuToggleButtons;
+
 	protected UI.StoreMenu storeMenu;
+
+	protected StaffMenu staffMenu;
 
 	protected Button storeMenuButton;
 
@@ -245,8 +256,8 @@ public class Cafe : Node2D
 	public override void _Ready()
 	{
 		base._Ready();
-		//SpawnCustomer();
-
+		menus = GetTree().GetNodesInGroup("Menu").OfType<Control>().ToList();
+		menuToggleButtons = GetNode("Menu").GetChildren().OfType<Button>().ToList();
 
 		gridSizeP2 = (int)Math.Log(GridSize, 2);
 		GD.Print(gridSizeP2);
@@ -274,7 +285,7 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 2; i++)
+		for (int i = 0; i < 14; i++)
 		{
 			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
@@ -306,6 +317,10 @@ public class Cafe : Node2D
 		VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
 		VisualServer.CanvasItemSetParent(_placementPreviewTextureRID, GetCanvasItem());
 		VisualServer.CanvasItemSetZIndex(_placementPreviewTextureRID, (int)ZOrderValues.MAX);
+
+		staffMenu = GetNode<StaffMenu>("UI/StaffMenu");
+		staffMenu.cafe = this;
+		staffMenu.Create();
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -420,7 +435,7 @@ public class Cafe : Node2D
 						saveFile.Store32(0);
 					}
 				}
-				long endPos = saveFile.GetPosition();
+				long endPos = (long)saveFile.GetPosition();
 				saveFile.Seek(8);
 				saveFile.Store32(blocks[2]);
 				saveFile.Seek(endPos);
@@ -639,9 +654,6 @@ public class Cafe : Node2D
 									}
 								}
 								break;
-							default:
-								break;
-
 						}
 					}
 					pressed = true;
@@ -877,6 +889,17 @@ public class Cafe : Node2D
 		if (currentState == State.UsingMenu || currentState == State.Idle )
 		{
 			storeMenu.Visible = button_pressed;
+			currentState = button_pressed ? State.UsingMenu : State.Idle;
+		}
+	}
+
+	private void _on_StaffButton_toggled(bool button_pressed)
+	{
+		GD.Print("Staff");
+
+		if (currentState == State.UsingMenu || currentState == State.Idle)
+		{
+			staffMenu.Visible = button_pressed;
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
 	}

@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=20 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -17,8 +17,11 @@
 [ext_resource path="res://Art/UI/Stove.tres" type="Texture" id=15]
 [ext_resource path="res://MouseLocl.gd" type="Script" id=16]
 [ext_resource path="res://Art/UI/Fridge.tres" type="Texture" id=17]
+[ext_resource path="res://Code/UI/StaffMenu.cs" type="Script" id=18]
+[ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
 
 [node name="Cafe" type="Node2D"]
+position = Vector2( 256, 152 )
 script = ExtResource( 1 )
 Money = 9999
 CustomerTexture = ExtResource( 2 )
@@ -68,10 +71,10 @@ stream = ExtResource( 6 )
 autostart = true
 
 [node name="Menu" type="VBoxContainer" parent="."]
-margin_left = -256.0
-margin_top = -152.0
-margin_right = -168.0
-margin_bottom = -40.0
+margin_left = -232.0
+margin_top = -128.0
+margin_right = -144.0
+margin_bottom = -16.0
 rect_scale = Vector2( 2, 2 )
 mouse_filter = 2
 __meta__ = {
@@ -84,15 +87,23 @@ margin_bottom = 20.0
 toggle_mode = true
 text = "Store"
 
+[node name="StaffButton" type="Button" parent="Menu"]
+margin_top = 24.0
+margin_right = 88.0
+margin_bottom = 44.0
+toggle_mode = true
+text = "Staff"
+
 [node name="UI" type="CanvasLayer" parent="."]
-layer = 2
-follow_viewport_enable = true
+layer = 3
+scale = Vector2( 0.75, 0.75 )
+transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
 
 [node name="CustomerCountLabel" type="Label" parent="UI"]
-margin_left = 4.76837e-07
-margin_top = -88.0
-margin_right = 90.0
-margin_bottom = -74.0
+margin_left = 968.0
+margin_top = 88.0
+margin_right = 1058.0
+margin_bottom = 102.0
 rect_scale = Vector2( 5, 5 )
 text = "asdadasdadfdf"
 script = ExtResource( 16 )
@@ -100,9 +111,11 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="StoreMenu" type="Control" parent="UI"]
-margin_right = 864.0
-margin_bottom = 752.0
+[node name="StoreMenu" type="Control" parent="UI" groups=["Menu"]]
+margin_left = 256.0
+margin_top = 8.0
+margin_right = 1280.0
+margin_bottom = 768.0
 mouse_default_cursor_shape = 2
 script = ExtResource( 12 )
 __meta__ = {
@@ -125,12 +138,10 @@ rect_min_size = Vector2( 192, 192 )
 size_flags_horizontal = 3
 custom_constants/separation = 2
 
-[node name="MenuArea" type="Control" parent="UI" groups=[
-"MouseBlock",
-]]
-margin_left = -256.0
-margin_top = -152.0
-margin_bottom = 752.0
+[node name="MenuArea" type="Control" parent="UI" groups=["MouseBlock"]]
+visible = false
+margin_right = 256.0
+margin_bottom = 904.0
 mouse_filter = 2
 script = ExtResource( 13 )
 __meta__ = {
@@ -138,6 +149,48 @@ __meta__ = {
 "_editor_description_": "Mouse block area used to define where menu is"
 }
 areaId = 1
+
+[node name="StaffMenu" type="Control" parent="UI" groups=["Menu"]]
+margin_left = 256.0
+margin_top = 8.0
+margin_right = 1195.0
+margin_bottom = 768.0
+mouse_filter = 1
+mouse_default_cursor_shape = 2
+script = ExtResource( 18 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+categoryFont = ExtResource( 14 )
+ButtonSceneName = "res://StaffButton.tscn"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/StaffMenu"]
+margin_right = 853.0
+margin_bottom = 803.0
+mouse_filter = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/StaffMenu/ScrollContainer"]
+margin_right = 853.0
+margin_bottom = 192.0
+rect_min_size = Vector2( 192, 192 )
+size_flags_horizontal = 3
+custom_constants/separation = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="UI"]
+visible = false
+margin_left = 256.0
+margin_top = 8.0
+margin_right = 1272.0
+margin_bottom = 768.0
+script = ExtResource( 20 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/ScrollContainer"]
 
 [node name="ExitToIdleModeButton" type="Button" parent="."]
 margin_left = -240.0
@@ -163,5 +216,6 @@ __meta__ = {
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="toggled" from="Menu/StoreButton" to="." method="_on_StoreButton_toggled"]
+[connection signal="toggled" from="Menu/StaffButton" to="." method="_on_StaffButton_toggled"]
 [connection signal="pressed" from="ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
 [connection signal="pressed" from="SellButton" to="." method="_on_SellButton_pressed"]

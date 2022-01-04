@@ -1,0 +1,41 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Art/red.png" type="Texture" id=2]
+[ext_resource path="res://Art/customer.png" type="Texture" id=3]
+[ext_resource path="res://Code/UI/StaffButton.cs" type="Script" id=4]
+
+[node name="StaffButton" type="Button"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+input_pass_on_modal_close_click = false
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StaffPicture" type="Sprite" parent="."]
+position = Vector2( 64, 64 )
+scale = Vector2( 0.5, 0.5 )
+texture = ExtResource( 3 )
+
+[node name="red" type="Sprite" parent="."]
+visible = false
+position = Vector2( 64, 64 )
+scale = Vector2( 2, 2 )
+texture = ExtResource( 2 )
+
+[node name="Fire" type="Label" parent="red"]
+margin_left = -32.0
+margin_right = 48.0
+margin_bottom = 41.0
+rect_scale = Vector2( 0.8, 0.74 )
+custom_fonts/font = ExtResource( 1 )
+text = "Fire"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="mouse_entered" from="." to="." method="_on_StaffButton_mouse_entered"]
+[connection signal="mouse_exited" from="." to="." method="_on_StaffButton_mouse_exited"]
+[connection signal="pressed" from="." to="." method="_on_Button_pressed"]

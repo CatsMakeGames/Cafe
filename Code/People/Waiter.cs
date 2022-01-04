@@ -59,7 +59,7 @@ namespace Staff
         }
         public override void GetFired()
         {
-            base.GetFired();
+            
             //first do proper cancelation or tasks so other waiters could 
             switch (CurrentGoal)
             {
@@ -74,6 +74,7 @@ namespace Staff
                     cafe.OnOrderComplete(currentOrder);
                     break;
             }
+            base.GetFired();
         }
 
         public override void ResetOrCancelGoal(bool forceCancel = false)

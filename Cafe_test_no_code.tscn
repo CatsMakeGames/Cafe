@@ -1,0 +1,110 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
+
+[node name="Cafe" type="Node2D"]
+position = Vector2( 256, 152 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 511.243, 299.004 )
+current = true
+zoom = Vector2( 1.5, 1.5 )
+
+[node name="UI" type="CanvasLayer" parent="Camera2D"]
+layer = 3
+scale = Vector2( 0.75, 0.75 )
+transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Camera2D/UI"]
+margin_right = 1024.0
+margin_bottom = 600.0
+script = ExtResource( 20 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/UI/ScrollContainer"]
+
+[node name="CustomerCountLabel" type="Label" parent="Camera2D/UI"]
+margin_left = 872.0
+margin_top = 144.0
+margin_right = 962.0
+margin_bottom = 158.0
+rect_scale = Vector2( 5, 5 )
+text = "asdadasdadfdf"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="StoreMenu" type="Control" parent="Camera2D/UI" groups=["Menu"]]
+visible = false
+margin_right = 864.0
+margin_bottom = 752.0
+mouse_default_cursor_shape = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Camera2D/UI/StoreMenu"]
+margin_right = 1024.0
+margin_bottom = 576.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/UI/StoreMenu/ScrollContainer"]
+margin_right = 1024.0
+margin_bottom = 192.0
+rect_min_size = Vector2( 192, 192 )
+size_flags_horizontal = 3
+custom_constants/separation = 2
+
+[node name="StaffMenu" type="Control" parent="Camera2D/UI" groups=["Menu"]]
+visible = false
+margin_right = 864.0
+margin_bottom = 752.0
+mouse_filter = 1
+mouse_default_cursor_shape = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Camera2D/UI/StaffMenu"]
+margin_right = 1024.0
+margin_bottom = 576.0
+mouse_filter = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Camera2D/UI/StaffMenu/ScrollContainer"]
+margin_right = 1024.0
+margin_bottom = 192.0
+rect_min_size = Vector2( 192, 192 )
+size_flags_horizontal = 3
+custom_constants/separation = 2
+
+[node name="ExitToIdleModeButton" type="Button" parent="."]
+margin_left = -240.0
+margin_top = 640.0
+margin_right = -220.0
+margin_bottom = 660.0
+rect_scale = Vector2( 4.875, 4.875 )
+text = "X"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SellButton" type="Button" parent="."]
+margin_left = -248.0
+margin_top = 392.0
+margin_right = -213.0
+margin_bottom = 412.0
+rect_scale = Vector2( 4.875, 4.875 )
+text = "Sell"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="pressed" from="ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
+[connection signal="pressed" from="SellButton" to="." method="_on_SellButton_pressed"]
