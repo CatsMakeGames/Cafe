@@ -23,6 +23,11 @@ namespace UI
 		[Export()] 
 		private Godot.Collections.Array<Texture> _iconTextures = new Array<Texture>();
 
+		[Export(PropertyHint.File, "*.tscn")]
+		public string ButtonScenePath;
+
+		protected PackedScene buttonScene;
+
 		Texture this[string name]
 		{
 			get
@@ -77,7 +82,6 @@ namespace UI
 			}
 			return false;
 		}
-
 		/**<summary>Spawn child nodes based on data</summary>*/
 		protected void Create()
 		{
@@ -102,36 +106,20 @@ namespace UI
 					int elemCount = 0;
 					foreach (var item in arr)
 					{
-						UI.StoreMenuItemButton button = new UI.StoreMenuItemButton
+
+						StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
+						currentContainer.AddChild(button);
+						button.Texture.Texture = this["UI_Icon_" + item.TextureName] ?? cafe.TableTexture;
+
+						button.ItemData = item;
+						button.ParentMenu = this;
+
+						button.PriceLabel.Text = item.Price.ToString();
+
+						if (!purchasedItems.Contains(item.tableId))
 						{
-							MouseDefaultCursorShape = CursorShape.PointingHand,
-							ItemData = item,
-							ParentMenu = this
-						};
-						TextureRect buttonIcon = new TextureRect
-						{
-							MouseFilter = MouseFilterEnum.Ignore,
-							Texture = this["UI_Icon_" + item.TextureName] ?? cafe.TableTexture
-						};
-						button.AddChild(buttonIcon);
-						button.RectMinSize = new Vector2(192, 192);
-						//button.RectSize = new Vector2(192, 192);
-						button.SizeFlagsHorizontal |= (int)SizeFlags.Expand;
-	                    if(!purchasedItems.Contains(item.tableId))
-							//{button.Modulate = Color.Color8(125,125,125);}
-						{button.Modulate = Color.Color8(125,0,0);}
-	                    currentContainer.AddChild(button);
-						//price tag
-						Label price = new Label
-						{
-							Text = item.Price.ToString(),
-							Align = Label.AlignEnum.Center,
-							Valign = Label.VAlign.Center,
-							MouseFilter = MouseFilterEnum.Ignore
-						};
-						if (categoryFont != null)
-							price.AddFontOverride("font", categoryFont);
-						button.AddChild(price);
+							button.Modulate = Color.Color8(125,0,0);
+						}
 						elemCount++;
 						if (elemCount >= 4)
 						{
@@ -206,6 +194,11 @@ namespace UI
 		{
 			base._Ready();
 			cafe = GetNode<Cafe>("/root/Cafe") ?? throw new NullReferenceException("Failed to find cafe node at /root/Cafe");
+			if (!ResourceLoader.Exists(ButtonScenePath))
+            {
+				throw new NullReferenceException($"Unable to find button template for store menu! Given path: {ButtonScenePath}");
+            }
+			buttonScene = ResourceLoader.Load<PackedScene>(ButtonScenePath);
 			itemContainer = 
 				GetNodeOrNull<VBoxContainer>("ScrollContainer/VBoxContainer")
 				?? throw new NullReferenceException("Failed to find container for store items.\n There must be scroll box with child vbox attached to menu node");

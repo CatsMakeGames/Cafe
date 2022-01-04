@@ -1,0 +1,33 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Art/Furniture/table.png" type="Texture" id=2]
+[ext_resource path="res://Code/UI/Store/StoreMenuItemButton.cs" type="Script" id=3]
+
+[node name="FurnitureButton" type="Button"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_right = -768.0
+margin_bottom = -344.0
+rect_min_size = Vector2( 256, 256 )
+mouse_default_cursor_shape = 2
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextureRect" type="TextureRect" parent="."]
+margin_right = 256.0
+margin_bottom = 256.0
+rect_min_size = Vector2( 192, 192 )
+mouse_filter = 2
+texture = ExtResource( 2 )
+
+[node name="Price" type="Label" parent="."]
+margin_left = 128.0
+margin_top = 176.0
+margin_right = 248.0
+margin_bottom = 261.0
+custom_fonts/font = ExtResource( 1 )
+text = "999999
+"
