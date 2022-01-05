@@ -4,7 +4,6 @@ using Godot;
 using System;
 using System.Linq;
 using Staff;
-using Kitchen;
 using System.Linq.Expressions;
 
 
@@ -53,8 +52,8 @@ public class Cafe : Node2D
 	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture CookTexture;
 
-	
-	[Export,Obsolete("This will be removed in future updates, use texture array instead")]
+
+	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture WaiterTexture;
 
 	/**<summary>Texture for table. Also is used as fallback texture</summary>*/
@@ -126,12 +125,12 @@ public class Cafe : Node2D
 			}
 			if (currentState != State.UsingMenu)
 			{
-				foreach(Control cont in menus)
+				foreach (Control cont in menus)
 				{
 					cont.Visible = false;
 				}
 
-				foreach(Button but in menuToggleButtons)
+				foreach (Button but in menuToggleButtons)
 				{
 					but.Pressed = false;
 				}
@@ -204,12 +203,6 @@ public class Cafe : Node2D
 	public Godot.Collections.Array<Person> People => people;
 
 	#region Furniture
-
-	protected Godot.Collections.Array<Fridge> fridges = new Godot.Collections.Array<Fridge>();
-	public Godot.Collections.Array<Fridge> Fridges => fridges;
-
-	[Obsolete("Appliances array will be replaced with furniture array in next updates.")]
-	protected Godot.Collections.Array<Appliance> appliances = new Godot.Collections.Array<Appliance>();
 
 	/**<summary>Array containing every furniture object</summary>*/
 	public Godot.Collections.Array<Furniture> Furnitures = new Godot.Collections.Array<Furniture>();
@@ -324,7 +317,7 @@ public class Cafe : Node2D
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
-		
+
 		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
 		VisualServer.CanvasItemAddTextureRect
 			(
@@ -355,7 +348,34 @@ public class Cafe : Node2D
 		return navigation?.GetSimplePath(locStart, locEnd) ?? null;
 	}
 
+	public Furniture FindClosestFurniture(Furniture.FurnitureType type, Vector2 pos, out Vector2[] path)
+	{
+		var apps = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed);
+		var furnitures = apps as Furniture[] ?? apps.ToArray();
+		if (furnitures.Any())
+		{
+			float distSq = furnitures.ElementAt(0).Position.DistanceSquaredTo(pos);
+			float dist = 0;
+			int smallestId = 0;
+			for (int i = 1; i < furnitures.Count(); i++)
+			{
+				dist = furnitures.ElementAt(i).Position.DistanceSquaredTo(pos);
+				if (distSq >= dist)
+				{
+					distSq = dist;
+					smallestId = i;
+				}
+			}
+			path = navigation?.GetSimplePath(pos, furnitures.ElementAt(smallestId).Position) ?? null;
+			return furnitures.ElementAt(smallestId);
+		}
+
+		path = null;
+		return null;
+	}
+
 	/**<summary>Finds closest furniture of that type that can be used</summary>*/
+	[Obsolete("All furniture types will be merged into one class, so this function serves no purpose")]
 	public FurnitureType FindClosestFurniture<FurnitureType>(Vector2 pos, out Vector2[] path) where FurnitureType : Furniture
 	{
 		var type_fur = typeof(FurnitureType);
@@ -551,7 +571,7 @@ public class Cafe : Node2D
 
 		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-		
+
 		if (!fur.Any())
 		{
 			try
@@ -563,19 +583,21 @@ public class Cafe : Node2D
 				//using something like lambda expression while fater then reflection
 				//makes code less flexible as there is no way of telling the type before generating and as such having no way of preparing correct function before building
 				//and as such negating any speed improvements
-				Type type = Type.GetType(currentPlacingItem.ClassName/*must include any namespace used*/, true);
+				Furniture.FurnitureType type;
+				Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
 				Money -= currentPlacingItem.Price;
-				Furnitures.Add(System.Activator.CreateInstance
-								(
-									type,
-									Textures[currentPlacingItem.TextureName],
-									currentPlacingItem.Size,
-									Textures[currentPlacingItem.TextureName].GetSize(),
-									this,
-									endLoc,
-									currentPlacingItem.FurnitureCategory
-								) as Furniture);
+				Furnitures.Add(new Furniture
+				(
+						type,
+						Textures[currentPlacingItem.TextureName],
+						currentPlacingItem.Size,
+						Textures[currentPlacingItem.TextureName].GetSize(),
+						this,
+						endLoc,
+						currentPlacingItem.FurnitureCategory
+					));
 				Furniture lastFur = Furnitures.Last();
+				
 				lastFur.Price = currentPlacingItem.Price;
 				//clear tilemap underneath
 				//tilemap is 32x32
@@ -762,7 +784,7 @@ public class Cafe : Node2D
 	{
 		if (customer.CurrentTableId != -1)
 		{
-			(Furnitures[customer.CurrentTableId] as Table).CurrentCustomer = customer;
+			(Furnitures[customer.CurrentTableId]).CurrentCustomer = customer;
 			//make waiter go to the table
 			//if no free waiters are available -> add to the list of waiting people
 			//each time waiter is done with the task they will read from the list 
@@ -770,7 +792,7 @@ public class Cafe : Node2D
 			Waiter freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
 			if (freeWaiter != null)
 			{
-				Table table = (Furnitures[customer.CurrentTableId] as Table);
+				Furniture table = (Furnitures[customer.CurrentTableId]);
 				freeWaiter.PathToTheTarget = navigation.GetSimplePath(freeWaiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
 				freeWaiter.CurrentGoal = Waiter.Goal.TakeOrder;
 				freeWaiter.currentCustomer = table.CurrentCustomer;
@@ -785,22 +807,22 @@ public class Cafe : Node2D
 
 	}
 
-	public void _onCustomerFinishedEating(Customer customer,int payment)
+	public void _onCustomerFinishedEating(Customer customer, int payment)
 	{
 		//we don't have cleaning service yet
-		(Furnitures[customer.CurrentTableId] as Table).CurrentState = Table.State.Free;
-		OnNewTableIsAvailable((Furnitures[customer.CurrentTableId] as Table));
+		(Furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
+		OnNewTableIsAvailable((Furnitures[customer.CurrentTableId]));
 		Money += payment;
 		PaymentSoundPlayer?.Play();
 	}
 
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
-	public void OnNewTableIsAvailable(Table table)
+	public void OnNewTableIsAvailable(Furniture table)
 	{
 		var unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
 		if (unSittedCustomer != null)
 		{
-			(unSittedCustomer as Customer)?.FindAndMoveToTheTable(); 
+			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
 		}
 		else
 		{
@@ -812,7 +834,7 @@ public class Cafe : Node2D
 			}
 		}
 	}
-	
+
 
 
 	public void OnCustomerServed(Customer customer)
@@ -888,7 +910,7 @@ public class Cafe : Node2D
 		}
 		else if (currentState == State.Moving && CurrentlyMovedItem != null)
 		{
-			if (!Furnitures.Where(p => 
+			if (!Furnitures.Where(p =>
 			(
 			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
 			&& p != CurrentlyMovedItem
@@ -919,8 +941,8 @@ public class Cafe : Node2D
 	private void _on_StoreButton_toggled(bool button_pressed)
 	{
 		GD.Print("Menu");
-		
-		if (currentState == State.UsingMenu || currentState == State.Idle )
+
+		if (currentState == State.UsingMenu || currentState == State.Idle)
 		{
 			storeMenu.Visible = button_pressed;
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
@@ -942,7 +964,7 @@ public class Cafe : Node2D
 	{
 		exitToIdleModeButton.Visible = false;
 		currentState = State.Idle;
-		if(CurrentlyMovedItem != null)
+		if (CurrentlyMovedItem != null)
 		{
 			CurrentlyMovedItem = null;
 		}
@@ -950,13 +972,13 @@ public class Cafe : Node2D
 
 	private void _on_SellButton_pressed()
 	{
-		if(CurrentlyMovedItem != null)
+		if (CurrentlyMovedItem != null)
 		{
 			CurrentlyMovedItem.Position = movedItemStartLocation;
 			Money += CurrentlyMovedItem.Price;
 			Furnitures.Remove(CurrentlyMovedItem);
 			CurrentlyMovedItem.ResetUserPaths();
-			CurrentlyMovedItem.Destroy();		
+			CurrentlyMovedItem.Destroy();
 			CurrentlyMovedItem = null;
 			currentState = State.Idle;
 		}

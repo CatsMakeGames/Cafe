@@ -25,11 +25,6 @@ public class Person : CafeObject
         }
     }
 
-    static HumanTypes Type;
-
-    /**<summary>Applience currently used by this person or null if none are used<para/>Mostly meant for staff that works in the kitchen</summary>*/
-    protected Kitchen.Appliance appliance;
-
     protected bool shouldUpdate = true;
 
     public virtual bool ShouldUpdate => shouldUpdate || Fired/*because we want ai still be able to leave*/;
@@ -110,7 +105,6 @@ public class Person : CafeObject
 
         //move customer along the path
         Position += (pathToTheTarget[pathId] - position).Normalized() * movementSpeed;
-        GD.PrintRaw($"{position}->");
         if (position.DistanceTo(pathToTheTarget[pathId]) <= 10f)
         {
             pathId++;

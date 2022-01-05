@@ -45,7 +45,7 @@ public class Customer : Person
         Vector2[] path = null;
 
         //find table to move to
-        var table = cafe.FindClosestFurniture<Table>(position, out path);
+        var table = cafe.FindClosestFurniture(Furniture.FurnitureType.Table, position, out path);
         //we don't want to reset paths accidentally
         if (path != null)
         {
@@ -55,7 +55,7 @@ public class Customer : Person
         if (table != null)
         {
             CurrentTableId = cafe.Furnitures.IndexOf(table);
-            table.CurrentState = Table.State.InUse;
+            table.CurrentState = Furniture.State.InUse;
 
             movingToTheTable = true;
             table.CurrentCustomer = this;
