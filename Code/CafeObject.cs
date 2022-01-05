@@ -52,7 +52,7 @@ public class CafeObject : Godot.Object
         GenerateRIDBasedOnTexture(texture, (ZOrderValues)zorder);
     }
 
-    /**<summary>Construstor used for loading from save data<para/>
+    /**<summary>Constructor used for loading from save data<para/>
      * Note that if using this constructor you need to hard code texture name in every class to avoid usin wrong textures</summary>*/
     public CafeObject(Cafe cafe, uint[] saveData)
     {
@@ -129,7 +129,6 @@ public class CafeObject : Godot.Object
 
     public virtual void Destroy()
     {
-        GD.Print($"{ToString()}: Destroyed");
         VisualServer.FreeRid(textureRID);
         Free();
     }

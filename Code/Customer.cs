@@ -43,34 +43,34 @@ public class Customer : Person
     {
 
         Vector2[] path = null;
-        
+
         //find table to move to
         var table = cafe.FindClosestFurniture<Table>(position, out path);
         //we don't want to reset paths accidentally
         if (path != null)
         {
-            pathToTheTarget = path;
+            PathToTheTarget = path;
         }
-            pathId = 0;
-            if (table != null)
+        pathId = 0;
+        if (table != null)
+        {
+            CurrentTableId = cafe.Furnitures.IndexOf(table);
+            table.CurrentState = Table.State.InUse;
+
+            movingToTheTable = true;
+            table.CurrentCustomer = this;
+            //handle table being moved via build mode
+            if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
             {
-                CurrentTableId = cafe.Furnitures.IndexOf(table);
-                table.CurrentState = Table.State.InUse;
+                isAtTheTable = false;
+            }
+            else if (isAtTheTable)
+            {
+                GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
+            }
 
-                movingToTheTable = true;
-                table.CurrentCustomer = this;
-                //handle table being moved via build mode
-                if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
-                {
-                    isAtTheTable = false;
-                }
-                else if (isAtTheTable)
-                {
-                    GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
-                }
+            return true;
 
-                return true;
-            
         }
         return false;
     }

@@ -29,7 +29,7 @@ namespace Staff
         protected int currentApplienceId = -1;
 
         //prepare and cook are basically wait tasks done using timers so no need for update function
-        public override bool ShouldUpdate => base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1;
+        public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
 
 
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)

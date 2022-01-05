@@ -41,7 +41,7 @@ margin_bottom = 50.0
 custom_fonts/font = ExtResource( 1 )
 text = "Amount: "
 
-[node name="Label2" type="Label" parent="ScrollContainer/VBoxContainer/Waiters"]
+[node name="Count" type="Label" parent="ScrollContainer/VBoxContainer/Waiters"]
 margin_left = 164.0
 margin_top = 9.0
 margin_right = 204.0
@@ -89,6 +89,7 @@ margin_top = 198.0
 margin_right = 456.0
 margin_bottom = 258.0
 script = ExtResource( 2 )
+staffType = 1
 
 [node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Cooks"]
 margin_top = 9.0
@@ -97,7 +98,7 @@ margin_bottom = 50.0
 custom_fonts/font = ExtResource( 1 )
 text = "Amount: "
 
-[node name="Label2" type="Label" parent="ScrollContainer/VBoxContainer/Cooks"]
+[node name="Count" type="Label" parent="ScrollContainer/VBoxContainer/Cooks"]
 margin_left = 164.0
 margin_top = 9.0
 margin_right = 204.0

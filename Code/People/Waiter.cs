@@ -30,7 +30,7 @@ namespace Staff
 
         public override Class Type => Class.Waiter; 
 
-        public override bool ShouldUpdate => base.ShouldUpdate && CurrentGoal != Goal.None;
+        public override bool ShouldUpdate => (base.ShouldUpdate && CurrentGoal != Goal.None) || Fired;
 
         [Signal]
         public delegate void OnWaiterIsFree(Waiter waiter);
@@ -72,6 +72,8 @@ namespace Staff
                 case Goal.DeliverOrder:
                     //reset order back to kitchen
                     cafe.OnOrderComplete(currentOrder);
+                    break;
+                default:
                     break;
             }
             base.GetFired();
@@ -137,12 +139,12 @@ namespace Staff
             (cafe.Furnitures[currentCustomer.CurrentTableId] as Table).CurrentUser = null;
             //forget about this customer
             currentCustomer = null;
-            //since cafe is refenced for using node functions anyway, no need to use signals
+            //since cafe is referenced for using node functions anyway, no need to use signals
             if (cafe.completedOrders.Any())
             {
                 //(cafe.Furnitures[cafe.completedOrders[0]] as Table) is actually incorrect because completedOrders stores meal ids not where they should be placed
                 //so instead we will find (from first to last) first customer that wants this meal
-                //this way whoever came firts will get the meal served first
+                //this way whoever came first will get the meal served first
 
                 Table table = cafe.Furnitures.OfType<Table>().FirstOrDefault(p => p.CurrentCustomer.OrderId == cafe.completedOrders[0]);
                 if (table != null)

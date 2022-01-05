@@ -32,7 +32,7 @@ public class Person : CafeObject
 
     protected bool shouldUpdate = true;
 
-    public virtual bool ShouldUpdate => shouldUpdate;
+    public virtual bool ShouldUpdate => shouldUpdate || Fired/*because we want ai still be able to leave*/;
 
     /**<summary>How close does object need to be to the target for that to count</summary>*/
     public float Eps = 10f;
@@ -50,8 +50,8 @@ public class Person : CafeObject
     {
         fired = true;
 
-        pathToTheTarget =  cafe.FindLocation("Exit", Position);
-        pathId = 0;
+        PathToTheTarget = cafe.FindLocation("Exit", Position);
+       
     }
 
     public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
@@ -60,14 +60,14 @@ public class Person : CafeObject
     }
 
     /**<summary>Default constructor that assumes size of the humans</summary>*/
-    public Person(Texture texture, Cafe cafe,Vector2 pos) : base(texture,new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+    public Person(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
     {
         //load speed from the table
     }
 
-    public Person(Cafe cafe,uint[] saveData):base(cafe,saveData)
+    public Person(Cafe cafe, uint[] saveData) : base(cafe, saveData)
     {
-        
+
     }
 
     /**<summary>Executed when staff member arrives to their goal</summary>*/
@@ -80,8 +80,9 @@ public class Person : CafeObject
     }
 
     public override Array<uint> GetSaveData()
-    {   Array<uint> data = new Array<uint>();
-        if(pathToTheTarget != null)
+    {
+        Array<uint> data = new Array<uint>();
+        if (pathToTheTarget != null)
         {
 
         }
@@ -95,11 +96,21 @@ public class Person : CafeObject
 
     public void Update(float deltaTime)
     {
+
         //we have nowhere to go so we stop
-        if (pathToTheTarget == null || pathId >= pathToTheTarget.Length) { return; }
+        if (pathToTheTarget == null || pathId >= pathToTheTarget.Length)
+        {
+            if (Fired)
+            {
+                pendingKill = true;
+                GD.PrintErr("Destroying fired person unexpectedly. Reason: no path to the exit");
+            }
+            return;
+        }
 
         //move customer along the path
         Position += (pathToTheTarget[pathId] - position).Normalized() * movementSpeed;
+        GD.PrintRaw($"{position}->");
         if (position.DistanceTo(pathToTheTarget[pathId]) <= 10f)
         {
             pathId++;

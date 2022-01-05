@@ -34,6 +34,7 @@ FridgeTexture = ExtResource( 8 )
 StoveTexture = ExtResource( 7 )
 MaxSpawnedCustomersInQueue = 1
 Textures = {
+"Cook": ExtResource( 11 ),
 "Fridge": ExtResource( 8 ),
 "Furniture": ExtResource( 11 ),
 "Stove": ExtResource( 7 ),

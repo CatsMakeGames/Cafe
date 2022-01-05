@@ -310,14 +310,14 @@ public class Cafe : Node2D
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
 
-		for (int i = 0; i < 14; i++)
+		for (int i = 0; i < 1; i++)
 		{
 			Waiter waiter = new Waiter(Textures["Waiter"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
 			people.Add(waiter);
 
-			Cook cook = new Cook(Textures["Cook"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
-			people.Add(cook);
+			//Cook cook = new Cook(Textures["Cook"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			//people.Add(cook);
 		}
 
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
