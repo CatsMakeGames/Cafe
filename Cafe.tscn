@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=2]
+[gd_scene load_steps=21 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -18,6 +18,7 @@
 [ext_resource path="res://MouseLocl.gd" type="Script" id=16]
 [ext_resource path="res://Art/UI/Fridge.tres" type="Texture" id=17]
 [ext_resource path="res://Code/UI/StaffMenu.cs" type="Script" id=18]
+[ext_resource path="res://StaffManagmentMenuSimple.tscn" type="PackedScene" id=19]
 [ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
 
 [node name="Cafe" type="Node2D"]
@@ -27,7 +28,7 @@ Money = 9999
 CustomerTexture = ExtResource( 2 )
 CookTexture = ExtResource( 9 )
 WaiterTexture = ExtResource( 10 )
-TableTexture = ExtResource( 3 )
+FallbackTexture = ExtResource( 11 )
 FloorTexture = ExtResource( 5 )
 FridgeTexture = ExtResource( 8 )
 StoveTexture = ExtResource( 7 )
@@ -151,7 +152,15 @@ __meta__ = {
 }
 areaId = 1
 
+[node name="StaffManagmentMenuSimple" parent="UI" groups=["Menu"] instance=ExtResource( 19 )]
+visible = false
+margin_left = 341.333
+margin_top = 213.333
+margin_right = 341.333
+margin_bottom = 213.333
+
 [node name="StaffMenu" type="Control" parent="UI" groups=["Menu"]]
+visible = false
 margin_left = 256.0
 margin_top = 8.0
 margin_right = 1195.0
@@ -162,7 +171,6 @@ script = ExtResource( 18 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-categoryFont = ExtResource( 14 )
 ButtonSceneName = "res://StaffButton.tscn"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UI/StaffMenu"]

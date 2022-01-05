@@ -59,6 +59,12 @@ public class Person : CafeObject
         //load speed from the table
     }
 
+    /**<summary>Default constructor that assumes size of the humans</summary>*/
+    public Person(Texture texture, Cafe cafe,Vector2 pos) : base(texture,new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+    {
+        //load speed from the table
+    }
+
     public Person(Cafe cafe,uint[] saveData):base(cafe,saveData)
     {
         

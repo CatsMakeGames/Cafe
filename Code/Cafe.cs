@@ -1,8 +1,12 @@
+#define USE_SIMPLE_STAFF_MENU
+
 using Godot;
 using System;
 using System.Linq;
 using Staff;
 using Kitchen;
+using System.Linq.Expressions;
+
 
 /* All items drawing order
  * 0 - floor
@@ -43,25 +47,27 @@ public class Cafe : Node2D
 	[Export]
 	public int Money = 1000;
 
-	[Export]
+	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture CustomerTexture;
 
-	[Export]
+	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture CookTexture;
 
-	[Export]
+	
+	[Export,Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture WaiterTexture;
 
+	/**<summary>Texture for table. Also is used as fallback texture</summary>*/
 	[Export]
-	public Texture TableTexture;
+	public Texture FallbackTexture;
 
 	[Export]
 	public Texture FloorTexture;
 
-	[Export]
+	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture FridgeTexture;
 
-	[Export]
+	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture StoveTexture;
 
 	[Export]
@@ -186,8 +192,10 @@ public class Cafe : Node2D
 	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
 
 	#region Staff
+	[Obsolete("Use people array instead, because this array might have invalid refences", true)]
 	protected Godot.Collections.Array<Staff.Waiter> waiters = new Godot.Collections.Array<Staff.Waiter>();
 
+	[Obsolete("Use people array instead, because this array might have invalid refences", true)]
 	protected Godot.Collections.Array<Cook> cooks = new Godot.Collections.Array<Cook>();
 	#endregion
 
@@ -229,7 +237,11 @@ public class Cafe : Node2D
 
 	protected UI.StoreMenu storeMenu;
 
+#if !USE_SIMPLE_STAFF_MENU
 	protected StaffMenu staffMenu;
+#else
+	protected Control staffMenu;
+#endif
 
 	protected Button storeMenuButton;
 
@@ -251,6 +263,19 @@ public class Cafe : Node2D
 		pressLocation.x < (p.RectSize.x + p.RectPosition.x) &&
 		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
 		)).Any();
+	}
+
+	public void SpawnStaff<T>(string textureName) where T : Person
+	{
+		//this is simplest system of spawning that accounts for every future type
+		//a simple switch could work but that means more things to keep in mind when adding new staff types
+		people.Add(System.Activator.CreateInstance
+			(
+				typeof(T),
+				Textures[textureName] ?? FallbackTexture,
+				this,
+				(new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize
+			) as Person);
 	}
 
 	public override void _Ready()
@@ -287,14 +312,12 @@ public class Cafe : Node2D
 
 		for (int i = 0; i < 14; i++)
 		{
-			Waiter waiter = new Waiter(WaiterTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			Waiter waiter = new Waiter(Textures["Waiter"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
 			people.Add(waiter);
-			waiters.Add(waiter);
 
-			Cook cook = new Cook(CookTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
+			Cook cook = new Cook(Textures["Cook"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
 			people.Add(cook);
-			cooks.Add(cook);
 		}
 
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
@@ -308,19 +331,23 @@ public class Cafe : Node2D
 				_placementPreviewTextureRID,
 				new Rect2(new Vector2(0, 0),
 				new Vector2(128, 128)),
-				TableTexture.GetRid(),
+				(Textures["Table"] ?? FallbackTexture).GetRid(),
 				true,
 				new Color(155, 0, 0),
 				false,
-				TableTexture.GetRid()
+				(Textures["Table"] ?? FallbackTexture).GetRid()
 			);
 		VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
 		VisualServer.CanvasItemSetParent(_placementPreviewTextureRID, GetCanvasItem());
 		VisualServer.CanvasItemSetZIndex(_placementPreviewTextureRID, (int)ZOrderValues.MAX);
 
+#if !USE_SIMPLE_STAFF_MENU
 		staffMenu = GetNode<StaffMenu>("UI/StaffMenu");
 		staffMenu.cafe = this;
 		staffMenu.Create();
+#else
+		staffMenu = GetNode<Control>("UI/StaffManagmentMenuSimple");
+#endif
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -529,6 +556,13 @@ public class Cafe : Node2D
 		{
 			try
 			{
+				//the reason for using reflection(which is rather slow), instead of some optimisation is because we can not know before runtime 
+				//what type of funrinute player will decide to place,because menu is stored in a separate file
+				//having large switch statement while would provide faster results damages code readablity
+				//( because there will be as many duplicated constructors as there are types)
+				//using something like lambda expression while fater then reflection
+				//makes code less flexible as there is no way of telling the type before generating and as such having no way of preparing correct function before building
+				//and as such negating any speed improvements
 				Type type = Type.GetType(currentPlacingItem.ClassName/*must include any namespace used*/, true);
 				Money -= currentPlacingItem.Price;
 				Furnitures.Add(System.Activator.CreateInstance

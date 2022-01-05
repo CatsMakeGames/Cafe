@@ -58,7 +58,7 @@ public class Table : Furniture
      * Spawns table object into the world
      * </summary>
      * <param name="texture">Table texture altas</param>
-     * <param name="tableTextureSize">Size of the table image on the texture atlas</param>
+     * <param name="textureSize">Size of the table image on the texture atlas</param>
      * <param name="cafe">Cafe object</param>
      * */
     public Table(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category category) :base(texture,size,textureSize,cafe,pos,category)

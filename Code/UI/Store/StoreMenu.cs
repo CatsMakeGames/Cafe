@@ -90,7 +90,7 @@ namespace UI
 			{
 				var arr = data.Where(p => p.DisplayCategory == (Furniture.Category)category);
 				if(arr.Any())
-                {
+				{
 					//make label and container
 					Label name = new Label();
 					name.Text = ((Furniture.Category)category).ToString();
@@ -109,7 +109,7 @@ namespace UI
 
 						StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
 						currentContainer.AddChild(button);
-						button.Texture.Texture = this["UI_Icon_" + item.TextureName] ?? cafe.TableTexture;
+						button.Texture.Texture = this["UI_Icon_" + item.TextureName] ?? cafe.FallbackTexture;
 
 						button.ItemData = item;
 						button.ParentMenu = this;
@@ -131,7 +131,7 @@ namespace UI
 					}
 
 					container.RectMinSize = new Vector2( 192 * elemCount,192);
-                }
+				}
 			}
 			
 		}
@@ -195,9 +195,9 @@ namespace UI
 			base._Ready();
 			cafe = GetNode<Cafe>("/root/Cafe") ?? throw new NullReferenceException("Failed to find cafe node at /root/Cafe");
 			if (!ResourceLoader.Exists(ButtonScenePath))
-            {
+			{
 				throw new NullReferenceException($"Unable to find button template for store menu! Given path: {ButtonScenePath}");
-            }
+			}
 			buttonScene = ResourceLoader.Load<PackedScene>(ButtonScenePath);
 			itemContainer = 
 				GetNodeOrNull<VBoxContainer>("ScrollContainer/VBoxContainer")
