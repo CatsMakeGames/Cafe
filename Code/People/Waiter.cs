@@ -136,7 +136,7 @@ namespace Staff
         {
             //waiter is now free
             CurrentGoal = Goal.None;
-            (cafe.Furnitures[currentCustomer.CurrentTableId] as Table).CurrentUser = null;
+            (cafe.Furnitures[currentCustomer.CurrentTableId]).CurrentUser = null;
             //forget about this customer
             currentCustomer = null;
             //since cafe is referenced for using node functions anyway, no need to use signals
@@ -146,7 +146,11 @@ namespace Staff
                 //so instead we will find (from first to last) first customer that wants this meal
                 //this way whoever came first will get the meal served first
 
-                Table table = cafe.Furnitures.OfType<Table>().FirstOrDefault(p => p.CurrentCustomer.OrderId == cafe.completedOrders[0]);
+                Furniture table = cafe.Furnitures.FirstOrDefault(p => 
+                (
+                    p.CurrentCustomer.OrderId == cafe.completedOrders[0]) && 
+                    p.CurrentType == Furniture.FurnitureType.Table
+                );
                 if (table != null)
                 {
                     table.CurrentUser = this;
@@ -159,7 +163,7 @@ namespace Staff
             else if (cafe.tablesToTakeOrdersFrom.Any())
             {
                 cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].CurrentUser = this;
-                changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]] as Table).CurrentCustomer);
+                changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]]).CurrentCustomer);
                 cafe.tablesToTakeOrdersFrom.RemoveAt(0);
             }
 

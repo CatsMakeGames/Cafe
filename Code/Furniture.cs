@@ -2,6 +2,8 @@
 using Godot;
 using Godot.Collections;
 
+/**<summary>Class that houses all of the furniture logic
+Because of the game's design furniture does not actually have any logic inside instead serving more of a map marker purpose</summary>*/
 public class Furniture : CafeObject
 {
     /**<summary>Used to separate objects in the store and to allow/restrict where items can be placed</summary>*/
@@ -15,18 +17,41 @@ public class Furniture : CafeObject
         Kitchen = 1 << 3,
         Toilet = 1 << 4
     }
+
+    public enum State
+    {
+        Free,
+        InUse,
+        NeedsCleaning
+    }
+
+
+    /**<summary></summary*/
+    public enum FurnitureType
+    {
+        /**<summary>There was an issue with creation</summary>*/
+        Invalid,
+        Table,
+        Stove,
+        Fridge
+    }
+
+    public State CurrentState = State.Free;
+
+    public FurnitureType CurrentType = FurnitureType.Invalid;
+
     /**<summary>Type of the class used purely to allow compact way of stroing what type is this object</summary>*/
     public static new Class Type = Class.Default;
 
-    /**<summary>Price of the funriture in store<para/>Mostly meant for when it's being sold</summary>*/
-    public int Price =0;
+    /**<summary>Price of the furniture in store<para/>Mostly meant for when it's being sold</summary>*/
+    public int Price = 0;
 
     /**<summary>Space that is taken up by this furniture</summary>*/
     public Rect2 CollisionRect => new Rect2(Position, size);
 
     protected bool isInUse = false;
 
-    public virtual bool IsInUse => false;
+    public virtual bool IsInUse => CurrentState == State.InUse;
 
     /**<summary>Current level of the furniture.<para/>Used to store same types of furniture under same class<para/>
      * Only affects timing,texture and sometimes price<para/>
@@ -63,8 +88,12 @@ public class Furniture : CafeObject
         isInUse = ((data[6] & 0x0000ff00) >> 24) == 1;
     }
 
-    /**<summary>Person who is actively using this furniture<para/>If this is an applience this is meant for recording staff</summary>*/
+    /**<summary>Person who is actively using this furniture<para/>If this is an appliance this is meant for recording staff</summary>*/
     public Person CurrentUser = null;
+
+    /**<summary>If this is machine that needs customer and staff operation<para/>
+    most left as compatibility thing(to avoid casting and possible issues)</summary>*/
+    public Customer CurrentCustomer = null;
 
     public byte Level
     {
@@ -78,20 +107,59 @@ public class Furniture : CafeObject
     }
 
     /**<summary>If false this furntiure will not be considered in FindClosestFurniture search</summary>*/
-    public virtual bool CanBeUsed => true;
+    public virtual bool CanBeUsed => CurrentState == State.Free;
 
     protected Category category = Category.Any;
 
     public Category ItemCategory => category;
-    public Furniture(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
+    public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
+        CurrentType = type;
         category = _category;
+        if(type == FurnitureType.Table)
+        {
+            cafe.OnNewTableIsAvailable(this);
+        }
     }
 
     /**<summary>Forces any ai user to find a new furniture of the same type</summary>*/
     public virtual void ResetUserPaths()
     {
-        if(CurrentUser != null)
+        switch (CurrentType)
+        {
+            case FurnitureType.Table:
+                if (CurrentState == State.InUse)
+                {
+                    CurrentState = State.Free;
+                }
+                if (CurrentCustomer != null)
+                {
+                    //temporary value so we could still call the customer funcions 
+                    var tempCustomer = CurrentCustomer;
+                    //reset table id for better context
+                    tempCustomer.CurrentTableId = -1;
+                    //clear it out to avoid stuck references and if this table is selected again customer will update this value itself
+                    CurrentCustomer = null;
+                    //make customer look for new table and go back to queue if none are found
+                    if (!tempCustomer.FindAndMoveToTheTable())
+                    {
+                        //If customer has to wait back in the queue then waiter has to be reset
+                        CurrentUser?.ResetOrCancelGoal(true);
+                        //throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
+                        GD.PrintErr("Function for moving customer back to queue is not yet implemented");
+                    }
+                }
+                break;
+            case FurnitureType.Stove:
+            case FurnitureType.Fridge:
+                var temp = CurrentUser;
+			    CurrentUser = null;
+			    temp?.ResetOrCancelGoal();   
+                break;
+            default:
+                throw new NotImplementedException("Attempted to use unfinished furniture type");
+        }
+        if (CurrentUser != null)
         {
             CurrentUser.ResetOrCancelGoal();
         }

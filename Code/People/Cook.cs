@@ -26,7 +26,7 @@ namespace Staff
 
         public int goalOrderId = -1;
 
-        protected int currentApplienceId = -1;
+        protected int currentApplianceId = -1;
 
         //prepare and cook are basically wait tasks done using timers so no need for update function
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
@@ -42,7 +42,7 @@ namespace Staff
             currentGoal = Cook.Goal.TakeFood;
             goalOrderId = orderId;
             Vector2[] temp;
-            var fridge = cafe.FindClosestFurniture<Kitchen.Fridge>(Position, out temp);
+            var fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
             //mark this fridge as used by this cook for movement mode 
             fridge.CurrentUser = this;
             PathToTheTarget = temp;
@@ -53,9 +53,9 @@ namespace Staff
         public override void GetFired()
         {
             base.GetFired();
-            if (currentApplienceId > -1)
+            if (currentApplianceId > -1)
             {
-                cafe.Furnitures[currentApplienceId].CurrentUser = null;
+                cafe.Furnitures[currentApplianceId].CurrentUser = null;
             }
             /**
              * Raw food that needs to be cut just dissapears as it would be no different from raw food that was not touched
@@ -79,7 +79,7 @@ namespace Staff
         }
         void BeFree()
         {
-            currentApplienceId = -1;
+            currentApplianceId = -1;
             goalOrderId = -1;
             currentGoal = Goal.None;
             if (cafe.orders.Any())
@@ -99,7 +99,7 @@ namespace Staff
                 //find new applience and move food there
                 case Goal.CookFood:
                     //true we found new applience suitable to continue work
-                    var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position, out temp);
+                    var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove,Position, out temp);
                     if (forceCancel || stove == null)
                     {
                         cafe.orders.Add(goalOrderId);
@@ -120,7 +120,7 @@ namespace Staff
                     //the only solution is to find new fridge
                 case Goal.TakeFood:
                     //true we found new applience suitable to continue work
-                    var fridge = cafe.FindClosestFurniture<Kitchen.Fridge>(Position, out temp);
+                    var fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
                     if (forceCancel || fridge == null)
                     {
                         cafe.orders.Add(goalOrderId);
@@ -146,9 +146,9 @@ namespace Staff
                     case Goal.TakeFood:
                         await System.Threading.Tasks.Task.Delay(1000);
                         currentGoal = Goal.CookFood;
-                        var stove = cafe.FindClosestFurniture<Kitchen.Stove>(Position, out pathToTheTarget);
+                        var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove, Position, out pathToTheTarget);
                         stove.CurrentUser = this;
-                        currentApplienceId = (int)stove.Id;
+                        currentApplianceId = (int)stove.Id;
                         pathId = 0;
                         //move to the cutting table
                         break;
