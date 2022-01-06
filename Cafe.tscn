@@ -81,10 +81,10 @@ margin_right = 256.0
 margin_bottom = -80.0
 
 [node name="Menu" type="VBoxContainer" parent="."]
-margin_left = -232.0
-margin_top = -128.0
-margin_right = -144.0
-margin_bottom = -16.0
+margin_left = -256.0
+margin_top = -144.0
+margin_right = -168.0
+margin_bottom = -32.0
 rect_scale = Vector2( 2, 2 )
 mouse_filter = 2
 __meta__ = {
@@ -122,7 +122,8 @@ __meta__ = {
 }
 
 [node name="StoreMenu" type="Control" parent="UI" groups=["Menu"]]
-margin_right = 1013.0
+margin_left = 256.0
+margin_right = 1269.0
 margin_bottom = 760.0
 mouse_default_cursor_shape = 2
 script = ExtResource( 12 )
@@ -134,10 +135,10 @@ _iconTextures = [ ExtResource( 15 ), ExtResource( 17 ) ]
 ButtonScenePath = "res://FurnitureButton.tscn"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UI/StoreMenu"]
-margin_left = 256.0
-margin_top = 32.0
-margin_right = 1024.0
-margin_bottom = 715.0
+margin_left = -9.15527e-05
+margin_top = 10.6667
+margin_right = 768.0
+margin_bottom = 693.667
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -150,31 +151,31 @@ size_flags_horizontal = 3
 custom_constants/separation = 2
 
 [node name="itemInfoContainer" type="VBoxContainer" parent="UI/StoreMenu"]
-margin_left = 1024.0
-margin_top = 32.0
-margin_right = 1365.0
-margin_bottom = 1703.0
+margin_left = 757.333
+margin_top = 21.3333
+margin_right = 1098.33
+margin_bottom = 1692.33
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="ItemName" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
-margin_right = 341.0
+margin_right = 340.0
 margin_bottom = 41.0
 custom_fonts/font = ExtResource( 14 )
 text = "Get Psyched!"
 
 [node name="label" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
 margin_top = 45.0
-margin_right = 341.0
+margin_right = 340.0
 margin_bottom = 86.0
 custom_fonts/font = ExtResource( 14 )
 text = "Description"
 
 [node name="Description" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
 margin_top = 90.0
-margin_right = 341.0
-margin_bottom = 1671.0
+margin_right = 340.0
+margin_bottom = 1803.0
 custom_fonts/font = ExtResource( 14 )
 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a metus pulvinar, fermentum sem id, blandit neque. Curabitur et consectetur mauris. Duis ipsum lacus, varius nec turpis ac, pretium auctor risus. Praesent sed tempus velit. Morbi ac risus tempus, feugiat nisl eget, placerat erat. Duis vehicula a arcu quis consectetur. Fusce magna nisl, pretium sit amet porta ut, commodo ut ipsum. Phasellus sed sapien posuere nisi lacinia faucibus quis vel elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
 autowrap = true

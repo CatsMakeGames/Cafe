@@ -42,10 +42,16 @@ public class Cafe : Node2D
 	[Export]
 	protected Rect2 playableArea;
 
-	public bool Paused => currentState == State.Building || currentState == State.Moving;
+	/**<summary>Additional flag that would allow player to keep game pause no matter the state<summary>*/
+	protected bool playerPaused = false;
+	public bool Paused => (currentState == State.Building || currentState == State.Moving)|| playerPaused;
 
 	[Signal]
 	public delegate void MoneyUpdated(int amount);
+
+	[Signal]
+	public delegate void ChangedPlayerPause(bool paused);
+
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -664,6 +670,12 @@ public class Cafe : Node2D
 		{
 			Save();
 			return;
+		}
+		if(Input.IsActionJustPressed("pause"))
+		{
+			playerPaused = !playerPaused;
+			EmitSignal(nameof(ChangedPlayerPause),playerPaused);
+			GD.Print($"Paused: {playerPaused}");
 		}
 
 		if (Input.IsActionJustPressed("load"))
