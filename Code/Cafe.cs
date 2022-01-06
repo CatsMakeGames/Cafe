@@ -39,6 +39,9 @@ public class Cafe : Node2D
 	[Export]
 	private byte _maxSaveObjectSize = 6;
 
+	[Export]
+	protected Rect2 playableArea;
+
 	public bool Paused => currentState == State.Building || currentState == State.Moving;
 	/**
 	* <summary>How much money player has</summary>
@@ -570,56 +573,62 @@ public class Cafe : Node2D
 			);
 
 		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
-		var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-
-		if (!fur.Any())
+		//to prevent spawning on menu
+		if (playableArea.Encloses(rect2))
 		{
-			try
-			{
-				//the reason for using reflection(which is rather slow), instead of some optimisation is because we can not know before runtime 
-				//what type of funrinute player will decide to place,because menu is stored in a separate file
-				//having large switch statement while would provide faster results damages code readablity
-				//( because there will be as many duplicated constructors as there are types)
-				//using something like lambda expression while fater then reflection
-				//makes code less flexible as there is no way of telling the type before generating and as such having no way of preparing correct function before building
-				//and as such negating any speed improvements
-				Furniture.FurnitureType type;
-				Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
-				Money -= currentPlacingItem.Price;
-				Furnitures.Add(new Furniture
-				(
-						type,
-						Textures[currentPlacingItem.TextureName],
-						currentPlacingItem.Size,
-						Textures[currentPlacingItem.TextureName].GetSize(),
-						this,
-						endLoc,
-						currentPlacingItem.FurnitureCategory
-					));
-				Furniture lastFur = Furnitures.Last();
-				
-				lastFur.Price = currentPlacingItem.Price;
-				//clear tilemap underneath
-				//tilemap is 32x32
-				var size = lastFur.Size;
-				var pos = lastFur.Position;
-				//calculate before hand to avoid recalculating each iteration
-				int width = ((int)(size.x + pos.x)) >> gridSizeP2;
-				int height = ((int)(size.y + pos.y)) >> gridSizeP2;
-				for (int x = ((int)(pos.x)) >> gridSizeP2/*convert location to tilemap location*/; x < width; x++)
-				{
-					for (int y = ((int)(pos.y)) >> gridSizeP2; y < height; y++)
-					{
-						navigationTilemap.SetCell(x, y, -1);
-					}
-				}
 
-				lastFur.Init();
-			}
-			catch (Exception e)
+			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
+
+			if (!fur.Any())
 			{
-				GD.PrintErr($"Unable to find or load type. Error: {e.Message} Type: {currentPlacingItem?.ClassName ?? null}");
+				try
+				{
+					//the reason for using reflection(which is rather slow), instead of some optimisation is because we can not know before runtime 
+					//what type of funrinute player will decide to place,because menu is stored in a separate file
+					//having large switch statement while would provide faster results damages code readablity
+					//( because there will be as many duplicated constructors as there are types)
+					//using something like lambda expression while fater then reflection
+					//makes code less flexible as there is no way of telling the type before generating and as such having no way of preparing correct function before building
+					//and as such negating any speed improvements
+					Furniture.FurnitureType type;
+					Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
+					Money -= currentPlacingItem.Price;
+					Furnitures.Add(new Furniture
+					(
+							type,
+							Textures[currentPlacingItem.TextureName],
+							currentPlacingItem.Size,
+							Textures[currentPlacingItem.TextureName].GetSize(),
+							this,
+							endLoc,
+							currentPlacingItem.FurnitureCategory
+						));
+					Furniture lastFur = Furnitures.Last();
+
+					lastFur.Price = currentPlacingItem.Price;
+					//clear tilemap underneath
+					//tilemap is 32x32
+					var size = lastFur.Size;
+					var pos = lastFur.Position;
+					//calculate before hand to avoid recalculating each iteration
+					int width = ((int)(size.x + pos.x)) >> gridSizeP2;
+					int height = ((int)(size.y + pos.y)) >> gridSizeP2;
+					for (int x = ((int)(pos.x)) >> gridSizeP2/*convert location to tilemap location*/; x < width; x++)
+					{
+						for (int y = ((int)(pos.y)) >> gridSizeP2; y < height; y++)
+						{
+							navigationTilemap.SetCell(x, y, -1);
+						}
+					}
+
+					lastFur.Init();
+				}
+				catch (Exception e)
+				{
+					GD.PrintErr($"Unable to find or load type. Error: {e.Message} Type: {currentPlacingItem?.ClassName ?? null}");
+				}
 			}
+
 		}
 	}
 
@@ -736,7 +745,7 @@ public class Cafe : Node2D
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public Customer SpawnCustomer()
 	{
-		Customer customer = new Customer(CustomerTexture, this, LocationNodes["Entrance"].GlobalPosition);
+		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
 		customer.FindAndMoveToTheTable();
 		return customer;
@@ -890,7 +899,7 @@ public class Cafe : Node2D
 
 			Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
 			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-			if (!fur.Any())
+			if (!fur.Any() && playableArea.Encloses(rect2))
 			{
 				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(0, 1, 0));
 			}
@@ -914,7 +923,7 @@ public class Cafe : Node2D
 			(
 			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
 			&& p != CurrentlyMovedItem
-			).Any())
+			).Any() || !playableArea.Encloses(CurrentlyMovedItem.CollisionRect))
 			{
 				CurrentlyMovedItem.TextureColor = new Color(1, 1, 1);
 			}
