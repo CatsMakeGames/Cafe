@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 
+
 /**<summary>This menu is quickly thrown together placeholder that acts as replacement for unfittingly complex staff menu</summary>*/
 public class StaffManagementSimple : HBoxContainer
 {

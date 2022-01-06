@@ -15,6 +15,9 @@ public class Person : CafeObject
     /**<summary> If true no tasks can be assigned</summary>*/
     public bool Fired => fired;
 
+    [Export]
+    public  int Salary =  0;
+
     public Vector2[] PathToTheTarget
     {
         get => pathToTheTarget;

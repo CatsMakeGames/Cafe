@@ -6,12 +6,7 @@ using System.Linq;
 using Staff;
 using System.Linq.Expressions;
 
-
-/* All items drawing order
- * 0 - floor
- * 1- furniture
- * 2- customers(so they'd appear in front of the furniture while moving)(maybe have it be based on row(will make customers have to do layer jumping tho)
- */
+//TODO: Refactor this code and make it simplier if possible
 public class Cafe : Node2D
 {
 	/**<summary>Which state is player currently in<para/>
@@ -30,14 +25,6 @@ public class Cafe : Node2D
 
 	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
 	private RID _placementPreviewTextureRID;
-
-	/**<summary>Size that every saved object will have no matter how much data they actually save.<para/>
-	 * Should be exact size of the biggest object to avoid misreading of data<para/>
-	 * It's byte to avoid having data >255 bytes
-	 * if setting directly please note what class it's based on
-	 * <para/> 6 is based on current save data of person</summary>*/
-	[Export]
-	private byte _maxSaveObjectSize = 6;
 
 	[Export]
 	protected Rect2 playableArea;
@@ -72,28 +59,12 @@ public class Cafe : Node2D
 		}
 	}
 
-	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
-	public Texture CustomerTexture;
-
-	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
-	public Texture CookTexture;
-
-
-	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
-	public Texture WaiterTexture;
-
 	/**<summary>Texture for table. Also is used as fallback texture</summary>*/
 	[Export]
 	public Texture FallbackTexture;
 
 	[Export]
 	public Texture FloorTexture;
-
-	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
-	public Texture FridgeTexture;
-
-	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
-	public Texture StoveTexture;
 
 	[Export]
 	public int GridSize = 32;
@@ -165,6 +136,11 @@ public class Cafe : Node2D
 			{
 				exitToIdleModeButton.Visible = true;
 			}
+
+			if(currentState == State.Idle)
+			{
+				OnPaused(Paused);
+			}
 		}
 	}
 
@@ -194,9 +170,15 @@ public class Cafe : Node2D
 	[Export]
 	public Godot.Collections.Dictionary<string, string> Locations = new Godot.Collections.Dictionary<string, string>();
 
+	/**<summary>How much money was spent during last pay check time</summary>*/
+	protected int lastSpending = 0;
+
+	/**<summary>How much money was earned between updates</summary>*/
+	protected int lastEarning = 0;
+
 	protected Label CustomerCountLabel;
 
-	/**<summary>Nodes used for naviagiton</summary>*/
+	/**<summary>Nodes used for navigaiton</summary>*/
 	protected Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
 
 	protected TileMap navigationTilemap;
@@ -206,33 +188,13 @@ public class Cafe : Node2D
 
 	public Navigation2D navigation;
 
-	#region LocationNodes
-	[Obsolete("Use LocationNodes instead")]
-	protected Node2D customerEntranceLocationNode;
-
-	[Obsolete("Use LocationNodes instead")]
-	protected Node2D kitchenLocationNode;
-	#endregion
-
 	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
-
-	#region Staff
-	[Obsolete("Use people array instead, because this array might have invalid refences", true)]
-	protected Godot.Collections.Array<Staff.Waiter> waiters = new Godot.Collections.Array<Staff.Waiter>();
-
-	[Obsolete("Use people array instead, because this array might have invalid refences", true)]
-	protected Godot.Collections.Array<Cook> cooks = new Godot.Collections.Array<Cook>();
-	#endregion
-
 	/**<summary>Collection of all people in the cafe.<para/> Used for global updates or any function that applies to any human<para/>
 	 * for working with specific staff members use dedicated arrays</summary>*/
 	public Godot.Collections.Array<Person> People => people;
 
-	#region Furniture
-
 	/**<summary>Array containing every furniture object</summary>*/
 	public Godot.Collections.Array<Furniture> Furnitures = new Godot.Collections.Array<Furniture>();
-	#endregion
 
 	protected Floor floor;
 
@@ -304,15 +266,12 @@ public class Cafe : Node2D
 		menuToggleButtons = GetNode("Menu").GetChildren().OfType<Button>().ToList();
 
 		gridSizeP2 = (int)Math.Log(GridSize, 2);
-		GD.Print(gridSizeP2);
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
 		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
 
 		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
-
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
-
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
 		storeMenu = GetNodeOrNull<UI.StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
@@ -327,16 +286,6 @@ public class Cafe : Node2D
 		foreach (var loc in Locations)
 		{
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
-		}
-
-		for (int i = 0; i < 1; i++)
-		{
-			Waiter waiter = new Waiter(Textures["Waiter"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
-			//waiter.Connect(nameof(Waiter.OnWaiterIsFree), this, nameof(OnWaiterIsFree));
-			people.Add(waiter);
-
-			//Cook cook = new Cook(Textures["Cook"] ?? FallbackTexture, this, (new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize);
-			//people.Add(cook);
 		}
 
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
@@ -376,56 +325,19 @@ public class Cafe : Node2D
 
 	public Furniture FindClosestFurniture(Furniture.FurnitureType type, Vector2 pos, out Vector2[] path)
 	{
-		var apps = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed);
-		var furnitures = apps as Furniture[] ?? apps.ToArray();
-		if (furnitures.Any())
-		{
-			float distSq = furnitures.ElementAt(0).Position.DistanceSquaredTo(pos);
-			float dist = 0;
-			int smallestId = 0;
-			for (int i = 1; i < furnitures.Count(); i++)
-			{
-				dist = furnitures.ElementAt(i).Position.DistanceSquaredTo(pos);
-				if (distSq >= dist)
-				{
-					distSq = dist;
-					smallestId = i;
-				}
-			}
-			path = navigation?.GetSimplePath(pos, furnitures.ElementAt(smallestId).Position) ?? null;
-			return furnitures.ElementAt(smallestId);
-		}
-
-		path = null;
-		return null;
-	}
-
-	/**<summary>Finds closest furniture of that type that can be used</summary>*/
-	[Obsolete("All furniture types will be merged into one class, so this function serves no purpose")]
-	public FurnitureType FindClosestFurniture<FurnitureType>(Vector2 pos, out Vector2[] path) where FurnitureType : Furniture
-	{
-		var type_fur = typeof(FurnitureType);
-		var apps = Furnitures.Where(p => p.GetType() == type_fur && p.CanBeUsed);
-		var furnitures = apps as Furniture[] ?? apps.ToArray();
-		if (furnitures.Any())
-		{
-			float distSq = furnitures.ElementAt(0).Position.DistanceSquaredTo(pos);
-			float dist = 0;
-			int smallestId = 0;
-			for (int i = 1; i < furnitures.Count(); i++)
-			{
-				dist = furnitures.ElementAt(i).Position.DistanceSquaredTo(pos);
-				if (distSq >= dist)
-				{
-					distSq = dist;
-					smallestId = i;
-				}
-			}
-			path = navigation?.GetSimplePath(pos, furnitures.ElementAt(smallestId).Position) ?? null;
-			return furnitures.ElementAt(smallestId) as FurnitureType;
-		}
-		path = null;
-		return null;
+        Furniture closest = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
+				p => p.Position.DistanceSquaredTo(pos)
+			).FirstOrDefault<Furniture>();
+        if (closest != null)
+        {
+            path = navigation?.GetSimplePath(pos, closest.Position) ?? null;
+			return closest;
+        }
+        else
+        {
+            path = null;
+            return null;
+        }
 	}
 
 	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliencies</summary>*/
@@ -444,138 +356,15 @@ public class Cafe : Node2D
 	 * <para>it will store the object data as array of ints(with each character representing the unsigned it value)</para></summary>*/
 	public void Save()
 	{
-		/*first 8 entiries are reserved for various save data
-		1 byte - save version
-
-		6-8 size of the various blocks where save data is contained
-		*/
-		Godot.Collections.Array<uint> blocks = new Godot.Collections.Array<uint>(0, 0, 0, 0, 0, 0, 0, 0);
-
-		Godot.Collections.Array<uint> save = new Godot.Collections.Array<uint>();
-		//current save version
-		//only change when doing big changes
-		blocks[0] = 1;
-
-		//first save block is for people
-
-		blocks[2] = 0;
-
-		////second block is for furniture
-		//foreach (Furniture furniture in Furnitures)
-		//{
-		//	save += furniture.GetSaveData();
-		//}
-		//blocks[3] = (uint)save.Count - blocks[2];
-
-		//push special save data to the front
-		save = blocks + save;
-
-		var saveFile = new File();
-		Directory dir = new Directory();
-		//file fails to create file if directory does not exist
-		if (!dir.DirExists("user://Cafe/"))
-			dir.MakeDir("user://Cafe/");
-
-		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Write);
-		if (err == Error.Ok)
-		{
-			for (int i = 0; i < 8; i++)
-			{
-				//fill up space for future writting
-				saveFile.Store32(0);
-			}
-			foreach (Person person in people)
-			{
-				byte cur_size = 0;
-				//there is no need to mark how long each block is because 
-				//class itself will know how long the block is supposed to be
-				foreach (uint dat in person.GetSaveData())
-				{
-					saveFile.Store32(dat);
-					blocks[2] += 1;
-					cur_size++;
-				}
-				foreach (float dat in person.GetSaveDataFloat())
-				{
-					saveFile.StoreFloat(dat);
-					blocks[2] += 1;
-					cur_size++;
-				}
-				if (cur_size < _maxSaveObjectSize)
-				{
-					for (; cur_size <= _maxSaveObjectSize; cur_size++)
-					{
-						saveFile.Store32(0);
-					}
-				}
-				long endPos = (long)saveFile.GetPosition();
-				saveFile.Seek(8);
-				saveFile.Store32(blocks[2]);
-				saveFile.Seek(endPos);
-			}
-			saveFile.Close();
-		}
-		else
-		{
-			GD.PrintErr($"Failed to save game. Error: {err}");
-		}
+		//TODO: Make save system that is more compact. Use separete class to avoid adding more code to this file
+		throw new NotImplementedException("Save system is being redesigned");	
 	}
 
 
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
-		var saveFile = new File();
-		Godot.Collections.Array<uint> saveData = new Godot.Collections.Array<uint>();
-		var err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
-		if (err == Error.Ok)
-		{
-			//clear the world because we will fill it with new data
-			//TODO: Make sure i actually cleaned everything
-			for (int i = people.Count - 1; i >= 0; i--)
-			{
-				people[i].Destroy();
-			}
-			people.Clear();
-
-			for (int i = Furnitures.Count - 1; i >= 0; i--)
-			{
-				Furnitures[i].Destroy();
-			}
-			Furnitures.Clear();
-
-
-			while (!saveFile.EofReached())
-			{
-				saveData.Add(saveFile.Get32());
-			}
-			//read data for each person
-			;
-			try
-			{
-				for (int i = 8; i < saveData.Count; i += _maxSaveObjectSize)
-				{
-					//each segment is _maxSaveObjectSize*4(because int and float are 4 bytes) bytes long
-					//read in blocks of that size
-					//first get the type that we will pass data to
-					Type classType = TypeSearch.GetTypeByName(((Class)saveData[i + 1]).ToString());
-					if (classType != null)
-					{
-						people.Add(System.Activator.CreateInstance
-							(
-								classType,
-								this,
-								//while less efficient it's way more compact
-								saveData.Skip(i).Take(_maxSaveObjectSize).ToArray()
-							) as Person);
-					}
-				}
-			}
-			catch (System.IndexOutOfRangeException) { }
-			return true;
-		}
-
-		return false;
+		throw new NotImplementedException("Save system is being redesigned");	
 	}
 
 	public void PlaceNewFurniture()
@@ -599,20 +388,11 @@ public class Cafe : Node2D
 		//to prevent spawning on menu
 		if (playableArea.Encloses(rect2))
 		{
-
 			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-
 			if (!fur.Any())
 			{
 				try
 				{
-					//the reason for using reflection(which is rather slow), instead of some optimisation is because we can not know before runtime 
-					//what type of funrinute player will decide to place,because menu is stored in a separate file
-					//having large switch statement while would provide faster results damages code readablity
-					//( because there will be as many duplicated constructors as there are types)
-					//using something like lambda expression while fater then reflection
-					//makes code less flexible as there is no way of telling the type before generating and as such having no way of preparing correct function before building
-					//and as such negating any speed improvements
 					Furniture.FurnitureType type;
 					Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
 					Money -= currentPlacingItem.Price;
@@ -627,7 +407,7 @@ public class Cafe : Node2D
 							currentPlacingItem.FurnitureCategory
 						));
 					Furniture lastFur = Furnitures.Last();
-
+					lastFur.Init();
 					lastFur.Price = currentPlacingItem.Price;
 					//clear tilemap underneath
 					//tilemap is 32x32
@@ -674,7 +454,7 @@ public class Cafe : Node2D
 		if(Input.IsActionJustPressed("pause"))
 		{
 			playerPaused = !playerPaused;
-			EmitSignal(nameof(ChangedPlayerPause),playerPaused);
+			OnPaused(Paused);
 			GD.Print($"Paused: {playerPaused}");
 		}
 
@@ -719,11 +499,8 @@ public class Cafe : Node2D
 										//clear old place
 										CurrentlyMovedItem.UpdateNavigation(false);
 										CurrentlyMovedItem.Position = loc;
-										CurrentlyMovedItem.UpdateNavigation(true);
-
-										/*
-										 * Reset any person trying to get to this item
-										 */
+										CurrentlyMovedItem.UpdateNavigation(true);										
+										// Reset any person trying to get to this item						 
 										CurrentlyMovedItem = null;
 									}
 									return;
@@ -873,17 +650,13 @@ public class Cafe : Node2D
 		}
 	}
 
-
-
 	public void OnCustomerServed(Customer customer)
 	{
-		//money update logic is fairly simple
 		/*
-		 each time customer is served player gets some money
+		each time customer is served player gets some money
 		money is calculated as rating based system and on customer type
 		all of which is based on current rating of the staff
 		which is calculated based on what player has and who was serving them
-
 		*/
 		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
 	}
@@ -891,7 +664,6 @@ public class Cafe : Node2D
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
-		//CustomerCountLabel?.SetText($"Queue: {QueuedNotSpawnedCustomersCount.ToString()} | Tables(free/occupied) : {tables.Where(p=>p.CurrentState == Table.State.Free).Count()}/{tables.Where(p => p.CurrentState == Table.State.InUse).Count()}");
 		if (!Paused)
 		{
 			if (people.Any())
@@ -938,8 +710,7 @@ public class Cafe : Node2D
 			}
 			VisualServer.CanvasItemSetTransform(_placementPreviewTextureRID, new Transform2D
 				(
-					0,
-					new Vector2
+					0,new Vector2
 					(
 						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
 						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
@@ -976,26 +747,23 @@ public class Cafe : Node2D
 		}
 	}
 
-	private void _on_StoreButton_toggled(bool button_pressed)
+	private void _toggleMenu(Control menu,bool button_pressed)
 	{
-		GD.Print("Menu");
-
 		if (currentState == State.UsingMenu || currentState == State.Idle)
 		{
-			storeMenu.Visible = button_pressed;
+			menu.Visible = button_pressed;
 			currentState = button_pressed ? State.UsingMenu : State.Idle;
 		}
 	}
 
+	private void _on_StoreButton_toggled(bool button_pressed)
+	{
+		_toggleMenu(storeMenu,button_pressed);
+	}
+
 	private void _on_StaffButton_toggled(bool button_pressed)
 	{
-		GD.Print("Staff");
-
-		if (currentState == State.UsingMenu || currentState == State.Idle)
-		{
-			staffMenu.Visible = button_pressed;
-			currentState = button_pressed ? State.UsingMenu : State.Idle;
-		}
+		_toggleMenu(staffMenu,button_pressed);
 	}
 
 	private void _on_ExitToIdleModeButton_pressed()
@@ -1020,5 +788,24 @@ public class Cafe : Node2D
 			CurrentlyMovedItem = null;
 			currentState = State.Idle;
 		}
+	}
+
+	private void OnPaused(bool paused)
+	{
+		var timers = GetTree().GetNodesInGroup("Timers");
+		foreach(Timer timer in timers)
+		{
+			timer.Paused = paused;
+		}
+		EmitSignal(nameof(ChangedPlayerPause),Paused);
+	}
+
+	private void _on_PaycheckTimer_timeout()
+	{
+		//loop over all the staff and count how much money you owe them
+		int payment = 0;
+		people.Where(p => !p.Fired).ToList().ForEach(p => { payment += p.Salary; });
+		Money -= payment;
+		GD.Print($"You payed {payment} to your staff");
 	}
 }

@@ -116,7 +116,12 @@ public class Furniture : CafeObject
     {
         CurrentType = type;
         category = _category;
-        if(type == FurnitureType.Table)
+       
+    }
+    public override void Init()
+    {
+        base.Init();
+         if(CurrentType == FurnitureType.Table)
         {
             cafe.OnNewTableIsAvailable(this);
         }

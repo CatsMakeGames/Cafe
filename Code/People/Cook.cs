@@ -34,6 +34,7 @@ namespace Staff
 
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
+            Salary = 100;
         }
 
         public void TakeNewOrder(int orderId)

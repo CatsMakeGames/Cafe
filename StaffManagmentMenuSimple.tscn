@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=1]
-[ext_resource path="res://Code/UI/StaffManagment/StaffManagmentSimple.cs" type="Script" id=2]
+[ext_resource path="res://Code/UI/StaffManagment/StaffManagementSimple.cs" type="Script" id=2]
 
 [node name="StaffManagmentMenuSimple" type="Control"]
 anchor_right = 1.0
@@ -33,7 +33,6 @@ margin_top = 45.0
 margin_right = 456.0
 margin_bottom = 105.0
 script = ExtResource( 2 )
-staffType = null
 
 [node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Waiters"]
 margin_top = 9.0

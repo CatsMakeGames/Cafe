@@ -41,6 +41,8 @@ namespace Staff
         public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             EmitSignal(nameof(OnWaiterIsFree), this);
+
+            Salary = 100;
         }
 
 
@@ -146,9 +148,10 @@ namespace Staff
                 //so instead we will find (from first to last) first customer that wants this meal
                 //this way whoever came first will get the meal served first
 
-                Furniture table = cafe.Furnitures.FirstOrDefault(p => 
-                (
-                    p.CurrentCustomer.OrderId == cafe.completedOrders[0]) && 
+                Furniture table = cafe.Furnitures.FirstOrDefault
+                (p => 
+                    p.CurrentCustomer != null &&
+                    p.CurrentCustomer.OrderId == cafe.completedOrders[0] && 
                     p.CurrentType == Furniture.FurnitureType.Table
                 );
                 if (table != null)
