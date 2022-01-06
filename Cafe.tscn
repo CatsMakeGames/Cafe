@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art/customer.png" type="Texture" id=2]
@@ -20,11 +20,11 @@
 [ext_resource path="res://Code/UI/StaffMenu.cs" type="Script" id=18]
 [ext_resource path="res://StaffManagmentMenuSimple.tscn" type="PackedScene" id=19]
 [ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
+[ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 playableArea = Rect2( 0, 0, 1024, 704 )
-Money = 9999
 CustomerTexture = ExtResource( 2 )
 CookTexture = ExtResource( 9 )
 WaiterTexture = ExtResource( 10 )
@@ -73,6 +73,13 @@ stream = ExtResource( 6 )
 [node name="CustomerSpawnTimer" type="Timer" parent="."]
 autostart = true
 
+[node name="Stats" parent="." instance=ExtResource( 21 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = -144.0
+margin_right = 256.0
+margin_bottom = -80.0
+
 [node name="Menu" type="VBoxContainer" parent="."]
 margin_left = -232.0
 margin_top = -128.0
@@ -115,10 +122,8 @@ __meta__ = {
 }
 
 [node name="StoreMenu" type="Control" parent="UI" groups=["Menu"]]
-margin_left = 256.0
-margin_top = 8.0
-margin_right = 1280.0
-margin_bottom = 768.0
+margin_right = 1013.0
+margin_bottom = 760.0
 mouse_default_cursor_shape = 2
 script = ExtResource( 12 )
 __meta__ = {
@@ -129,18 +134,50 @@ _iconTextures = [ ExtResource( 15 ), ExtResource( 17 ) ]
 ButtonScenePath = "res://FurnitureButton.tscn"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="UI/StoreMenu"]
+margin_left = 256.0
+margin_top = 32.0
 margin_right = 1024.0
-margin_bottom = 576.0
+margin_bottom = 715.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/StoreMenu/ScrollContainer"]
-margin_right = 1024.0
+margin_right = 768.0
 margin_bottom = 192.0
 rect_min_size = Vector2( 192, 192 )
 size_flags_horizontal = 3
 custom_constants/separation = 2
+
+[node name="itemInfoContainer" type="VBoxContainer" parent="UI/StoreMenu"]
+margin_left = 1024.0
+margin_top = 32.0
+margin_right = 1365.0
+margin_bottom = 1703.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ItemName" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
+margin_right = 341.0
+margin_bottom = 41.0
+custom_fonts/font = ExtResource( 14 )
+text = "Get Psyched!"
+
+[node name="label" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
+margin_top = 45.0
+margin_right = 341.0
+margin_bottom = 86.0
+custom_fonts/font = ExtResource( 14 )
+text = "Description"
+
+[node name="Description" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
+margin_top = 90.0
+margin_right = 341.0
+margin_bottom = 1671.0
+custom_fonts/font = ExtResource( 14 )
+text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a metus pulvinar, fermentum sem id, blandit neque. Curabitur et consectetur mauris. Duis ipsum lacus, varius nec turpis ac, pretium auctor risus. Praesent sed tempus velit. Morbi ac risus tempus, feugiat nisl eget, placerat erat. Duis vehicula a arcu quis consectetur. Fusce magna nisl, pretium sit amet porta ut, commodo ut ipsum. Phasellus sed sapien posuere nisi lacinia faucibus quis vel elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+autowrap = true
 
 [node name="MenuArea" type="Control" parent="UI" groups=["MouseBlock"]]
 visible = false

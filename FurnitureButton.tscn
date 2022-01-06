@@ -7,9 +7,9 @@
 [node name="FurnitureButton" type="Button"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_right = -768.0
-margin_bottom = -344.0
-rect_min_size = Vector2( 256, 256 )
+margin_right = -896.0
+margin_bottom = -472.0
+rect_min_size = Vector2( 128, 128 )
 mouse_default_cursor_shape = 2
 script = ExtResource( 3 )
 __meta__ = {
@@ -17,17 +17,24 @@ __meta__ = {
 }
 
 [node name="TextureRect" type="TextureRect" parent="."]
-margin_right = 256.0
-margin_bottom = 256.0
-rect_min_size = Vector2( 192, 192 )
+margin_right = 128.0
+margin_bottom = 128.0
+rect_min_size = Vector2( 128, 128 )
 mouse_filter = 2
 texture = ExtResource( 2 )
+expand = true
 
 [node name="Price" type="Label" parent="."]
-margin_left = 128.0
-margin_top = 176.0
-margin_right = 248.0
-margin_bottom = 261.0
+margin_top = 88.0
+margin_right = 120.0
+margin_bottom = 173.0
 custom_fonts/font = ExtResource( 1 )
 text = "999999
 "
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[connection signal="mouse_entered" from="." to="." method="onMouseOver"]
+[connection signal="mouse_exited" from="." to="." method="onMouseOut"]
+[connection signal="pressed" from="." to="." method="onPressed"]

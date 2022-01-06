@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 
 /**<summary>This menu is quickly thrown together placeholder that acts as replacement for unfittingly complex staff menu</summary>*/
-public class StaffManagmentSimple : HBoxContainer
+public class StaffManagementSimple : HBoxContainer
 {
 	public enum StaffType
 	{

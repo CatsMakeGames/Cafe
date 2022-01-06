@@ -43,11 +43,28 @@ public class Cafe : Node2D
 	protected Rect2 playableArea;
 
 	public bool Paused => currentState == State.Building || currentState == State.Moving;
+
+	[Signal]
+	public delegate void MoneyUpdated(int amount);
 	/**
 	* <summary>How much money player has</summary>
 	*/
 	[Export]
-	public int Money = 1000;
+	protected int money = 1000;
+
+	/**
+		* <summary>How much money player has</summary>
+		*/
+	public int Money
+	{
+		get { return money; }
+		set
+		{
+			money = value;
+			//this way cafe manager does not care about specific implementations of
+			EmitSignal("MoneyUpdated", money);
+		}
+	}
 
 	[Export, Obsolete("This will be removed in future updates, use texture array instead")]
 	public Texture CustomerTexture;

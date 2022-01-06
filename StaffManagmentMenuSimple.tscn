@@ -33,6 +33,7 @@ margin_top = 45.0
 margin_right = 456.0
 margin_bottom = 105.0
 script = ExtResource( 2 )
+staffType = null
 
 [node name="Label" type="Label" parent="ScrollContainer/VBoxContainer/Waiters"]
 margin_top = 9.0
@@ -135,5 +136,5 @@ text = "Fire"
 
 [connection signal="pressed" from="ScrollContainer/VBoxContainer/Waiters/Hire" to="ScrollContainer/VBoxContainer/Waiters" method="_on_Hire_pressed"]
 [connection signal="pressed" from="ScrollContainer/VBoxContainer/Waiters/Fire" to="ScrollContainer/VBoxContainer/Waiters" method="_on_Fire_pressed"]
-[connection signal="pressed" from="ScrollContainer/VBoxContainer/Cooks/Hire" to="ScrollContainer/VBoxContainer/Waiters" method="_on_Hire_pressed"]
-[connection signal="pressed" from="ScrollContainer/VBoxContainer/Cooks/Fire" to="ScrollContainer/VBoxContainer/Waiters" method="_on_Fire_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/Cooks/Hire" to="ScrollContainer/VBoxContainer/Cooks" method="_on_Hire_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/Cooks/Fire" to="ScrollContainer/VBoxContainer/Cooks" method="_on_Fire_pressed"]

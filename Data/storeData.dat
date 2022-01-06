@@ -1,5 +1,4 @@
-id;name;textureName;category;price;class;mainCategory,sizex;sizey
-1;Stove;Stove;3;454;Stove;3;128;128
-2;Fridge;Fridge;3;454;Fridge;3;128;128
-5;Table;Table;1|2;865;Table;2;128;128
-
+id;name;textureName;category;price;class;mainCategory;sizex;sizey;description
+1;Junkyard Stove;Stove;3;100;Stove;3;128;128;A very cheap stove you found on junk yard and "fixed"
+2;Junkyard Fridge;Fridge;3;100;Fridge;3;128;128;A very cheap Fridge you found on junk yard and "fixed"
+5;Junkyard Table;Table;1|2;100;Table;2;128;128;A very cheap table you found on junk yard and "fixed"

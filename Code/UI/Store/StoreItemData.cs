@@ -14,6 +14,8 @@ public class StoreItemData : Godot.Object
 
     public string TextureName = "res://icon.png";
 
+    public string Description = "Get psyched!";
+
     public int Price = 100;
 
     public Vector2 Size = new Vector2(128, 128);
@@ -54,5 +56,7 @@ public class StoreItemData : Godot.Object
             System.Convert.ToInt32(subData[7], System.Globalization.CultureInfo.InvariantCulture),
             System.Convert.ToInt32(subData[8], System.Globalization.CultureInfo.InvariantCulture)
         );
+
+        Description = subData[9];
     }
 }
