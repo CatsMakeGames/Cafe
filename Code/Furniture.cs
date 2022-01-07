@@ -49,6 +49,7 @@ public class Furniture : CafeObject
     /**<summary>Space that is taken up by this furniture</summary>*/
     public Rect2 CollisionRect => new Rect2(Position, size);
 
+    [Obsolete("No longer in use",true)]
     protected bool isInUse = false;
 
     public virtual bool IsInUse => CurrentState == State.InUse;
@@ -57,6 +58,9 @@ public class Furniture : CafeObject
      * Only affects timing,texture and sometimes price<para/>
      * Only 1 byte of data because there should not be >255 ovens in this damn game </summary>*/
     protected byte level;
+
+    /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
+    public new static uint SaveDataSize = 13u;
 
     public override Array<uint> GetSaveData()
     {
@@ -68,14 +72,20 @@ public class Furniture : CafeObject
         //a weird mix of data saving by store bool values as last byte, furniture type as third category as second byte and store level as first byte
         //note that for now this class dicataes how much data is stored but in future there should be predefined value
         baseSaveData.Add((uint)Price);
-        baseSaveData.Add((uint)((isInUse ? 0x01 : 0x00) << 24 | (byte)category << 8 | level));
 
         //next thing to save is id of the current user
-        //this might be a strange solution but if it's 0 then no id was recored if it's anything but 0 then it's a proper id
+        //this might be a strange solution but if it's 0 then no id was recorded if it's anything but 0 then it's a proper id
         //upon loading we will just subtract or ignore this value(storing signed it would waste a lot of possible space)
         //note that id of 0 is possible in the game itself
         baseSaveData.Add(CurrentUser?.Id + 1 ?? 0x0);
+        baseSaveData.Add(CurrentCustomer?.Id + 1 ?? 0x0);
 
+        baseSaveData.Add((uint)CurrentType);
+        baseSaveData.Add((uint)CurrentState);
+        baseSaveData.Add((uint)Level);
+
+        baseSaveData.Add((uint)size.x);
+        baseSaveData.Add((uint)size.y);
         return baseSaveData;
     }
 
@@ -84,8 +94,7 @@ public class Furniture : CafeObject
         base.LoadData(data);
         Price = (int)data[5];
         level = (byte)(data[6] & 0x000000ff);
-        category = (Furniture.Category)((data[6] & 0x0000ff00) >> 8);
-        isInUse = ((data[6] & 0x0000ff00) >> 24) == 1;
+       // isInUse = ((data[6] & 0x0000ff00) >> 24) == 1;
     }
 
     /**<summary>Person who is actively using this furniture<para/>If this is an appliance this is meant for recording staff</summary>*/
@@ -109,15 +118,22 @@ public class Furniture : CafeObject
     /**<summary>If false this furntiure will not be considered in FindClosestFurniture search</summary>*/
     public virtual bool CanBeUsed => CurrentState == State.Free;
 
-    protected Category category = Category.Any;
-
-    public Category ItemCategory => category;
     public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
         CurrentType = type;
-        category = _category;
-       
     }
+
+    public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
+    {
+        CurrentType = (FurnitureType)data[8];
+        size = new Vector2
+                        (
+                            (float)data[11],
+                            (float)data[12]
+                        );
+        GenerateRIDBasedOnTexture(cafe.Textures[CurrentType.ToString()], ZOrderValues.Furniture);
+    }
+
     public override void Init()
     {
         base.Init();

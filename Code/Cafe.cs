@@ -325,19 +325,19 @@ public class Cafe : Node2D
 
 	public Furniture FindClosestFurniture(Furniture.FurnitureType type, Vector2 pos, out Vector2[] path)
 	{
-        Furniture closest = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
+		Furniture closest = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
 				p => p.Position.DistanceSquaredTo(pos)
 			).FirstOrDefault<Furniture>();
-        if (closest != null)
-        {
-            path = navigation?.GetSimplePath(pos, closest.Position) ?? null;
+		if (closest != null)
+		{
+			path = navigation?.GetSimplePath(pos, closest.Position) ?? null;
 			return closest;
-        }
-        else
-        {
-            path = null;
-            return null;
-        }
+		}
+		else
+		{
+			path = null;
+			return null;
+		}
 	}
 
 	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliencies</summary>*/
@@ -356,15 +356,27 @@ public class Cafe : Node2D
 	 * <para>it will store the object data as array of ints(with each character representing the unsigned it value)</para></summary>*/
 	public void Save()
 	{
-		//TODO: Make save system that is more compact. Use separete class to avoid adding more code to this file
-		throw new NotImplementedException("Save system is being redesigned");	
+		SaveManager.Save(this);	
 	}
 
 
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
-		throw new NotImplementedException("Save system is being redesigned");	
+		//clear the world because we will fill it with new data
+			//TODO: Make sure i actually cleaned everything
+			for (int i = people.Count - 1; i >= 0; i--)
+			{
+				people[i].Destroy();
+			}
+			people.Clear();
+
+			for (int i = Furnitures.Count - 1; i >= 0; i--)
+			{
+				Furnitures[i].Destroy();
+			}
+		Furnitures.Clear();
+		return SaveManager.Load(this);
 	}
 
 	public void PlaceNewFurniture()

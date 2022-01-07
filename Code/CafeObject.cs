@@ -27,6 +27,9 @@ public class CafeObject : Godot.Object
     public virtual Class Type => Class.Default;
 
     
+    public static uint SaveDataSize = 5u;
+
+    
     public virtual Vector2 Position
     {
         get => position;
@@ -81,7 +84,7 @@ public class CafeObject : Godot.Object
     public virtual Godot.Collections.Array<uint> GetSaveData()
     {
         //save structure for this item
-        //all of the positonal values are stores as int as they are supposed to be dividable by 2, whole numbers(potentional save -> divide everything by the size of the grid to fit bigger numbers
+        //all of the positional values are stores as int as they are supposed to be dividable by 2, whole numbers(potential save -> divide everything by the size of the grid to fit bigger numbers
         //first 4 bytes -> id
         //next 8 bytes location.x & location.y 
         //next 8 bytes TextureSize.x &  TextureSize.y
@@ -89,30 +92,20 @@ public class CafeObject : Godot.Object
 
         //negative id would imply id not being set for a specific reason
         result.Add(Id);
-        result.Add((uint)Type);
-        
-        //unlike position texture size is not allowed to have freedom of float
+       
         result.Add((uint)textureSize.x);
         result.Add((uint)textureSize.y);
-        return result;
-    }
 
-    /**<summary>Gets save data for the object that needs to be stored as float instead of int. This is used for data like position</summary>*/
-    public virtual Godot.Collections.Array<float> GetSaveDataFloat()
-    {
-        Godot.Collections.Array<float> result = new Godot.Collections.Array<float>();
-
-        //position and location are always > 0
-        result.Add(position.x);
-        result.Add(position.y);
-
+        //position is stored as integer because that's simpler and because it does not change result that much
+        result.Add((uint)position.x);
+        result.Add((uint)position.y);
         return result;
     }
 
     public virtual void LoadData(uint[] data)
     {
-        position = new Vector2(data[1], data[2]);
-        textureSize = new Vector2(data[3], data[4]);
+        position = new Vector2(data[3], data[4]);
+        textureSize = new Vector2(data[1], data[2]);
     }
 
     /**<summary>Goes over all saved ids and tries to find objects with given ids</summary>*/
