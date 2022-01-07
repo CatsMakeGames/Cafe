@@ -1,6 +1,7 @@
 ﻿using System;
 using Godot;
 using System.Linq;
+using Godot.Collections;
 
 namespace Staff
 {
@@ -28,6 +29,9 @@ namespace Staff
 
         protected int currentApplianceId = -1;
 
+        /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
+        public new static uint SaveDataSize = 8u;
+
         //prepare and cook are basically wait tasks done using timers so no need for update function
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
 
@@ -35,6 +39,17 @@ namespace Staff
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             Salary = 100;
+        }
+
+        public Cook(Cafe cafe,uint[] saveData) : base(cafe,saveData)
+        {
+            Salary = 100;
+            textureSize = cafe.Textures["Cook"].GetSize();
+			size = new Vector2(128, 128);
+            currentGoal = (Goal)saveData[5];
+            goalOrderId = (int)saveData[6];
+            currentApplianceId = saveData[7] - 1u == 0 ? -1 : (int)saveData[7] - 1;
+			GenerateRIDBasedOnTexture(cafe.Textures["Cook"], ZOrderValues.Customer);
         }
 
         public void TakeNewOrder(int orderId)
@@ -134,6 +149,15 @@ namespace Staff
                     }
                     break;
             }
+        }
+
+        public override Array<uint> GetSaveData()
+        {
+            Array<uint> data = base.GetSaveData();
+            data.Add((uint)currentGoal);//[5]
+            data.Add((uint)goalOrderId);//[6]
+            data.Add((uint)currentApplianceId + 1u);//[7]
+            return data;
         }
 
         protected override async void onArrivedToTheTarget()

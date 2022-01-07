@@ -1,11 +1,30 @@
 using System;
 using Godot;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 public static class SaveManager
 {
 
     /**<summary>Where does the actual save data begin<para/> Update this based on current system</summary>*/
     public static long DataBegining = 1;
+
+    public static void StorePerson<T>(File saveFile,Cafe cafe) where T: Person
+    {
+        saveFile.StoreLine($"{typeof(T).Name}_begin");
+        var people = cafe.People.OfType<T>();
+        foreach (T person in people)
+        {
+            Godot.Collections.Array<uint> data = person.GetSaveData();
+            foreach (uint dat in data)
+            {
+                saveFile.Store32(dat);
+            }
+        }
+        saveFile.StoreLine($"{typeof(T).Name}_end");
+    }
+
     public static void Save(Cafe cafe)
     {
         //save file is structured like this -> 
@@ -53,15 +72,60 @@ public static class SaveManager
                     saveFile.Store32(dat);
                 }
             }
-             saveFile.StoreLine("furniture_end");
+            saveFile.StoreLine("furniture_end");
 
-            //TODO: add other types saving
-
-             saveFile.Close();
+            StorePerson<Staff.Waiter>(saveFile,cafe);
+            StorePerson<Staff.Cook>(saveFile,cafe);
+            StorePerson<Customer>(saveFile,cafe);
+            saveFile.Close();
         }
         //TODO: Add file reading error handling
     }
 
+    public static void LoadPerson(Cafe cafe,File saveFile)
+    {
+        //compiled lambda constructor
+        //using this instead of activator because it's faster compared to it when there are a lot of entities
+        //because function is fast and the only slow part is compilaton
+        Func<Cafe, uint[], Person> ctor;
+        Type[] argTypes = new Type[2] { typeof(Cafe), typeof(uint[]) };
+
+        //get type based on name
+        string blockName = saveFile.GetLine();
+        if(blockName == ""){return;}
+        blockName = blockName.Substr(0, blockName.Find("_begin"));
+        Type type = TypeSearch.GetTypeByName(blockName);
+        //get data
+        uint size = (uint)(type.GetField("SaveDataSize").GetValue(null));
+        //make constructor
+
+        ConstructorInfo info = type.GetConstructor(argTypes);
+        ParameterExpression[] args = new ParameterExpression[2];
+        args[0] = System.Linq.Expressions.Expression.Parameter(typeof(Cafe), "cafe");
+        args[1] = System.Linq.Expressions.Expression.Parameter(typeof(uint[]), "saveData");
+
+        ctor = System.Linq.Expressions.Expression.Lambda<Func<Cafe, uint[], Person>>(System.Linq.Expressions.Expression.New(info, args), args).Compile();
+        while (!saveFile.EofReached())
+        {
+            uint[] loadedData = new uint[size];
+            for (uint i = 0; i < size; i++)
+            {
+                loadedData[i] = saveFile.Get32();
+            }
+            cafe.People.Add(ctor(cafe,loadedData));
+
+            ulong pos = saveFile.GetPosition();
+            if (saveFile.GetLine().Contains("_end"))
+            {
+                return;
+            }
+            else
+            {
+                saveFile.Seek((long)pos);
+            }
+        }
+
+    }
 
     /**<summary>Loads save data from file game.sav<para/>
     cafe should be prepared(cleaned) before calling this function to avoid issues</summary>*/
@@ -95,6 +159,12 @@ public static class SaveManager
                     saveFile.Seek((long)pos);
                 }
             }
+
+            while (!saveFile.EofReached())
+            {
+                LoadPerson(cafe, saveFile);
+            }
+
 
             //TODO: make cafe init all objects once they are loaded
             return true;

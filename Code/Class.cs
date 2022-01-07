@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Reflection;
+
+[Obsolete("System of class enums is outdated")]
 /**<summary>This is enum that contains every class that is saved/loaded from the save file<para/>The whole point is to avoid saving full name in every save block</summary>*/
 public enum Class
 {

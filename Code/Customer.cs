@@ -39,6 +39,9 @@ public class Customer : Person
 
     public static new Class Type = Class.Customer;
 
+    /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
+    public new static uint SaveDataSize = 10u;
+
     public bool FindAndMoveToTheTable()
     {
 
@@ -102,6 +105,28 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
+    }
+
+    public Customer(Cafe cafe,uint[] data) : base(cafe,data)
+    {
+        orderId = (int)data[5];
+        isAtTheTable = data[6] == 1u ? true : false;
+        movingToTheTable = data[7] == 1u ? true : false;
+        eating = data[8] == 1u ? true : false;
+        CurrentTableId = (int)data[9];
+
+        GenerateRIDBasedOnTexture(cafe.Textures["Customer"], ZOrderValues.Customer);
+    }
+
+    public override Godot.Collections.Array<uint> GetSaveData()
+    {
+        Godot.Collections.Array<uint> data = base.GetSaveData();
+        data.Add((uint)orderId);//[5]
+        data.Add(isAtTheTable ? 1u: 0u);//[6]
+        data.Add(movingToTheTable ? 1u :0u);//[7]
+        data.Add(eating ? 1u :0u);//[8]
+        data.Add((uint)CurrentTableId);//[9]
+        return data;
     }
 
     protected override void onArrivedToTheTarget()
