@@ -40,7 +40,7 @@ public class Customer : Person
     public static new Class Type = Class.Customer;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 10u;
+    public new static uint SaveDataSize = 12u;
 
     public bool FindAndMoveToTheTable()
     {
@@ -109,11 +109,11 @@ public class Customer : Person
 
     public Customer(Cafe cafe,uint[] data) : base(cafe,data)
     {
-        orderId = (int)data[5];
-        isAtTheTable = data[6] == 1u ? true : false;
-        movingToTheTable = data[7] == 1u ? true : false;
-        eating = data[8] == 1u ? true : false;
-        CurrentTableId = (int)data[9];
+        orderId = (int)data[7];
+        isAtTheTable = data[8] == 1u ? true : false;
+        movingToTheTable = data[9] == 1u ? true : false;
+        eating = data[10] == 1u ? true : false;
+        CurrentTableId = (int)data[11];
 
         GenerateRIDBasedOnTexture(cafe.Textures["Customer"], ZOrderValues.Customer);
     }
@@ -121,12 +121,17 @@ public class Customer : Person
     public override Godot.Collections.Array<uint> GetSaveData()
     {
         Godot.Collections.Array<uint> data = base.GetSaveData();
-        data.Add((uint)orderId);//[5]
-        data.Add(isAtTheTable ? 1u: 0u);//[6]
-        data.Add(movingToTheTable ? 1u :0u);//[7]
-        data.Add(eating ? 1u :0u);//[8]
-        data.Add((uint)CurrentTableId);//[9]
+        data.Add((uint)orderId);//[7]
+        data.Add(isAtTheTable ? 1u: 0u);//[8]
+        data.Add(movingToTheTable ? 1u :0u);//[9]
+        data.Add(eating ? 1u :0u);//[10]
+        data.Add((uint)CurrentTableId);//[11]
         return data;
+    }
+
+    public override void SaveInit()
+    {
+        base.SaveInit();
     }
 
     protected override void onArrivedToTheTarget()

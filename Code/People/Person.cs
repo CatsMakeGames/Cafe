@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 using Godot.Collections;
 using System;
 
@@ -9,6 +9,8 @@ public class Person : CafeObject
 	protected float actionSpeed = 1;
 
 	protected Vector2[] pathToTheTarget = null;
+
+	private Vector2 _loadedDestination;
 
 	protected bool fired = false;
 
@@ -65,7 +67,10 @@ public class Person : CafeObject
 
 	public Person(Cafe cafe, uint[] saveData) : base(cafe, saveData)
 	{
-
+        _loadedDestination = new Vector2(
+            (float)saveData[5],
+            (float)saveData[6]
+        );
 	}
 
 	/**<summary>Executed when staff member arrives to their goal</summary>*/
@@ -79,19 +84,28 @@ public class Person : CafeObject
 
 	public override Array<uint> GetSaveData()
 	{
-		Array<uint> data = new Array<uint>();
+		Array<uint> data = base.GetSaveData();
 		if (pathToTheTarget != null)
 		{
 			//if ai has goal save that
-			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].x);
-			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].y);
+			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].x);//[5]
+			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].y);//[6]
 		}
 		else
 		{
-			data.Add((uint)position.x);
-			data.Add((uint)position.y);
+			data.Add((uint)position.x);//[5]
+			data.Add((uint)position.y);//[6]
 		}
-		return base.GetSaveData();
+		return data;
+	}
+
+	public override void SaveInit()
+	{
+		base.SaveInit();
+        if (_loadedDestination != Position)
+        {
+            PathToTheTarget = cafe.FindPathTo(position, _loadedDestination);
+        }
 	}
 
 	public void Update(float deltaTime)

@@ -91,14 +91,14 @@ public class CafeObject : Godot.Object
         Godot.Collections.Array<uint> result = new Godot.Collections.Array<uint>();
 
         //negative id would imply id not being set for a specific reason
-        result.Add(Id);
+        result.Add(Id);//[0]
        
-        result.Add((uint)textureSize.x);
-        result.Add((uint)textureSize.y);
+        result.Add((uint)textureSize.x);//[1]
+        result.Add((uint)textureSize.y);//[2]
 
         //position is stored as integer because that's simpler and because it does not change result that much
-        result.Add((uint)position.x);
-        result.Add((uint)position.y);
+        result.Add((uint)position.x);//[3]
+        result.Add((uint)position.y);//[4]
         return result;
     }
 
@@ -106,6 +106,12 @@ public class CafeObject : Godot.Object
     {
         position = new Vector2(data[3], data[4]);
         textureSize = new Vector2(data[1], data[2]);
+    }
+
+    /**<summary>Init object based on data loaded from save file</summary>*/
+    public virtual void SaveInit()
+    {
+
     }
 
     /**<summary>Goes over all saved ids and tries to find objects with given ids</summary>*/

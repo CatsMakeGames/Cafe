@@ -26,6 +26,13 @@ public class Cafe : Node2D
 	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
 	private RID _placementPreviewTextureRID;
 
+	/**<summary>Id that will be given to next spawned person</summary>*/
+	private uint _currentPersonId = 0;
+
+	/**<summary>Id that will be given to next spawned furniture</summary>*/
+
+	private uint _currentFurnitureId = 0;
+
 	[Export]
 	protected Rect2 playableArea;
 
@@ -257,6 +264,8 @@ public class Cafe : Node2D
 				this,
 				(new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize
 			) as Person);
+			//set new id and increment it after wards
+			people.Last().Id = _currentPersonId++;
 	}
 
 	public override void _Ready()
@@ -420,6 +429,7 @@ public class Cafe : Node2D
 						));
 					Furniture lastFur = Furnitures.Last();
 					lastFur.Init();
+					lastFur.Id = _currentFurnitureId++;
 					lastFur.Price = currentPlacingItem.Price;
 					//clear tilemap underneath
 					//tilemap is 32x32
@@ -566,6 +576,7 @@ public class Cafe : Node2D
 		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
 		customer.FindAndMoveToTheTable();
+		customer.Id = _currentPersonId++;
 		return customer;
 	}
 

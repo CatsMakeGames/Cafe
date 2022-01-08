@@ -30,7 +30,7 @@ namespace Staff
         protected int currentApplianceId = -1;
 
         /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-        public new static uint SaveDataSize = 8u;
+        public new static uint SaveDataSize = 10u;
 
         //prepare and cook are basically wait tasks done using timers so no need for update function
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
@@ -153,10 +153,11 @@ namespace Staff
 
         public override Array<uint> GetSaveData()
         {
+            //total count of CafeObject is 5; total count of Person is 2
             Array<uint> data = base.GetSaveData();
-            data.Add((uint)currentGoal);//[5]
-            data.Add((uint)goalOrderId);//[6]
-            data.Add((uint)currentApplianceId + 1u);//[7]
+            data.Add((uint)currentGoal);//[7]
+            data.Add((uint)goalOrderId);//[8]
+            data.Add((uint)currentApplianceId + 1u);//[9]
             return data;
         }
 

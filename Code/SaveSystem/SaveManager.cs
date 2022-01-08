@@ -10,6 +10,7 @@ public static class SaveManager
     /**<summary>Where does the actual save data begin<para/> Update this based on current system</summary>*/
     public static long DataBegining = 1;
 
+    public static byte CurrentSaveSystemVersion = 3;
     public static void StorePerson<T>(File saveFile,Cafe cafe) where T: Person
     {
         saveFile.StoreLine($"{typeof(T).Name}_begin");
@@ -61,7 +62,7 @@ public static class SaveManager
 		if (err == Error.Ok)
 		{
             //current save version is 2
-            saveFile.Store8(2);
+            saveFile.Store8(CurrentSaveSystemVersion);
             //mainly for easier debugging
             saveFile.StoreLine("furniture_begin");
             foreach(Furniture fur in cafe.Furnitures)
@@ -115,7 +116,8 @@ public static class SaveManager
             cafe.People.Add(ctor(cafe,loadedData));
 
             ulong pos = saveFile.GetPosition();
-            if (saveFile.GetLine().Contains("_end"))
+            var debug = saveFile.GetLine();
+            if (debug.Contains("_end"))
             {
                 return;
             }
@@ -135,6 +137,11 @@ public static class SaveManager
         Error err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
         if(err == Error.Ok)
         {
+            byte version = saveFile.Get8();
+            if(version != CurrentSaveSystemVersion)
+            {
+                throw new Exception($"Incompatible version of save system are used! Expected v{CurrentSaveSystemVersion} got v{version}");
+            }
             saveFile.Seek(DataBegining + "furniture_begin".Length + 1u);
             
             uint currentDataReadingId = 0;
@@ -164,9 +171,17 @@ public static class SaveManager
             {
                 LoadPerson(cafe, saveFile);
             }
+            foreach(Person person in cafe.People)
+            {
+                person.SaveInit();
+            }
+            foreach (Furniture fur in cafe.Furnitures)
+            {
+                fur.SaveInit();
+            }
 
+            //all objects are loaded -> init them
 
-            //TODO: make cafe init all objects once they are loaded
             return true;
         }
         //TODO: Add file reading error handling
