@@ -46,9 +46,9 @@ namespace Staff
             Salary = 100;
             textureSize = cafe.Textures["Cook"].GetSize();
 			size = new Vector2(128, 128);
-            currentGoal = (Goal)saveData[5];
-            goalOrderId = (int)saveData[6];
-            currentApplianceId = saveData[7] - 1u == 0 ? -1 : (int)saveData[7] - 1;
+            currentGoal = (Goal)saveData[7];
+            goalOrderId = (int)saveData[8];
+            currentApplianceId = saveData[9] == 0 ? -1 : (int)saveData[9] - 1;
 			GenerateRIDBasedOnTexture(cafe.Textures["Cook"], ZOrderValues.Customer);
         }
 
@@ -58,9 +58,10 @@ namespace Staff
             currentGoal = Cook.Goal.TakeFood;
             goalOrderId = orderId;
             Vector2[] temp;
-            var fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
+            Furniture fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
             //mark this fridge as used by this cook for movement mode 
             fridge.CurrentUser = this;
+            currentApplianceId = cafe.Furnitures.IndexOf(fridge);
             PathToTheTarget = temp;
            
         }
@@ -109,12 +110,11 @@ namespace Staff
         {
             base.ResetOrCancelGoal(forceCancel);
             Vector2[] temp = null;
-            bool found = false;
             switch (currentGoal)
             {
                 //find new applience and move food there
                 case Goal.CookFood:
-                    //true we found new applience suitable to continue work
+                    //true we found new appliance suitable to continue work
                     var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove,Position, out temp);
                     if (forceCancel || stove == null)
                     {
@@ -124,10 +124,11 @@ namespace Staff
                     else
                     {
                         stove.CurrentUser = this;
+                        currentApplianceId = cafe.Furnitures.IndexOf(stove);
                         PathToTheTarget = temp;
                     }
                     break;
-                //uninteraptable event(output table is unmoveable because it's not an entity)
+                //uninterruptible event(output table is immoveable because it's not an entity)
                 case Goal.GiveFood:
                     break;
                     //unused goal
@@ -135,7 +136,7 @@ namespace Staff
                     break;
                     //the only solution is to find new fridge
                 case Goal.TakeFood:
-                    //true we found new applience suitable to continue work
+                    //true we found new appliance suitable to continue work
                     var fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
                     if (forceCancel || fridge == null)
                     {
@@ -145,6 +146,7 @@ namespace Staff
                     else
                     {
                         fridge.CurrentUser = this;
+                        currentApplianceId = cafe.Furnitures.IndexOf(fridge);
                         PathToTheTarget = temp;
                     }
                     break;
@@ -161,6 +163,16 @@ namespace Staff
             return data;
         }
 
+        public override void SaveInit()
+        {
+            base.SaveInit();
+            Furniture fur  =cafe.Furnitures.FirstOrDefault(p=>p.Id == currentApplianceId);
+            if(fur != null)
+            {
+                fur.CurrentUser = this;
+            }
+        }
+
         protected override async void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
@@ -173,6 +185,7 @@ namespace Staff
                         await System.Threading.Tasks.Task.Delay(1000);
                         currentGoal = Goal.CookFood;
                         var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove, Position, out pathToTheTarget);
+                        currentApplianceId = cafe.Furnitures.IndexOf(stove);
                         stove.CurrentUser = this;
                         currentApplianceId = (int)stove.Id;
                         pathId = 0;
@@ -181,10 +194,11 @@ namespace Staff
                     //this step is currently missing
                     case Goal.PrepareFood:
                         await System.Threading.Tasks.Task.Delay(1000);
-                        //move to the applience
+                        //move to the appliance
                         break;
                     case Goal.CookFood:
                         await System.Threading.Tasks.Task.Delay(1000);
+                        currentApplianceId = -1;
                         currentGoal = Goal.GiveFood;
                         PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                         //move to the finish table

@@ -17,10 +17,13 @@ public static class SaveManager
         var people = cafe.People.OfType<T>();
         foreach (T person in people)
         {
-            Godot.Collections.Array<uint> data = person.GetSaveData();
-            foreach (uint dat in data)
+            if (!person.Fired)
             {
-                saveFile.Store32(dat);
+                Godot.Collections.Array<uint> data = person.GetSaveData();
+                foreach (uint dat in data)
+                {
+                    saveFile.Store32(dat);
+                }
             }
         }
         saveFile.StoreLine($"{typeof(T).Name}_end");

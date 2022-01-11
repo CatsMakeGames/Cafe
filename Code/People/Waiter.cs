@@ -45,7 +45,7 @@ namespace Staff
 
 		public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
 		{
-			EmitSignal(nameof(OnWaiterIsFree), this);
+			BeFree();
 
 			Salary = 100;
 		}
@@ -159,9 +159,12 @@ namespace Staff
 		{
 			//waiter is now free
 			CurrentGoal = Goal.None;
-			(cafe.Furnitures[currentCustomer.CurrentTableId]).CurrentUser = null;
-			//forget about this customer
-			currentCustomer = null;
+            if (currentCustomer != null)
+            {
+                (cafe.Furnitures[currentCustomer.CurrentTableId]).CurrentUser = null;
+                //forget about this customer
+                currentCustomer = null;
+            }
 			//since cafe is referenced for using node functions anyway, no need to use signals
 			if (cafe.completedOrders.Any())
 			{
@@ -178,7 +181,7 @@ namespace Staff
 				if (table != null)
 				{
 					table.CurrentUser = this;
-					changeTask(table.Position, Waiter.Goal.AcquireOrder, table.CurrentCustomer);
+					changeTask(cafe.LocationNodes["Kitchen"].Position, Waiter.Goal.AcquireOrder, table.CurrentCustomer);
 					cafe.completedOrders.RemoveAt(0);
 				}
 			}
@@ -187,6 +190,7 @@ namespace Staff
 			else if (cafe.tablesToTakeOrdersFrom.Any())
 			{
 				cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].CurrentUser = this;
+				//TODO: (not a todo) Replace postion with table's position and waiters will be able to pass several orders in chain :D
 				changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]]).CurrentCustomer);
 				cafe.tablesToTakeOrdersFrom.RemoveAt(0);
 			}

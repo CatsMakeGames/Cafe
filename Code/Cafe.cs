@@ -186,7 +186,7 @@ public class Cafe : Node2D
 	protected Label CustomerCountLabel;
 
 	/**<summary>Nodes used for navigaiton</summary>*/
-	protected Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
+	public Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
 
 	protected TileMap navigationTilemap;
 
@@ -657,10 +657,10 @@ public class Cafe : Node2D
 	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
 	public void OnNewTableIsAvailable(Furniture table)
 	{
-		var unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
+		Customer unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
 		if (unSittedCustomer != null)
 		{
-			(unSittedCustomer as Customer)?.FindAndMoveToTheTable();
+			unSittedCustomer?.FindAndMoveToTheTable();
 		}
 		else
 		{
