@@ -16,6 +16,8 @@ public class StoreItemData : Godot.Object
 
     public string Description = "Get psyched!";
 
+    public byte Level = 0;
+
     public int Price = 100;
 
     public Vector2 Size = new Vector2(128, 128);
@@ -58,5 +60,6 @@ public class StoreItemData : Godot.Object
         );
 
         Description = subData[9];
+        Level = Convert.ToByte(subData[10]);
     }
 }

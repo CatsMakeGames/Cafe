@@ -74,6 +74,9 @@ public class Cafe : Node2D
 	public Texture FloorTexture;
 
 	[Export]
+	private int _textureFrameSize = 32;
+
+	[Export]
 	public int GridSize = 32;
 
 	/**<summary>2^n = GridSize</summary>*/
@@ -422,11 +425,12 @@ public class Cafe : Node2D
 							type,
 							Textures[currentPlacingItem.TextureName],
 							currentPlacingItem.Size,
-							Textures[currentPlacingItem.TextureName].GetSize(),
+							new Vector2(_textureFrameSize,_textureFrameSize),
 							this,
 							endLoc,
+							currentPlacingItem.Level,
 							currentPlacingItem.FurnitureCategory
-						));
+					));
 					Furniture lastFur = Furnitures.Last();
 					lastFur.Init();
 					lastFur.Id = _currentFurnitureId++;

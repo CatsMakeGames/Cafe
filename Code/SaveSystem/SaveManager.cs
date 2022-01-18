@@ -10,7 +10,7 @@ public static class SaveManager
     /**<summary>Where does the actual save data begin<para/> Update this based on current system</summary>*/
     public static long DataBegining = 1;
 
-    public static byte CurrentSaveSystemVersion = 3;
+    public static byte CurrentSaveSystemVersion = 4;
     public static void StorePerson<T>(File saveFile,Cafe cafe) where T: Person
     {
         saveFile.StoreLine($"{typeof(T).Name}_begin");

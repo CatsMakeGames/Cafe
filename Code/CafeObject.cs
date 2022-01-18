@@ -13,6 +13,7 @@ public class CafeObject : Godot.Object
     protected RID textureRID;
 
     protected Vector2 textureSize;
+    
 
     protected bool pendingKill = false;
 
@@ -73,6 +74,23 @@ public class CafeObject : Godot.Object
         {
             textureRID = VisualServer.CanvasItemCreate();
             VisualServer.CanvasItemAddTextureRectRegion(textureRID, new Rect2(0, 0, size.x, size.y), texture.GetRid(), new Rect2(0, 0, textureSize), null, false, texture.GetRid());
+ 
+            VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
+            VisualServer.CanvasItemSetZIndex(textureRID, (int)zOrder);
+        }
+        Position = position;
+    }
+
+    /**<summary>Creates and Initialises RID based on provided texture.<para/> This version allows to pass texture param</summary>
+    <param name = "renderingFrame"> Rectangle defining which part of the image should be drawn</param>
+    */
+    protected void GenerateRIDBasedOnTexture(Texture texture,ZOrderValues zOrder,Rect2 renderingFrame)
+    {
+        //spawn image in the world
+        if (texture != null && cafe != null)
+        {
+            textureRID = VisualServer.CanvasItemCreate();
+            VisualServer.CanvasItemAddTextureRectRegion(textureRID, new Rect2(0, 0, size.x, size.y), texture.GetRid(), renderingFrame, null, false, texture.GetRid());
  
             VisualServer.CanvasItemSetParent(textureRID, cafe.GetCanvasItem());
             VisualServer.CanvasItemSetZIndex(textureRID, (int)zOrder);

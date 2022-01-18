@@ -37,15 +37,16 @@ public class Furniture : CafeObject
         Fridge
     }
 
+    /**<summary>Texture used for this object</summary>*/
+    private Texture _texture;
     private uint _loadedUserId = 0;
 
     private uint _loadedCustomerId = 0;
+
+    protected int variation = 0;
     public State CurrentState = State.Free;
 
     public FurnitureType CurrentType = FurnitureType.Invalid;
-
-    /**<summary>Type of the class used purely to allow compact way of stroing what type is this object</summary>*/
-    public static new Class Type = Class.Default;
 
     /**<summary>Price of the furniture in store<para/>Mostly meant for when it's being sold</summary>*/
     public int Price = 0;
@@ -64,7 +65,7 @@ public class Furniture : CafeObject
     protected byte level;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 13u;
+    public new static uint SaveDataSize = 14u;
 
     public override Array<uint> GetSaveData()
     {
@@ -90,6 +91,8 @@ public class Furniture : CafeObject
 
         baseSaveData.Add((uint)size.x);//[11]
         baseSaveData.Add((uint)size.y);//[12]
+
+        baseSaveData.Add((uint)variation);//[13]
         return baseSaveData;
     }
 
@@ -126,17 +129,23 @@ public class Furniture : CafeObject
         set
         {
             level = value;
-            VisualServer.CanvasItemSetCustomRect(textureRID, true, new Rect2(value * textureSize.x, 0, textureSize));
-            //throw new NotImplementedException("Level system is not yet supported");
+            //clean current textures
+            VisualServer.FreeRid(textureRID);
+            //generate new texture
+            GenerateRIDBasedOnTexture(_texture,ZOrderValues.Furniture,new Rect2(value * textureSize.x, variation * textureSize.y, textureSize));
         }
     }
 
     /**<summary>If false this furntiure will not be considered in FindClosestFurniture search</summary>*/
     public virtual bool CanBeUsed => CurrentState == State.Free;
 
-    public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
+    public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
         CurrentType = type;
+        Random rand = new Random();
+        variation = rand.Next(0,2);
+        _texture = texture;
+        Level = lvl;  
     }
 
     public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
@@ -152,9 +161,13 @@ public class Furniture : CafeObject
                             (float)data[11],
                             (float)data[12]
                         );
-        GenerateRIDBasedOnTexture(cafe.Textures[CurrentType.ToString()], ZOrderValues.Furniture);
+        level = (byte)data[10];
+        variation = (int)data[11];
+        _texture = cafe.Textures[CurrentType.ToString()];
+        GenerateRIDBasedOnTexture(cafe.Textures[CurrentType.ToString()], ZOrderValues.Furniture,new Rect2(level * textureSize.x, variation * textureSize.y, textureSize));
         //because level directly affects texture
-        Level = (byte)data[10];
+       
+        
     }
 
     public override void Init()

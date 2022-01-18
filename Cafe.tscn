@@ -1,14 +1,15 @@
-[gd_scene load_steps=21 format=2]
+[gd_scene load_steps=22 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
-[ext_resource path="res://Art/customer.png" type="Texture" id=2]
-[ext_resource path="res://Art/Furniture/table_v2.png" type="Texture" id=3]
+[ext_resource path="res://Art_Pixel/People/Customer.tres" type="Texture" id=2]
+[ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
 [ext_resource path="res://Art/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
-[ext_resource path="res://Art/Kitchen/stove.png" type="Texture" id=7]
-[ext_resource path="res://Art/Kitchen/fridge.png" type="Texture" id=8]
-[ext_resource path="res://Art/Staff/waiter.png" type="Texture" id=10]
+[ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
+[ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
+[ext_resource path="res://Art_Pixel/People/Cook.tres" type="Texture" id=9]
+[ext_resource path="res://Art_Pixel/People/Waiter.tres" type="Texture" id=10]
 [ext_resource path="res://Art/table.png" type="Texture" id=11]
 [ext_resource path="res://Code/UI/Store/StoreMenu.cs" type="Script" id=12]
 [ext_resource path="res://Code/UI/MouseBlockArea.cs" type="Script" id=13]
@@ -28,7 +29,7 @@ FallbackTexture = ExtResource( 11 )
 FloorTexture = ExtResource( 5 )
 MaxSpawnedCustomersInQueue = 1
 Textures = {
-"Cook": ExtResource( 11 ),
+"Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
 "Fridge": ExtResource( 8 ),
 "Furniture": ExtResource( 11 ),

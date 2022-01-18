@@ -28,8 +28,6 @@ namespace Staff
 
 		public Goal CurrentGoal = Goal.None;
 
-		public override Class Type => Class.Waiter; 
-
 		private uint _loadedCustomerId = 0;
 
 		public override bool ShouldUpdate => (base.ShouldUpdate && CurrentGoal != Goal.None) || Fired;

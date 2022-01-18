@@ -42,7 +42,7 @@ namespace UI
         {
             get
             {
-                return _iconTextures.FirstOrDefault(p => p.ResourceName == name);
+                return cafe.Textures[name];
             }
         }
         /**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/
@@ -119,7 +119,7 @@ namespace UI
 
                         StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
                         currentContainer.AddChild(button);
-                        button.Texture.Texture = this["UI_Icon_" + item.TextureName] ?? cafe.FallbackTexture;
+                        button.Texture.Texture = this[item.TextureName] ?? cafe.FallbackTexture;
 
                         button.ItemData = item;
                         button.ParentMenu = this;
