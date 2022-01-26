@@ -1,0 +1,89 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=1]
+[ext_resource path="res://Code/Menu/MainMenu.cs" type="Script" id=2]
+
+[node name="MainMenu" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+margin_right = 256.0
+margin_bottom = 224.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LoadCafe" type="Button" parent="VBoxContainer"]
+margin_right = 256.0
+margin_bottom = 53.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 1 )
+text = "Load Cafe"
+
+[node name="NewCafe" type="Button" parent="VBoxContainer"]
+margin_top = 57.0
+margin_right = 256.0
+margin_bottom = 110.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 1 )
+text = "New Cafe"
+
+[node name="Save" type="Button" parent="VBoxContainer"]
+margin_top = 114.0
+margin_right = 256.0
+margin_bottom = 167.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 1 )
+text = "Save Cafe"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Exit" type="Button" parent="VBoxContainer"]
+margin_top = 171.0
+margin_right = 256.0
+margin_bottom = 224.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 1 )
+text = "Exit"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+margin_right = 200.0
+margin_bottom = 70.0
+window_title = "Do you wish to exit?"
+dialog_text = "Do you want to exit? (your progress will be saved)"
+
+[node name="SaveConfirmation" type="ConfirmationDialog" parent="."]
+margin_right = 200.0
+margin_bottom = 70.0
+window_title = "Do you wish to save?"
+dialog_text = "Do you want to save?"
+
+[node name="SaveSlotPopup" type="Panel" parent="."]
+visible = false
+margin_right = 320.0
+margin_bottom = 320.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SaveSlotContainer" type="VBoxContainer" parent="SaveSlotPopup"]
+margin_right = 320.0
+margin_bottom = 320.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="pressed" from="VBoxContainer/LoadCafe" to="." method="_on_LoadCafe_pressed"]
+[connection signal="pressed" from="VBoxContainer/NewCafe" to="." method="_on_NewCafe_pressed"]
+[connection signal="pressed" from="VBoxContainer/Save" to="." method="_on_Save_pressed"]
+[connection signal="pressed" from="VBoxContainer/Exit" to="." method="_on_Exit_pressed"]
+[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_ConfirmationDialog_confirmed"]
+[connection signal="confirmed" from="SaveConfirmation" to="." method="_on_SaveConfirmation_confirmed"]

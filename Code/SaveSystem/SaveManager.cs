@@ -7,7 +7,9 @@ using System.Reflection;
 public static class SaveManager
 {
 
-    /**<summary>Where does the actual save data begin<para/> Update this based on current system</summary>*/
+    /**<summary>Where does the actual save data begin<para/>
+    Should be based on all of the static/fixed sized data
+    <para/> Update this based on current system</summary>*/
     public static long DataBegining = 1;
 
     public static byte CurrentSaveSystemVersion = 4;
@@ -61,11 +63,13 @@ public static class SaveManager
 		if (!dir.DirExists("user://Cafe/"))
 			dir.MakeDir("user://Cafe/");
 
-		Error err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Write);
+		Error err = saveFile.Open($"user://Cafe/game{cafe.currentSaveId}.sav", File.ModeFlags.Write);
 		if (err == Error.Ok)
 		{
+            //we also need to store cafe name
             //current save version is 2
             saveFile.Store8(CurrentSaveSystemVersion);
+            saveFile.StoreLine(cafe.cafeName);
             //mainly for easier debugging
             saveFile.StoreLine("furniture_begin");
             foreach(Furniture fur in cafe.Furnitures)
@@ -111,13 +115,6 @@ public static class SaveManager
         ctor = System.Linq.Expressions.Expression.Lambda<Func<Cafe, uint[], Person>>(System.Linq.Expressions.Expression.New(info, args), args).Compile();
         while (!saveFile.EofReached())
         {
-            uint[] loadedData = new uint[size];
-            for (uint i = 0; i < size; i++)
-            {
-                loadedData[i] = saveFile.Get32();
-            }
-            cafe.People.Add(ctor(cafe,loadedData));
-
             ulong pos = saveFile.GetPosition();
             var debug = saveFile.GetLine();
             if (debug.Contains("_end"))
@@ -128,8 +125,14 @@ public static class SaveManager
             {
                 saveFile.Seek((long)pos);
             }
+            uint[] loadedData = new uint[size];
+            for (uint i = 0; i < size; i++)
+            {
+                loadedData[i] = saveFile.Get32();
+            }
+            cafe.People.Add(ctor(cafe,loadedData));            
         }
-
+ 
     }
 
     /**<summary>Loads save data from file game.sav<para/>
@@ -137,7 +140,7 @@ public static class SaveManager
     public static bool Load(Cafe cafe)
     {
         File saveFile = new File();
-        Error err = saveFile.Open("user://Cafe/game.sav", File.ModeFlags.Read);
+        Error err = saveFile.Open($"user://Cafe/game{cafe.currentSaveId}.sav", File.ModeFlags.Read);
         if(err == Error.Ok)
         {
             byte version = saveFile.Get8();
@@ -145,21 +148,17 @@ public static class SaveManager
             {
                 throw new Exception($"Incompatible version of save system are used! Expected v{CurrentSaveSystemVersion} got v{version}");
             }
-            saveFile.Seek(DataBegining + "furniture_begin".Length + 1u);
+            cafe.cafeName = saveFile.GetLine();
+            //now move past this
+           
+           //cafe name is last single object data so after that we read furniture
+            saveFile.Seek((long)saveFile.GetPosition() + "furniture_begin".Length + 1u);
             
             uint currentDataReadingId = 0;
             uint[] loadedData = new uint[Furniture.SaveDataSize];
             while(!saveFile.EofReached())
             {
-                loadedData[currentDataReadingId] = saveFile.Get32();
-                currentDataReadingId++;
-                if(currentDataReadingId >= Furniture.SaveDataSize)
-                {
-                    cafe.Furnitures.Add(new Furniture(cafe,loadedData));
-                    currentDataReadingId = 0;
-                }
-
-                ulong pos = saveFile.GetPosition();
+                 ulong pos = saveFile.GetPosition();
                 if(saveFile.GetLine() == "furniture_end")
                 {
                     break;
@@ -168,6 +167,14 @@ public static class SaveManager
                 {
                     saveFile.Seek((long)pos);
                 }
+
+                loadedData[currentDataReadingId] = saveFile.Get32();
+                currentDataReadingId++;
+                if(currentDataReadingId >= Furniture.SaveDataSize)
+                {
+                    cafe.Furnitures.Add(new Furniture(cafe,loadedData));
+                    currentDataReadingId = 0;
+                }  
             }
 
             while (!saveFile.EofReached())
@@ -186,6 +193,10 @@ public static class SaveManager
             //all objects are loaded -> init them
 
             return true;
+        }
+        else if(err == Error.FileNotFound)
+        {
+            GD.PrintErr($"Failed to find save file \"game{cafe.currentSaveId}.sav\".\n New save will be generated");
         }
         //TODO: Add file reading error handling
         return false;

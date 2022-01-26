@@ -161,13 +161,12 @@ public class Furniture : CafeObject
                             (float)data[11],
                             (float)data[12]
                         );
-        level = (byte)data[10];
-        variation = (int)data[11];
+        //level = (byte)data[10];
+        variation = (int)data[13];
         _texture = cafe.Textures[CurrentType.ToString()];
+        level = (byte)data[10];
         GenerateRIDBasedOnTexture(cafe.Textures[CurrentType.ToString()], ZOrderValues.Furniture,new Rect2(level * textureSize.x, variation * textureSize.y, textureSize));
-        //because level directly affects texture
-       
-        
+        //because level directly affects texture 
     }
 
     public override void Init()

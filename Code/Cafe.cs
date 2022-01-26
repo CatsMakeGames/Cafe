@@ -33,6 +33,12 @@ public class Cafe : Node2D
 
 	private uint _currentFurnitureId = 0;
 
+	/**<summary>This is used for save file naming</summary>*/
+	public int currentSaveId = 0;
+
+	/**<Summary>This is used in save file management to help players identify their saves</summary>*/
+	public string cafeName = "Get Psyched!";
+
 	[Export]
 	protected Rect2 playableArea;
 
@@ -238,6 +244,8 @@ public class Cafe : Node2D
 
 	protected Button exitToIdleModeButton;
 
+	protected MainMenu mainMenu;
+
 	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
 
 	#region CookToDoList
@@ -328,6 +336,7 @@ public class Cafe : Node2D
 #else
 		staffMenu = GetNode<Control>("UI/StaffManagmentMenuSimple");
 #endif
+	mainMenu = GetNode<MainMenu>("UI/MainMenu");
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -375,6 +384,12 @@ public class Cafe : Node2D
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
+		Clean();
+		return SaveManager.Load(this);
+	}
+
+	public void Clean()
+	{
 		//clear the world because we will fill it with new data
 			//TODO: Make sure i actually cleaned everything
 			for (int i = people.Count - 1; i >= 0; i--)
@@ -388,7 +403,6 @@ public class Cafe : Node2D
 				Furnitures[i].Destroy();
 			}
 		Furnitures.Clear();
-		return SaveManager.Load(this);
 	}
 
 	public void PlaceNewFurniture()
@@ -479,6 +493,7 @@ public class Cafe : Node2D
 		}
 		if(Input.IsActionJustPressed("pause"))
 		{
+			mainMenu.Visible = !mainMenu.Visible;
 			playerPaused = !playerPaused;
 			OnPaused(Paused);
 			GD.Print($"Paused: {playerPaused}");

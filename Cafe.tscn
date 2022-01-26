@@ -1,10 +1,10 @@
-[gd_scene load_steps=22 format=2]
+[gd_scene load_steps=23 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/People/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
-[ext_resource path="res://Art/floor.png" type="Texture" id=5]
+[ext_resource path="res://Art_Pixel/Floors/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
@@ -21,6 +21,7 @@
 [ext_resource path="res://StaffManagmentMenuSimple.tscn" type="PackedScene" id=19]
 [ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
+[ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -242,6 +243,13 @@ __meta__ = {
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="UI/ScrollContainer"]
+
+[node name="MainMenu" parent="UI" instance=ExtResource( 22 )]
+visible = false
+margin_left = 522.667
+margin_top = 213.333
+margin_right = 522.667
+margin_bottom = 213.333
 
 [node name="ExitToIdleModeButton" type="Button" parent="."]
 margin_left = -240.0
