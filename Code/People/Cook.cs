@@ -54,16 +54,18 @@ namespace Staff
 
         public void TakeNewOrder(int orderId)
         {
-            
-            currentGoal = Cook.Goal.TakeFood;
-            goalOrderId = orderId;
             Vector2[] temp;
-            Furniture fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
-            //mark this fridge as used by this cook for movement mode 
-            fridge.CurrentUser = this;
-            currentApplianceId = cafe.Furnitures.IndexOf(fridge);
-            PathToTheTarget = temp;
-           
+            //first try to find the fridge and if succeeded do the thing
+            Furniture fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge, Position, out temp);
+            if (fridge != null)
+            {
+                currentGoal = Cook.Goal.TakeFood;
+                goalOrderId = orderId;
+                //mark this fridge as used by this cook for movement mode 
+                fridge.CurrentUser = this;
+                currentApplianceId = cafe.Furnitures.IndexOf(fridge);
+                PathToTheTarget = temp;
+            }
         }
 
 

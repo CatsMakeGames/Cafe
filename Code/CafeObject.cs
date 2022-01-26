@@ -144,7 +144,9 @@ public class CafeObject : Godot.Object
         
     }
 
-    public virtual void Destroy()
+    /**<summary>Called when object is going to be deleted and it's resources need to be freed</summary>
+    <param name = "cleanUp">Is it called during clean up? <para/>Allows to create custom behavior that would prevent calling unnecessary actions</param>*/
+    public virtual void Destroy(bool cleanUp = false)
     {
         VisualServer.FreeRid(textureRID);
         Free();

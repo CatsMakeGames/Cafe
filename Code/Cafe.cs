@@ -394,13 +394,13 @@ public class Cafe : Node2D
 			//TODO: Make sure i actually cleaned everything
 			for (int i = people.Count - 1; i >= 0; i--)
 			{
-				people[i].Destroy();
+				people[i].Destroy(true);
 			}
 			people.Clear();
 
 			for (int i = Furnitures.Count - 1; i >= 0; i--)
 			{
-				Furnitures[i].Destroy();
+				Furnitures[i].Destroy(true);
 			}
 		Furnitures.Clear();
 	}

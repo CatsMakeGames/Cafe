@@ -242,9 +242,14 @@ public class Furniture : CafeObject
         ResetUserPaths();
     }
 
-    public override void Destroy()
+    public override void Destroy(bool cleanUp = false)
     {
-        UpdateNavigation(false);
+        //TODO: fix issue caused by unloading during clean up
+        //game attempts to find replacement but clean up is already removing object
+        if(!cleanUp)
+        {
+            UpdateNavigation(false);
+        }
         base.Destroy();
     }
 }
