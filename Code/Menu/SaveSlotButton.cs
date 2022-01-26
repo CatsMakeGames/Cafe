@@ -21,7 +21,7 @@ public class SaveSlotButton : Button
             //TODO: ask if user wants to override file
             //if yes clean the cafe and start from the beggining
             //if no do nothing
-            if(SaveSlotId != Menu.CurrentCafe.currentSaveId)
+            if(SaveSlotId == Menu.CurrentCafe.currentSaveId)
             {
                 //avoid loosing data -> save cafe in a new slot
                 Menu.CurrentCafe.Save();

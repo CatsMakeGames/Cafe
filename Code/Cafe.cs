@@ -230,7 +230,7 @@ public class Cafe : Node2D
 
 	protected System.Collections.Generic.List<Control> menus;
 
-	protected System.Collections.Generic.List<Button> menuToggleButtons;
+	protected System.Collections.Generic.List<ModeSelectionButton> menuToggleButtons;
 
 	protected UI.StoreMenu storeMenu;
 
@@ -283,8 +283,12 @@ public class Cafe : Node2D
 	{
 		base._Ready();
 		menus = GetTree().GetNodesInGroup("Menu").OfType<Control>().ToList();
-		menuToggleButtons = GetNode("Menu").GetChildren().OfType<Button>().ToList();
+		menuToggleButtons = GetNode("Menu").GetChildren().OfType<ModeSelectionButton>().ToList();
 
+		foreach (ModeSelectionButton but in menuToggleButtons)
+		{
+			but.cafe = this;
+		}
 		gridSizeP2 = (int)Math.Log(GridSize, 2);
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
@@ -789,25 +793,29 @@ public class Cafe : Node2D
 		}
 	}
 
-	private void _toggleMenu(Control menu,bool button_pressed)
+	/**<summary>Changes state of the given menu if current state allows that</summary>*/
+	public void ToggleMenu(Control menu,bool button_pressed)
 	{
 		if (currentState == State.UsingMenu || currentState == State.Idle)
 		{
-			menu.Visible = button_pressed;
-			currentState = button_pressed ? State.UsingMenu : State.Idle;
+			foreach(Control _menu in menus)
+			{
+				_menu.Hide();
+			}
+            if (menu != null)
+            {
+                menu.Visible = button_pressed;
+                currentState = button_pressed ? State.UsingMenu : State.Idle;
+            }
+
+			//reset all buttons
+			//pressed button show set it's state by itself
+			foreach(Button but in menuToggleButtons)
+			{
+				but.SetPressedNoSignal(false);
+			}		
 		}
 	}
-
-	private void _on_StoreButton_toggled(bool button_pressed)
-	{
-		_toggleMenu(storeMenu,button_pressed);
-	}
-
-	private void _on_StaffButton_toggled(bool button_pressed)
-	{
-		_toggleMenu(staffMenu,button_pressed);
-	}
-
 	private void _on_ExitToIdleModeButton_pressed()
 	{
 		exitToIdleModeButton.Visible = false;

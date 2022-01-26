@@ -10,33 +10,57 @@ script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+buttonFont = ExtResource( 1 )
+
+[node name="Panel" type="Panel" parent="."]
+margin_left = -192.0
+margin_top = -128.0
+margin_right = 448.0
+margin_bottom = 384.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Panel"]
+margin_left = 112.0
+margin_top = 64.0
+margin_right = 512.0
+margin_bottom = 105.0
+custom_fonts/font = ExtResource( 1 )
+text = "Your game is paused!"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
-margin_right = 256.0
-margin_bottom = 224.0
+margin_left = -184.0
+margin_right = 440.0
+margin_bottom = 376.0
+size_flags_horizontal = 3
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="LoadCafe" type="Button" parent="VBoxContainer"]
-margin_right = 256.0
-margin_bottom = 53.0
+margin_right = 624.0
+margin_bottom = 91.0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 1 )
 text = "Load Cafe"
 
 [node name="NewCafe" type="Button" parent="VBoxContainer"]
-margin_top = 57.0
-margin_right = 256.0
-margin_bottom = 110.0
+margin_top = 95.0
+margin_right = 624.0
+margin_bottom = 186.0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 1 )
 text = "New Cafe"
 
 [node name="Save" type="Button" parent="VBoxContainer"]
-margin_top = 114.0
-margin_right = 256.0
-margin_bottom = 167.0
+margin_top = 190.0
+margin_right = 624.0
+margin_bottom = 281.0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 1 )
 text = "Save Cafe"
@@ -45,9 +69,9 @@ __meta__ = {
 }
 
 [node name="Exit" type="Button" parent="VBoxContainer"]
-margin_top = 171.0
-margin_right = 256.0
-margin_bottom = 224.0
+margin_top = 285.0
+margin_right = 624.0
+margin_bottom = 376.0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 1 )
 text = "Exit"
@@ -68,18 +92,22 @@ window_title = "Do you wish to save?"
 dialog_text = "Do you want to save?"
 
 [node name="SaveSlotPopup" type="Panel" parent="."]
-visible = false
-margin_right = 320.0
-margin_bottom = 320.0
+margin_left = -160.0
+margin_top = -96.0
+margin_right = 424.0
+margin_bottom = 368.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="SaveSlotContainer" type="VBoxContainer" parent="SaveSlotPopup"]
-margin_right = 320.0
-margin_bottom = 320.0
+margin_right = 584.0
+margin_bottom = 464.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [connection signal="pressed" from="VBoxContainer/LoadCafe" to="." method="_on_LoadCafe_pressed"]
 [connection signal="pressed" from="VBoxContainer/NewCafe" to="." method="_on_NewCafe_pressed"]
