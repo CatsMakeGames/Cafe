@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=2]
+[gd_scene load_steps=26 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/People/Customer.tres" type="Texture" id=2]
@@ -22,7 +22,9 @@
 [ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
+[ext_resource path="res://Fonts/DefaultFont_Small.tres" type="DynamicFont" id=23]
 [ext_resource path="res://Code/Menu/ModeSelectionButton.cs" type="Script" id=24]
+[ext_resource path="res://Code/Menu/ModeChangeButton.cs" type="Script" id=25]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -84,38 +86,51 @@ margin_top = -144.0
 margin_right = 256.0
 margin_bottom = -80.0
 
-[node name="Menu" type="VBoxContainer" parent="."]
-margin_left = -256.0
-margin_top = -144.0
-margin_right = -168.0
-margin_bottom = -32.0
+[node name="UI" type="CanvasLayer" parent="."]
+layer = 3
+scale = Vector2( 0.75, 0.75 )
+transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
+
+[node name="Menu" type="VBoxContainer" parent="UI"]
+margin_right = 112.0
+margin_bottom = 149.0
 rect_scale = Vector2( 2, 2 )
 mouse_filter = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="StoreButton" type="Button" parent="Menu"]
-margin_right = 88.0
-margin_bottom = 20.0
+[node name="StoreButton" type="Button" parent="UI/Menu"]
+margin_right = 112.0
+margin_bottom = 47.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 23 )
 toggle_mode = true
 text = "Store"
 script = ExtResource( 24 )
 MenuNodePath = "UI/StoreMenu"
 
-[node name="StaffButton" type="Button" parent="Menu"]
-margin_top = 24.0
-margin_right = 88.0
-margin_bottom = 44.0
+[node name="StaffButton" type="Button" parent="UI/Menu"]
+margin_top = 51.0
+margin_right = 112.0
+margin_bottom = 98.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 23 )
 toggle_mode = true
 text = "Staff"
 script = ExtResource( 24 )
 MenuNodePath = "UI/StaffManagmentMenuSimple"
 
-[node name="UI" type="CanvasLayer" parent="."]
-layer = 3
-scale = Vector2( 0.75, 0.75 )
-transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
+[node name="MoveButton" type="Button" parent="UI/Menu"]
+margin_top = 102.0
+margin_right = 112.0
+margin_bottom = 149.0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 23 )
+toggle_mode = true
+text = "Redecorate"
+script = ExtResource( 25 )
+MenuNodePath = "UI/SellButton"
 
 [node name="CustomerCountLabel" type="Label" parent="UI"]
 margin_left = 968.0
@@ -257,29 +272,28 @@ margin_top = 213.333
 margin_right = 522.667
 margin_bottom = 213.333
 
-[node name="ExitToIdleModeButton" type="Button" parent="."]
-margin_left = -240.0
-margin_top = 640.0
-margin_right = -220.0
-margin_bottom = 660.0
+[node name="SellButton" type="Button" parent="UI"]
+margin_top = 650.667
+margin_right = 52.0
+margin_bottom = 677.667
+rect_scale = Vector2( 4.875, 4.875 )
+custom_fonts/font = ExtResource( 23 )
+text = "Sell"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ExitToIdleModeButton" type="Button" parent="UI"]
+margin_top = 544.0
+margin_right = 20.0
+margin_bottom = 564.0
 rect_scale = Vector2( 4.875, 4.875 )
 text = "X"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="SellButton" type="Button" parent="."]
-margin_left = -248.0
-margin_top = 392.0
-margin_right = -213.0
-margin_bottom = 412.0
-rect_scale = Vector2( 4.875, 4.875 )
-text = "Sell"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]
-[connection signal="pressed" from="ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
-[connection signal="pressed" from="SellButton" to="." method="_on_SellButton_pressed"]
+[connection signal="pressed" from="UI/SellButton" to="." method="_on_SellButton_pressed"]
+[connection signal="pressed" from="UI/ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]

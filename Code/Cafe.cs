@@ -136,7 +136,7 @@ public class Cafe : Node2D
 			);
 				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, true);
 			}
-			if (currentState != State.UsingMenu)
+			if (currentState == State.Building || currentState == State.Idle)
 			{
 				foreach (Control cont in menus)
 				{
@@ -283,7 +283,7 @@ public class Cafe : Node2D
 	{
 		base._Ready();
 		menus = GetTree().GetNodesInGroup("Menu").OfType<Control>().ToList();
-		menuToggleButtons = GetNode("Menu").GetChildren().OfType<ModeSelectionButton>().ToList();
+		menuToggleButtons = GetNode("UI/Menu").GetChildren().OfType<ModeSelectionButton>().ToList();
 
 		foreach (ModeSelectionButton but in menuToggleButtons)
 		{
@@ -302,9 +302,7 @@ public class Cafe : Node2D
 		storeMenu.cafe = this;
 		storeMenu.Visible = false;
 
-		storeMenuButton = GetNodeOrNull<Button>("Menu/StoreButton") ?? throw new NullReferenceException("Failed to find store menu activation button");
-
-		exitToIdleModeButton = GetNodeOrNull<Button>("ExitToIdleModeButton") ?? throw new NullReferenceException("Failed to find mode reset button");
+		exitToIdleModeButton = GetNodeOrNull<Button>("UI/ExitToIdleModeButton") ?? throw new NullReferenceException("Failed to find mode reset button");
 
 
 		foreach (var loc in Locations)
@@ -796,17 +794,17 @@ public class Cafe : Node2D
 	/**<summary>Changes state of the given menu if current state allows that</summary>*/
 	public void ToggleMenu(Control menu,bool button_pressed)
 	{
-		if (currentState == State.UsingMenu || currentState == State.Idle)
+		if (currentState == State.UsingMenu || currentState == State.Idle || currentState == State.Moving)
 		{
 			foreach(Control _menu in menus)
 			{
 				_menu.Hide();
 			}
-            if (menu != null)
-            {
-                menu.Visible = button_pressed;
-                currentState = button_pressed ? State.UsingMenu : State.Idle;
-            }
+			if (menu != null)
+			{
+				menu.Visible = button_pressed;
+				currentState = button_pressed ? State.UsingMenu : State.Idle;
+			}
 
 			//reset all buttons
 			//pressed button show set it's state by itself
