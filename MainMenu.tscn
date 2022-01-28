@@ -92,17 +92,29 @@ window_title = "Do you wish to save?"
 dialog_text = "Do you want to save?"
 
 [node name="SaveSlotPopup" type="Panel" parent="."]
-margin_left = -160.0
-margin_top = -96.0
-margin_right = 424.0
-margin_bottom = 368.0
+visible = false
+margin_left = 448.0
+margin_top = 8.0
+margin_right = 776.0
+margin_bottom = 384.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CloseSaveSlotMenuButton" type="Button" parent="SaveSlotPopup"]
+margin_left = 264.0
+margin_top = 8.0
+margin_right = 320.0
+margin_bottom = 72.0
+text = "X"
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="SaveSlotContainer" type="VBoxContainer" parent="SaveSlotPopup"]
-margin_right = 584.0
-margin_bottom = 464.0
+margin_top = 80.0
+margin_right = 328.0
+margin_bottom = 376.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 __meta__ = {
@@ -115,3 +127,4 @@ __meta__ = {
 [connection signal="pressed" from="VBoxContainer/Exit" to="." method="_on_Exit_pressed"]
 [connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_ConfirmationDialog_confirmed"]
 [connection signal="confirmed" from="SaveConfirmation" to="." method="_on_SaveConfirmation_confirmed"]
+[connection signal="pressed" from="SaveSlotPopup/CloseSaveSlotMenuButton" to="." method="_on_CloseSaveSlotMenuButton_pressed"]

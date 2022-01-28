@@ -17,6 +17,8 @@ public class Person : CafeObject
 	/**<summary> If true no tasks can be assigned</summary>*/
 	public bool Fired => fired;
 
+	public virtual bool IsFree => !fired;
+
 	[Export]
 	public  int Salary =  0;
 

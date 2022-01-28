@@ -116,4 +116,9 @@ public class MainMenu : Control
 	{
 		cafe?.Save();
 	}
+
+	private void _on_CloseSaveSlotMenuButton_pressed()
+	{
+		saveSlotPopup.Hide();
+	}
 }

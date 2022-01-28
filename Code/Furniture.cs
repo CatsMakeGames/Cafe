@@ -117,11 +117,29 @@ public class Furniture : CafeObject
     }
 
     /**<summary>Person who is actively using this furniture<para/>If this is an appliance this is meant for recording staff</summary>*/
-    public Person CurrentUser = null;
+    private Person currentUser = null;
+
+    public Person CurrentUser
+    {
+        set => currentUser = value;
+        get => currentUser;
+    }
 
     /**<summary>If this is machine that needs customer and staff operation<para/>
     most left as compatibility thing(to avoid casting and possible issues)</summary>*/
-    public Customer CurrentCustomer = null;
+    private Customer currentCustomer = null;
+
+    public Customer CurrentCustomer 
+    {
+        set => currentCustomer = value;
+        get => currentCustomer;
+    }
+
+    public void SetNewCustomer(Customer customer)
+    {
+        CurrentState = Furniture.State.InUse;
+        CurrentCustomer = customer;
+    }
 
     public byte Level
     {
@@ -174,7 +192,7 @@ public class Furniture : CafeObject
         base.Init();
          if(CurrentType == FurnitureType.Table)
         {
-            cafe.OnNewTableIsAvailable(this);
+            cafe.AddNewAvailableTable(this);
         }
     }
 

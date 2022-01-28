@@ -4,7 +4,7 @@ using Godot;
 using System;
 using System.Linq;
 using Staff;
-using System.Linq.Expressions;
+using System.Collections.Generic;
 
 //TODO: Refactor this code and make it simplier if possible
 public class Cafe : Node2D
@@ -30,7 +30,6 @@ public class Cafe : Node2D
 	private uint _currentPersonId = 0;
 
 	/**<summary>Id that will be given to next spawned furniture</summary>*/
-
 	private uint _currentFurnitureId = 0;
 
 	/**<summary>This is used for save file naming</summary>*/
@@ -52,6 +51,17 @@ public class Cafe : Node2D
 	[Signal]
 	public delegate void ChangedPlayerPause(bool paused);
 
+	[Signal]
+	public delegate void OnNewOrderAdded();
+
+	[Signal]
+	public delegate void OnCustomerArrivedAtTheTable();
+
+	[Signal]
+	public delegate void OnNewTableIsAvailable();
+
+	[Signal]
+	public delegate void OnOderFinished();
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -110,30 +120,49 @@ public class Cafe : Node2D
 		get => currentState;
 		set
 		{
-			currentState = value;
-			if (currentState != State.Moving)
+			if(currentState == value)
 			{
-				CurrentlyMovedItem = null;
+				return;
+			}
+			//currentState at this point in time refers to previous state
+			//while value referse to new state
+			switch (currentState)
+			{
+				case State.Idle:case State.UsingMenu:
+					exitToIdleModeButton.Visible = true;
+				break;
+				case State.Building:
+					currentPlacingItem = null;
+					VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+				break;
+				case State.Moving:
+					if (CurrentlyMovedItem != null)
+					{
+						//reset item position cause nothing happened
+						CurrentlyMovedItem.Position = movedItemStartLocation;
+						CurrentlyMovedItem = null;
+					}
+				break;
+				default:
+				break;
 			}
 
-			if (currentState != State.Building)
+			//this is extremely bloated function, but the point is to change values based on state
+			currentState = value;
+			if (currentState == State.Building && currentPlacingItem != null)
 			{
-				currentPlacingItem = null;
-				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
-			}
-			else if (currentState == State.Building && currentPlacingItem != null)
-			{
+				//generate preview item
 				VisualServer.CanvasItemAddTextureRect
-			(
-				_placementPreviewTextureRID,
-				new Rect2(new Vector2(0, 0),
-				new Vector2(128, 128)),
-				Textures[currentPlacingItem.TextureName].GetRid(),
-				true,
-				new Color(155, 0, 0),
-				false,
-				Textures[currentPlacingItem.TextureName].GetRid()
-			);
+				(
+					_placementPreviewTextureRID,
+					new Rect2(new Vector2(0, 0),
+					new Vector2(128, 128)),
+					Textures[currentPlacingItem.TextureName].GetRid(),
+					true,
+					new Color(155, 0, 0),
+					false,
+					Textures[currentPlacingItem.TextureName].GetRid()
+				);
 				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, true);
 			}
 			if (currentState == State.Building || currentState == State.Idle)
@@ -148,11 +177,10 @@ public class Cafe : Node2D
 					but.Pressed = false;
 				}
 			}
-			if (currentState != State.Idle && currentState != State.UsingMenu)
+			else if(currentState == State.Moving || currentState == State.Building)
 			{
-				exitToIdleModeButton.Visible = true;
+				exitToIdleModeButton.Visible = false;
 			}
-
 			if(currentState == State.Idle)
 			{
 				OnPaused(Paused);
@@ -163,9 +191,6 @@ public class Cafe : Node2D
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
 	public int MaxSpawnedCustomersInQueue = 2;
-
-	/**<summary>How many customers are in the queue but not yet spawned</summary>*/
-	public int QueuedNotSpawnedCustomersCount = 0;
 
 	/**
 	 * <summary>Overall rating of the front part of the establishment</summary>
@@ -220,12 +245,14 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public Godot.Collections.Array<int> tablesToTakeOrdersFrom = new Godot.Collections.Array<int>();
+	public List<int> tablesToTakeOrdersFrom = new List<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	public Godot.Collections.Array<int> completedOrders = new Godot.Collections.Array<int>();
+	public List<int> completedOrders = new List<int>();
 
-	public Godot.Collections.Array<int> halfFinishedOrders = new Godot.Collections.Array<int>();
+	public List<int> halfFinishedOrders = new List<int>();
+
+	public List<int> AvailableTables = new List<int>();
 	#endregion
 
 	protected System.Collections.Generic.List<Control> menus;
@@ -250,17 +277,18 @@ public class Cafe : Node2D
 
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
-	public Godot.Collections.Array<int> orders = new Godot.Collections.Array<int>();
+	public List<int> orders = new List<int>();
 	#endregion
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
 	{
 		return !(mouseBlockAreas.Where(p => (p.Visible) &&
-		(pressLocation.x >= p.RectPosition.x &&
-		pressLocation.y >= p.RectPosition.y &&
-		pressLocation.x < (p.RectSize.x + p.RectPosition.x) &&
-		pressLocation.y < (p.RectSize.y + p.RectPosition.y))
+		(
+			pressLocation.x >= p.RectPosition.x &&
+			pressLocation.y >= p.RectPosition.y &&
+			pressLocation.x < (p.RectSize.x + p.RectPosition.x) &&
+			pressLocation.y < (p.RectSize.y + p.RectPosition.y))
 		)).Any();
 	}
 
@@ -382,7 +410,6 @@ public class Cafe : Node2D
 		SaveManager.Save(this);	
 	}
 
-
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
@@ -407,6 +434,7 @@ public class Cafe : Node2D
 		Furnitures.Clear();
 	}
 
+	//TODO: move to separete class, maybe
 	public void PlaceNewFurniture()
 	{
 		if (currentPlacingItem == null || Money < currentPlacingItem.Price || currentState != State.Building)
@@ -482,18 +510,18 @@ public class Cafe : Node2D
 		base._Input(@event);
 		if (Input.IsActionJustPressed("movemode"))
 		{
-			if (CurrentState == State.Idle)
-				CurrentState = State.Moving;
-			else if (currentState == State.Moving)
-				currentState = State.Idle;
-			return;
+			if (CurrentState != State.UsingMenu)
+			{
+				playerPaused = !playerPaused;
+				OnPaused(Paused);
+			}
 		}
 		if (Input.IsActionJustPressed("save"))
 		{
 			Save();
 			return;
 		}
-		if(Input.IsActionJustPressed("pause"))
+		if (Input.IsActionJustPressed("pause"))
 		{
 			mainMenu.Visible = !mainMenu.Visible;
 			playerPaused = !playerPaused;
@@ -596,102 +624,45 @@ public class Cafe : Node2D
 	{
 		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition);
 		people.Add(customer);
-		customer.FindAndMoveToTheTable();
 		customer.Id = _currentPersonId++;
 		return customer;
 	}
 
-	public void OnOrderComplete(int orderId)
+	public void AddCompletedOrder(int orderId)
 	{
-		//make waiter come and pick this up or add this to the pile of tasks
-		var freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Staff.Waiter.Goal.None || p.CurrentGoal == Staff.Waiter.Goal.Leave) && !p.Fired);
-		if (freeWaiter is null)
-		{
-			completedOrders.Add(orderId);
-		}
-		else
-		{
-			var target = people.OfType<Customer>().FirstOrDefault(p => p.OrderId == orderId && p.IsAtTheTable && !p.Eating);
-			if (target != null)
-			{
-				freeWaiter.CurrentGoal = Waiter.Goal.AcquireOrder;
-				freeWaiter.currentOrder = orderId;
-				freeWaiter.PathToTheTarget = FindLocation("Kitchen", freeWaiter.Position);
-				freeWaiter.currentCustomer = target;
-			}
-		}
+		completedOrders.Add(orderId);
+		EmitSignal(nameof(OnOderFinished));
 	}
 
 	/**<summary>Finds a free cook or puts it into the list of orders</summary>*/
-	public void OnNewOrder(int orderId)
+	public void AddNewOrder(int orderId)
 	{
-		if (orderId != -1)
-		{
-			var freeCook = people.OfType<Cook>().FirstOrDefault(p => p.currentGoal == Cook.Goal.None && !p.Fired);
-			if (freeCook is null)
-			{
-				orders.Add(orderId);
-			}
-			else
-			{
-				freeCook.TakeNewOrder(orderId);
-			}
-		}
+		orders.Add(orderId);
+		EmitSignal(nameof(OnNewOrderAdded));
 	}
 
 	public void _onCustomerArrivedAtTheTable(Customer customer)
 	{
-		if (customer.CurrentTableId != -1)
-		{
-			(Furnitures[customer.CurrentTableId]).CurrentCustomer = customer;
-			//make waiter go to the table
-			//if no free waiters are available -> add to the list of waiting people
-			//each time waiter is done with the task they will read from the list 
-			//lists priority goes in the order opposite of the values in Goal enum
-			Waiter freeWaiter = people.OfType<Waiter>().FirstOrDefault(p => (p.CurrentGoal == Waiter.Goal.None || p.CurrentGoal == Waiter.Goal.Leave) && !p.Fired);
-			if (freeWaiter != null)
-			{
-				Furniture table = (Furnitures[customer.CurrentTableId]);
-				freeWaiter.PathToTheTarget = navigation.GetSimplePath(freeWaiter.Position, Furnitures[customer.CurrentTableId].Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-				freeWaiter.CurrentGoal = Waiter.Goal.TakeOrder;
-				freeWaiter.currentCustomer = table.CurrentCustomer;
-				table.CurrentUser = freeWaiter;
-			}
-			else
-			{
-				tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
-			}
-		}
-
-
+		tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+		//now it's up to waiters to find if they want to serve this table
+		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}
 
 	public void _onCustomerFinishedEating(Customer customer, int payment)
 	{
+		//TODO: Add cleaning service >:(
 		//we don't have cleaning service yet
 		(Furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
-		OnNewTableIsAvailable((Furnitures[customer.CurrentTableId]));
+		AddNewAvailableTable((Furnitures[customer.CurrentTableId]));
 		Money += payment;
 		PaymentSoundPlayer?.Play();
 	}
 
-	/**<summary>Finds customer that was not yet sitted and assignes them a table</summary>*/
-	public void OnNewTableIsAvailable(Furniture table)
+	/**<summary>Notifies customers that new table is available</summary>*/
+	public void AddNewAvailableTable(Furniture table)
 	{
-		Customer unSittedCustomer = people.OfType<Customer>().FirstOrDefault(customer => !customer.IsAtTheTable && !customer.Eating && !customer.MovingToTheTable);
-		if (unSittedCustomer != null)
-		{
-			unSittedCustomer?.FindAndMoveToTheTable();
-		}
-		else
-		{
-			//no unsitted customers and spawned customers were found
-			if (QueuedNotSpawnedCustomersCount > 0)
-			{
-				SpawnCustomer().FindAndMoveToTheTable();
-				QueuedNotSpawnedCustomersCount--;
-			}
-		}
+		AvailableTables.Add(Furnitures.IndexOf(table));
+		EmitSignal(nameof(OnNewTableIsAvailable));
 	}
 
 	public void OnCustomerServed(Customer customer)
@@ -722,6 +693,7 @@ public class Cafe : Node2D
 				}
 			}
 
+			//TODO: look into storing people as sets or generating new list with no invalid objects and updating the ref
 			for (int i = people.Count - 1; i >= 0; i--)
 			{
 				if (IsInstanceValid(people[i]) && !people[i].Valid)
@@ -781,13 +753,10 @@ public class Cafe : Node2D
 	private void _on_CustomerSpawnTimer_timeout()
 	{
 		int customerCount = people.OfType<Customer>().Count(customer => !customer.IsAtTheTable);
+		//cafe's waiting area can only hold so many people, if they don't fit -> they leave
 		if (customerCount < MaxSpawnedCustomersInQueue)
 		{
 			SpawnCustomer();
-		}
-		else
-		{
-			QueuedNotSpawnedCustomersCount++;
 		}
 	}
 

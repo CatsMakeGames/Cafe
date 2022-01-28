@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public class Customer : Person
 {
@@ -42,6 +43,7 @@ public class Customer : Person
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
     public new static uint SaveDataSize = 12u;
 
+    public bool Available => !IsAtTheTable && !Eating && !MovingToTheTable;
     public bool FindAndMoveToTheTable()
     {
 
@@ -105,10 +107,14 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
+        FindAndMoveToTheTable();
+
+        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
     }
 
     public Customer(Cafe cafe,uint[] data) : base(cafe,data)
     {
+        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
         orderId = (int)data[7];
         isAtTheTable = data[8] == 1u ? true : false;
         movingToTheTable = data[9] == 1u ? true : false;
@@ -116,6 +122,24 @@ public class Customer : Person
         CurrentTableId = (int)data[11];
 
         GenerateRIDBasedOnTexture(cafe.Textures["Customer"], ZOrderValues.Customer);
+    }
+
+    public void OnNewTableIsAvailable()
+    {
+        if(!IsAtTheTable && !Eating && !MovingToTheTable)
+        {
+            //check if path to new table exists
+            //if it does move to it
+            Vector2[] path = cafe.FindPathTo(position, cafe.Furnitures[cafe.AvailableTables.Last()].Position);
+            if (path != null)
+            {
+                CurrentTableId = cafe.AvailableTables.Last();
+                cafe.Furnitures[CurrentTableId].SetNewCustomer(this);
+                movingToTheTable = true;
+                cafe.AvailableTables.RemoveAt(cafe.AvailableTables.Count - 1);
+                PathToTheTarget = path;
+            }
+        }
     }
 
     public override Godot.Collections.Array<uint> GetSaveData()
@@ -149,7 +173,6 @@ public class Customer : Person
         }
         else
         {
-
             pendingKill = true;
             cafe._onCustomerLeft(this);
         }

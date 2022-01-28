@@ -46,11 +46,15 @@ namespace Staff
 			BeFree();
 
 			Salary = 100;
+			cafe.Connect(nameof(Cafe.OnCustomerArrivedAtTheTable),this,nameof(OnNewCustomerIsAtTheTable));
+			cafe.Connect(nameof(Cafe.OnOderFinished),this,nameof(TakeNewCompletedOrder));
 		}
 
 
 		public Waiter(Cafe cafe,uint[] saveData) : base(cafe,saveData)
 		{
+			cafe.Connect(nameof(Cafe.OnCustomerArrivedAtTheTable),this,nameof(OnNewCustomerIsAtTheTable));
+			cafe.Connect(nameof(Cafe.OnOderFinished),this,nameof(TakeNewCompletedOrder));
             Salary = 100;
 			textureSize = cafe.Textures["Waiter"].GetSize();
 			size = new Vector2(128, 128);
@@ -92,7 +96,7 @@ namespace Staff
 				case Goal.AcquireOrder:   
 				case Goal.DeliverOrder:
 					//reset order back to kitchen
-					cafe.OnOrderComplete(currentOrder);
+					cafe.AddCompletedOrder(currentOrder);
 					break;
 				default:
 					break;
@@ -208,7 +212,27 @@ namespace Staff
 			currentCustomer = customer;
 		}
 
+		public void OnNewCustomerIsAtTheTable()
+		{
+			Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Last()];
+			PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+			CurrentGoal = Goal.TakeOrder;
+			currentCustomer = table.CurrentCustomer;
+			table.CurrentUser = this;
+		}
 
+		public void TakeNewCompletedOrder()
+		{
+            var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.OrderId == cafe.orders.Last() && p.IsAtTheTable && !p.Eating);
+            if (target != null)
+            {
+                CurrentGoal = Waiter.Goal.AcquireOrder;
+                currentOrder = cafe.completedOrders.Last();
+                PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                currentCustomer = target;
+				cafe.completedOrders.RemoveAt(cafe.completedOrders.Count);
+            }
+		}
 
 		protected override async void onArrivedToTheTarget()
 		{
@@ -230,7 +254,7 @@ namespace Staff
 						break;
 					case Goal.PassOrder:
 						//kitchen is now making the order                           
-						cafe.OnNewOrder(currentCustomer.OrderId);
+						cafe.AddNewOrder(currentCustomer.OrderId);
 						BeFree();
 						break;
 					case Goal.AcquireOrder:

@@ -52,6 +52,7 @@ __meta__ = {
 }
 
 [node name="Paused" type="Label" parent="HBoxContainer"]
+visible = false
 margin_left = 168.0
 margin_right = 568.0
 margin_bottom = 41.0

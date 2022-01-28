@@ -11,7 +11,7 @@ public class MouseBlockArea : Control
 	public override void _Ready()
 	{
 		base._Ready();
-		if (areaId > 32 || areaId < 0)
+		if (areaId > 32 || areaId <= 0)
 			throw new ArgumentOutOfRangeException("AreaId must be bigger then 0 but less then 32");
 		areaId = 1 << areaId;
 

@@ -27,6 +27,8 @@ namespace Staff
 
         public int goalOrderId = -1;
 
+        public override bool IsFree => base.IsFree && currentGoal == Goal.None;
+
         protected int currentApplianceId = -1;
 
         /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
@@ -39,6 +41,7 @@ namespace Staff
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             Salary = 100;
+            cafe.Connect(nameof(Cafe.OnNewOrderAdded),this,nameof(OnNewOrder));
         }
 
         public Cook(Cafe cafe,uint[] saveData) : base(cafe,saveData)
@@ -68,6 +71,28 @@ namespace Staff
             }
         }
 
+        public void OnNewOrder()
+        {
+            if (IsFree)
+            {
+                Vector2[] temp;
+                //first try to find the fridge and if succeeded do the thing
+                //if there are no tools we can not perform this task
+                Furniture fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge, Position, out temp);
+                if (fridge != null)
+                {
+                    currentGoal = Cook.Goal.TakeFood;
+                    goalOrderId = cafe.orders.Last();
+                    //mark this fridge as used by this cook for movement mode 
+                    fridge.CurrentUser = this;
+                    currentApplianceId = cafe.Furnitures.IndexOf(fridge);
+                    PathToTheTarget = temp;
+                    //TODO: make cafe remove this itself
+                    cafe.orders.RemoveAt( cafe.orders.Count - 1);
+                }
+            }
+        }
+
 
         public override void GetFired()
         {
@@ -91,7 +116,7 @@ namespace Staff
                 case Goal.PrepareFood:
                 case Goal.TakeFood:
                     //notify cafe about order needing to be finished
-                    cafe.OnNewOrder(goalOrderId);
+                    cafe.AddNewOrder(goalOrderId);
                     break;
             }
             GD.PrintErr("Cooks are not complete!");
@@ -206,7 +231,7 @@ namespace Staff
                         //move to the finish table
                         break;
                     case Goal.GiveFood:
-                        cafe.OnOrderComplete(goalOrderId);
+                        cafe.AddCompletedOrder(goalOrderId);
 
                         BeFree();
                         //seek next task

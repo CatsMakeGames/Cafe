@@ -103,9 +103,11 @@ __meta__ = {
 [node name="StoreButton" type="Button" parent="UI/Menu"]
 margin_right = 112.0
 margin_bottom = 47.0
+focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 23 )
 toggle_mode = true
+enabled_focus_mode = 0
 text = "Store"
 script = ExtResource( 24 )
 MenuNodePath = "UI/StoreMenu"
@@ -114,9 +116,11 @@ MenuNodePath = "UI/StoreMenu"
 margin_top = 51.0
 margin_right = 112.0
 margin_bottom = 98.0
+focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 23 )
 toggle_mode = true
+enabled_focus_mode = 0
 text = "Staff"
 script = ExtResource( 24 )
 MenuNodePath = "UI/StaffManagmentMenuSimple"
@@ -125,9 +129,11 @@ MenuNodePath = "UI/StaffManagmentMenuSimple"
 margin_top = 102.0
 margin_right = 112.0
 margin_bottom = 149.0
+focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 23 )
 toggle_mode = true
+enabled_focus_mode = 0
 text = "Redecorate"
 script = ExtResource( 25 )
 MenuNodePath = "UI/SellButton"
@@ -273,6 +279,7 @@ margin_right = 522.667
 margin_bottom = 213.333
 
 [node name="SellButton" type="Button" parent="UI"]
+visible = false
 margin_top = 650.667
 margin_right = 52.0
 margin_bottom = 677.667
@@ -284,6 +291,7 @@ __meta__ = {
 }
 
 [node name="ExitToIdleModeButton" type="Button" parent="UI"]
+visible = false
 margin_top = 544.0
 margin_right = 20.0
 margin_bottom = 564.0
