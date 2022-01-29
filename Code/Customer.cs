@@ -26,7 +26,7 @@ public class Customer : Person
     /**<summary>Id of the table where customer sits</summary>*/
     public int CurrentTableId = -1;
 
-    protected float defaultOrderTime = 5;
+    protected float defaultOrderTime = 3;
 
     public float OrderTime => defaultOrderTime;
 
@@ -45,6 +45,8 @@ public class Customer : Person
 
     /**<summary> Waiter that is currently bringing the cooked meal</summary>*/
     public Staff.Waiter CurrentWaiter;
+
+    public bool orderTaken = false;
 
     public bool Available => !IsAtTheTable && !Eating && !MovingToTheTable;
     public bool FindAndMoveToTheTable()

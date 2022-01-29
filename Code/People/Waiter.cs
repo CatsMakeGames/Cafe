@@ -198,12 +198,12 @@ namespace Staff
         {
             if (cafe.tablesToTakeOrdersFrom.Any() && IsFree)
             {
-                Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Peek()];
+                Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Last()];
                 PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
                 CurrentGoal = Goal.TakeOrder;
                 currentCustomer = table.CurrentCustomer;
                 table.CurrentUser = this;
-				cafe.tablesToTakeOrdersFrom.Pop();
+				cafe.tablesToTakeOrdersFrom.Remove(0);
             }
         }
 
@@ -243,7 +243,8 @@ namespace Staff
 						CurrentGoal = Goal.PassOrder;
 						//this way we don't hold the execution
 						await System.Threading.Tasks.Task.Delay((int)(currentCustomer.OrderTime * 1000));
-
+						//TODO: remove this once issue with customer is found
+						currentCustomer.orderTaken = true;
 						//await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
 						//don't reset current customer because we still need to know the order
 						//find path to the kitchen

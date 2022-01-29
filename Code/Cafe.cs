@@ -245,7 +245,7 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public Stack<int> tablesToTakeOrdersFrom = new Stack<int>();
+	public List<int> tablesToTakeOrdersFrom = new List<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
 	public List<int> completedOrders = new List<int>();
@@ -642,7 +642,7 @@ public class Cafe : Node2D
 
 	public void _onCustomerArrivedAtTheTable(Customer customer)
 	{
-		tablesToTakeOrdersFrom.Push(customer.CurrentTableId);
+		tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}
