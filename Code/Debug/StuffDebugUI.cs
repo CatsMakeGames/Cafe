@@ -17,5 +17,5 @@ public class StuffDebugUI : VBoxContainer
         base._Process(delta);
         GetChild<Label>(0).Text = $"Cooks: Total = {cafe.People.OfType<Staff.Cook>().Count().ToString()}; Idle = {cafe.People.OfType<Staff.Cook>().Where(p=>p.IsFree).Count()}";
         GetChild<Label>(1).Text = $"Waiters: Total = {cafe.People.OfType<Staff.Waiter>().Count().ToString()}; Idle = {cafe.People.OfType<Staff.Waiter>().Where(p=>p.IsFree).Count()}";
-    }
+     }
 }

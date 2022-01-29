@@ -117,7 +117,7 @@ namespace Staff
 					//customer has been left table-less
 					if (currentCustomer.CurrentTableId == -1 || forceCancel)
 					{
-						cafe.completedOrders.Push(currentOrder);
+						cafe.completedOrders.Add(currentOrder);
 						BeFree();
 					}
 					else
@@ -211,7 +211,9 @@ namespace Staff
 		{
             if (cafe.completedOrders.Any() && IsFree)
             {
-				int orderId = cafe.completedOrders.Peek();
+				//because we prioritize customers who arrived early(otherwise some of them might not get served their food at all)
+				//we have to take first
+				int orderId = cafe.completedOrders.First();
                 var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.WantsOrder(orderId));
                 if (target != null)
                 {
@@ -219,8 +221,13 @@ namespace Staff
                     currentOrder = orderId;
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     currentCustomer = target;
-                    cafe.completedOrders.Pop();
+					target.CurrentWaiter = this;
+                    cafe.completedOrders.Remove(0);
                 }
+				else
+				{
+					GD.PrintErr("Order was completed but waiter found no customer for it!");
+				}
             }
 		}
 

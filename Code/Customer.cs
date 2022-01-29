@@ -43,6 +43,9 @@ public class Customer : Person
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
     public new static uint SaveDataSize = 12u;
 
+    /**<summary> Waiter that is currently bringing the cooked meal</summary>*/
+    public Staff.Waiter CurrentWaiter;
+
     public bool Available => !IsAtTheTable && !Eating && !MovingToTheTable;
     public bool FindAndMoveToTheTable()
     {
@@ -156,7 +159,7 @@ public class Customer : Person
 
     public bool WantsOrder(int order)
     {
-        return orderId == order && IsAtTheTable && !Eating;
+        return orderId == order && IsAtTheTable && !Eating && CurrentWaiter == null;
     }
 
     public override void SaveInit()

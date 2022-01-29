@@ -248,7 +248,7 @@ public class Cafe : Node2D
 	public Stack<int> tablesToTakeOrdersFrom = new Stack<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	public Stack<int> completedOrders = new Stack<int>();
+	public List<int> completedOrders = new List<int>();
 
 	public Stack<int> halfFinishedOrders = new Stack<int>();
 
@@ -629,7 +629,7 @@ public class Cafe : Node2D
 
 	public void AddCompletedOrder(int orderId)
 	{
-		completedOrders.Push(orderId);
+		completedOrders.Add(orderId);
 		EmitSignal(nameof(OnOderFinished));
 	}
 

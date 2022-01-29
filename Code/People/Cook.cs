@@ -82,13 +82,12 @@ namespace Staff
                 if (fridge != null)
                 {
                     currentGoal = Cook.Goal.TakeFood;
-                    goalOrderId = cafe.orders.Last();
+                    goalOrderId = cafe.orders.First();
                     //mark this fridge as used by this cook for movement mode 
                     fridge.CurrentUser = this;
                     currentApplianceId = cafe.Furnitures.IndexOf(fridge);
                     PathToTheTarget = temp;
-                    //TODO: make cafe remove this itself
-                    cafe.orders.RemoveAt( cafe.orders.Count - 1);
+                    cafe.orders.RemoveAt(0);
                 }
             }
         }
