@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=2]
+[gd_scene load_steps=27 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/People/Customer.tres" type="Texture" id=2]
@@ -25,6 +25,7 @@
 [ext_resource path="res://Fonts/DefaultFont_Small.tres" type="DynamicFont" id=23]
 [ext_resource path="res://Code/Menu/ModeSelectionButton.cs" type="Script" id=24]
 [ext_resource path="res://Code/Menu/ModeChangeButton.cs" type="Script" id=25]
+[ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
@@ -300,6 +301,13 @@ text = "X"
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="StuffDebugUI" parent="." instance=ExtResource( 26 )]
+margin_left = 656.0
+margin_top = -143.0
+margin_right = 872.0
+margin_bottom = -14.0
+rect_scale = Vector2( 1.43535, 2.88063 )
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]

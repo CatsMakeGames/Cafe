@@ -245,14 +245,14 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public List<int> tablesToTakeOrdersFrom = new List<int>();
+	public Stack<int> tablesToTakeOrdersFrom = new Stack<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	public List<int> completedOrders = new List<int>();
+	public Stack<int> completedOrders = new Stack<int>();
 
-	public List<int> halfFinishedOrders = new List<int>();
+	public Stack<int> halfFinishedOrders = new Stack<int>();
 
-	public List<int> AvailableTables = new List<int>();
+	public Stack<int> AvailableTables = new Stack<int>();
 	#endregion
 
 	protected System.Collections.Generic.List<Control> menus;
@@ -558,12 +558,11 @@ public class Cafe : Node2D
 								{
 									//make sure we actually can place this item here
 									if (!Furnitures.Where(p =>
-										 (
+										(
 											 p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
 											 && p != CurrentlyMovedItem
 										).Any())
 									{
-										GD.Print("placing item");
 										//make this be new place
 										var loc = CurrentlyMovedItem.Position;
 										CurrentlyMovedItem.Position = movedItemStartLocation;
@@ -630,7 +629,7 @@ public class Cafe : Node2D
 
 	public void AddCompletedOrder(int orderId)
 	{
-		completedOrders.Add(orderId);
+		completedOrders.Push(orderId);
 		EmitSignal(nameof(OnOderFinished));
 	}
 
@@ -643,7 +642,7 @@ public class Cafe : Node2D
 
 	public void _onCustomerArrivedAtTheTable(Customer customer)
 	{
-		tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+		tablesToTakeOrdersFrom.Push(customer.CurrentTableId);
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}
@@ -661,7 +660,7 @@ public class Cafe : Node2D
 	/**<summary>Notifies customers that new table is available</summary>*/
 	public void AddNewAvailableTable(Furniture table)
 	{
-		AvailableTables.Add(Furnitures.IndexOf(table));
+		AvailableTables.Push(Furnitures.IndexOf(table));
 		EmitSignal(nameof(OnNewTableIsAvailable));
 	}
 

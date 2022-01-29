@@ -30,7 +30,6 @@ sealed public class StaffMenu  : Control
         {
             buttonScene = ResourceLoader.Load<PackedScene>(ButtonSceneName);
         }
-
         itemContainer = GetNode<VBoxContainer>("ScrollContainer/VBoxContainer") ?? throw new NullReferenceException("Missing container for staff management ui buttons!");
     }
 

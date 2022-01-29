@@ -107,6 +107,12 @@ public class Furniture : CafeObject
         {
             CurrentCustomer = cafe.People.OfType<Customer>().FirstOrDefault(p=>p.Id == _loadedCustomerId - 1u);
         }
+
+        //because loaded furniture is placed by itself we have to manually notify cafe
+        if (CurrentType == FurnitureType.Table && _loadedCustomerId == 0)
+        {
+            cafe.AddNewAvailableTable(this);
+        }
     }
 
     public override void LoadData(uint[] data)

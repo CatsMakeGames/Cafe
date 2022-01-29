@@ -73,7 +73,7 @@ namespace Staff
 
         public void OnNewOrder()
         {
-            if (IsFree)
+            if (cafe.orders.Any() && IsFree)
             {
                 Vector2[] temp;
                 //first try to find the fridge and if succeeded do the thing
@@ -108,7 +108,7 @@ namespace Staff
 
             if (currentGoal == Goal.CookFood)
             {
-                cafe.halfFinishedOrders.Add(goalOrderId);
+                cafe.halfFinishedOrders.Push(goalOrderId);
             }
             switch (currentGoal)
             {         

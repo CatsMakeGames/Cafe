@@ -32,6 +32,8 @@ namespace Staff
 
 		public override bool ShouldUpdate => (base.ShouldUpdate && CurrentGoal != Goal.None) || Fired;
 
+		public override bool IsFree => base.IsFree && (CurrentGoal == Goal.None || CurrentGoal == Goal.Leave);
+
 		[Signal]
 		public delegate void OnWaiterIsFree(Waiter waiter);
 
@@ -115,7 +117,7 @@ namespace Staff
 					//customer has been left table-less
 					if (currentCustomer.CurrentTableId == -1 || forceCancel)
 					{
-						cafe.completedOrders.Add(currentOrder);
+						cafe.completedOrders.Push(currentOrder);
 						BeFree();
 					}
 					else
@@ -167,36 +169,16 @@ namespace Staff
                 //forget about this customer
                 currentCustomer = null;
             }
-			//since cafe is referenced for using node functions anyway, no need to use signals
+			//are there any finished orders?
 			if (cafe.completedOrders.Any())
 			{
-				//(cafe.Furnitures[cafe.completedOrders[0]] as Table) is actually incorrect because completedOrders stores meal ids not where they should be placed
-				//so instead we will find (from first to last) first customer that wants this meal
-				//this way whoever came first will get the meal served first
-
-				Furniture table = cafe.Furnitures.FirstOrDefault
-				(p => 
-					p.CurrentCustomer != null &&
-					p.CurrentCustomer.OrderId == cafe.completedOrders[0] && 
-					p.CurrentType == Furniture.FurnitureType.Table
-				);
-				if (table != null)
-				{
-					table.CurrentUser = this;
-					changeTask(cafe.LocationNodes["Kitchen"].Position, Waiter.Goal.AcquireOrder, table.CurrentCustomer);
-					cafe.completedOrders.RemoveAt(0);
-				}
+				TakeNewCompletedOrder();
 			}
-
-			//search through the list and find tasks that can be completed
+			//if not check if there are any waiting customers
 			else if (cafe.tablesToTakeOrdersFrom.Any())
 			{
-				cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].CurrentUser = this;
-				//TODO: (not a todo) Replace postion with table's position and waiters will be able to pass several orders in chain :D
-				changeTask(cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]].Position, Waiter.Goal.TakeOrder, (cafe.Furnitures[cafe.tablesToTakeOrdersFrom[0]]).CurrentCustomer);
-				cafe.tablesToTakeOrdersFrom.RemoveAt(0);
+				OnNewCustomerIsAtTheTable();
 			}
-
 			else
 			{
 				//move waiter to "staff location"
@@ -212,25 +194,33 @@ namespace Staff
 			currentCustomer = customer;
 		}
 
-		public void OnNewCustomerIsAtTheTable()
-		{
-			Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Last()];
-			PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-			CurrentGoal = Goal.TakeOrder;
-			currentCustomer = table.CurrentCustomer;
-			table.CurrentUser = this;
-		}
+        public void OnNewCustomerIsAtTheTable()
+        {
+            if (cafe.tablesToTakeOrdersFrom.Any() && IsFree)
+            {
+                Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Peek()];
+                PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
+                CurrentGoal = Goal.TakeOrder;
+                currentCustomer = table.CurrentCustomer;
+                table.CurrentUser = this;
+				cafe.tablesToTakeOrdersFrom.Pop();
+            }
+        }
 
 		public void TakeNewCompletedOrder()
 		{
-            var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.OrderId == cafe.orders.Last() && p.IsAtTheTable && !p.Eating);
-            if (target != null)
+            if (cafe.completedOrders.Any() && IsFree)
             {
-                CurrentGoal = Waiter.Goal.AcquireOrder;
-                currentOrder = cafe.completedOrders.Last();
-                PathToTheTarget = cafe.FindLocation("Kitchen", Position);
-                currentCustomer = target;
-				cafe.completedOrders.RemoveAt(cafe.completedOrders.Count);
+				int orderId = cafe.completedOrders.Peek();
+                var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.WantsOrder(orderId));
+                if (target != null)
+                {
+                    CurrentGoal = Waiter.Goal.AcquireOrder;
+                    currentOrder = orderId;
+                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    currentCustomer = target;
+                    cafe.completedOrders.Pop();
+                }
             }
 		}
 

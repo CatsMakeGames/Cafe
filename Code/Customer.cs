@@ -107,7 +107,7 @@ public class Customer : Person
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
-        FindAndMoveToTheTable();
+       OnNewTableIsAvailable();
 
         cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
     }
@@ -121,22 +121,23 @@ public class Customer : Person
         eating = data[10] == 1u ? true : false;
         CurrentTableId = (int)data[11];
 
+
         GenerateRIDBasedOnTexture(cafe.Textures["Customer"], ZOrderValues.Customer);
     }
 
     public void OnNewTableIsAvailable()
     {
-        if(!IsAtTheTable && !Eating && !MovingToTheTable)
+        if(cafe.AvailableTables.Any() && !IsAtTheTable && !Eating && !MovingToTheTable)
         {
             //check if path to new table exists
             //if it does move to it
-            Vector2[] path = cafe.FindPathTo(position, cafe.Furnitures[cafe.AvailableTables.Last()].Position);
+            Vector2[] path = cafe.FindPathTo(position, cafe.Furnitures[cafe.AvailableTables.Peek()].Position);
             if (path != null)
             {
-                CurrentTableId = cafe.AvailableTables.Last();
+                CurrentTableId = cafe.AvailableTables.Peek();
                 cafe.Furnitures[CurrentTableId].SetNewCustomer(this);
                 movingToTheTable = true;
-                cafe.AvailableTables.RemoveAt(cafe.AvailableTables.Count - 1);
+                cafe.AvailableTables.Pop();
                 PathToTheTarget = path;
             }
         }
@@ -151,6 +152,11 @@ public class Customer : Person
         data.Add(eating ? 1u :0u);//[10]
         data.Add((uint)CurrentTableId);//[11]
         return data;
+    }
+
+    public bool WantsOrder(int order)
+    {
+        return orderId == order && IsAtTheTable && !Eating;
     }
 
     public override void SaveInit()
