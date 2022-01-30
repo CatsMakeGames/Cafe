@@ -66,7 +66,7 @@ namespace Staff
                 goalOrderId = orderId;
                 //mark this fridge as used by this cook for movement mode 
                 fridge.CurrentUser = this;
-                currentApplianceId = cafe.Furnitures.IndexOf(fridge);
+                currentApplianceId = cafe.GetFurnitureIndex(fridge);
                 PathToTheTarget = temp;
             }
         }
@@ -85,7 +85,7 @@ namespace Staff
                     goalOrderId = cafe.orders.First();
                     //mark this fridge as used by this cook for movement mode 
                     fridge.CurrentUser = this;
-                    currentApplianceId = cafe.Furnitures.IndexOf(fridge);
+                    currentApplianceId = cafe.GetFurnitureIndex(fridge);
                     PathToTheTarget = temp;
                     cafe.orders.RemoveAt(0);
                 }
@@ -98,7 +98,7 @@ namespace Staff
             base.GetFired();
             if (currentApplianceId > -1)
             {
-                cafe.Furnitures[currentApplianceId].CurrentUser = null;
+                cafe.GetFurniture(currentApplianceId).CurrentUser = null;
             }
             /**
              * Raw food that needs to be cut just dissapears as it would be no different from raw food that was not touched
@@ -150,7 +150,7 @@ namespace Staff
                     else
                     {
                         stove.CurrentUser = this;
-                        currentApplianceId = cafe.Furnitures.IndexOf(stove);
+                        currentApplianceId = cafe.GetFurnitureIndex(stove);
                         PathToTheTarget = temp;
                     }
                     break;
@@ -172,7 +172,7 @@ namespace Staff
                     else
                     {
                         fridge.CurrentUser = this;
-                        currentApplianceId = cafe.Furnitures.IndexOf(fridge);
+                        currentApplianceId = cafe.GetFurnitureIndex(fridge);
                         PathToTheTarget = temp;
                     }
                     break;
@@ -192,14 +192,39 @@ namespace Staff
         public override void SaveInit()
         {
             base.SaveInit();
-            Furniture fur  =cafe.Furnitures.FirstOrDefault(p=>p.Id == currentApplianceId);
+            //TODO: check if internal id matches new id
+            Furniture fur  = cafe.GetFurniture(currentApplianceId);
             if(fur != null)
             {
                 fur.CurrentUser = this;
             }
         }
 
-        protected override async void onArrivedToTheTarget()
+        protected override void OnTaskTimerRunOut()
+        {
+            base.OnTaskTimerRunOut();
+            switch (currentGoal)
+            {
+                case Goal.TakeFood:
+                    currentGoal = Goal.CookFood;
+                    var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove, Position, out pathToTheTarget);
+                    currentApplianceId = cafe.GetFurnitureIndex(stove);
+                    stove.CurrentUser = this;
+                    currentApplianceId = (int)stove.Id;
+                    pathId = 0;
+                    break;
+                case Goal.PrepareFood:
+                    SetTaskTimer(1);
+                    break;
+                case Goal.CookFood:
+                    currentApplianceId = -1;
+                    currentGoal = Goal.GiveFood;
+                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    break;
+            }
+        }
+
+        protected override void onArrivedToTheTarget()
         {
             base.onArrivedToTheTarget();
             if (!Fired)
@@ -208,30 +233,15 @@ namespace Staff
                 switch (currentGoal)
                 {
                     case Goal.TakeFood:
-                        await System.Threading.Tasks.Task.Delay(1000);
-                        currentGoal = Goal.CookFood;
-                        var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove, Position, out pathToTheTarget);
-                        currentApplianceId = cafe.Furnitures.IndexOf(stove);
-                        stove.CurrentUser = this;
-                        currentApplianceId = (int)stove.Id;
-                        pathId = 0;
+                        SetTaskTimer(1);
                         //move to the cutting table
                         break;
-                    //this step is currently missing
-                    case Goal.PrepareFood:
-                        await System.Threading.Tasks.Task.Delay(1000);
-                        //move to the appliance
-                        break;
                     case Goal.CookFood:
-                        await System.Threading.Tasks.Task.Delay(1000);
-                        currentApplianceId = -1;
-                        currentGoal = Goal.GiveFood;
-                        PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                         SetTaskTimer(1);           
                         //move to the finish table
                         break;
                     case Goal.GiveFood:
                         cafe.AddCompletedOrder(goalOrderId);
-
                         BeFree();
                         //seek next task
                         //cook is idling

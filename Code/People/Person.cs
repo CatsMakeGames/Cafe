@@ -34,7 +34,7 @@ public class Person : CafeObject
 
 	protected bool shouldUpdate = true;
 
-	public virtual bool ShouldUpdate => shouldUpdate || Fired/*because we want ai still be able to leave*/;
+	public virtual bool ShouldUpdate => shouldUpdate || Fired || TaskIsActive/*because we want ai still be able to leave*/;
 
 	/**<summary>How close does object need to be to the target for that to count</summary>*/
 	public float Eps = 10f;
@@ -53,9 +53,35 @@ public class Person : CafeObject
 		fired = true;
 
 		PathToTheTarget = cafe.FindLocation("Exit", Position);
-	   
 	}
 
+//This is version of wait system, that can actually be saved
+//set timer, activate it and use callback
+#region Timers
+	/**<summary>How long is current task going to take</summary>*/
+	private float TaskNeededTime = 0;
+
+	/**<summary>How long has this task been going for</summary>*/
+	private float TaskCurrentTime = 0;
+
+	/**<summary>Should timer be counted</summary>*/
+	protected bool TaskIsActive = false;
+
+	/**<summary>Sets new time for timer.<para/>This will reset timer if it's active</summary>*/
+	protected void SetTaskTimer(float time)
+	{
+		TaskNeededTime = time;
+		TaskCurrentTime = 0;
+		TaskIsActive = true;
+	}
+
+	protected void FinishTaskTimer()
+	{
+		TaskIsActive = false;
+		OnTaskTimerRunOut();
+	}
+	protected virtual void OnTaskTimerRunOut(){}
+#endregion
 	public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
 	{
 		//load speed from the table
@@ -112,6 +138,15 @@ public class Person : CafeObject
 
 	public void Update(float deltaTime)
 	{
+		if(TaskIsActive)
+		{
+			TaskCurrentTime += deltaTime;
+			if(TaskCurrentTime >= TaskNeededTime)
+			{
+				FinishTaskTimer();
+			}
+		}	
+		
 		//we have nowhere to go so we stop
 		if (pathToTheTarget == null || pathId >= pathToTheTarget.Length)
 		{
@@ -133,5 +168,7 @@ public class Person : CafeObject
 				onArrivedToTheTarget();
 			}
 		}
+
+		
 	}
 }

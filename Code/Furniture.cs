@@ -46,7 +46,9 @@ public class Furniture : CafeObject
     protected int variation = 0;
     public State CurrentState = State.Free;
 
-    public FurnitureType CurrentType = FurnitureType.Invalid;
+    private FurnitureType _currentType = FurnitureType.Invalid;
+
+    public FurnitureType CurrentType => _currentType;
 
     /**<summary>Price of the furniture in store<para/>Mostly meant for when it's being sold</summary>*/
     public int Price = 0;
@@ -165,7 +167,7 @@ public class Furniture : CafeObject
 
     public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
-        CurrentType = type;
+        _currentType = type;
         Random rand = new Random();
         variation = rand.Next(0,2);
         _texture = texture;
@@ -174,7 +176,7 @@ public class Furniture : CafeObject
 
     public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
     {
-        CurrentType = (FurnitureType)data[8];
+        _currentType = (FurnitureType)data[8];
         CurrentState = (State)data[9];
        
 
@@ -214,19 +216,16 @@ public class Furniture : CafeObject
                 }
                 if (CurrentCustomer != null)
                 {
-                    //temporary value so we could still call the customer funcions 
-                    var tempCustomer = CurrentCustomer;
-                    //reset table id for better context
-                    tempCustomer.CurrentTableId = -1;
-                    //clear it out to avoid stuck references and if this table is selected again customer will update this value itself
-                    CurrentCustomer = null;
-                    //make customer look for new table and go back to queue if none are found
-                    if (!tempCustomer.FindAndMoveToTheTable())
+                    if(cafe.FindPathTo(currentCustomer.Position, position) == null)
                     {
-                        //If customer has to wait back in the queue then waiter has to be reset
+                        //customer has to look for other alternatives
                         CurrentUser?.ResetOrCancelGoal(true);
-                        //throw new NotImplementedException("Function for moving customer back to queue is not yet implemented");
-                        GD.PrintErr("Function for moving customer back to queue is not yet implemented");
+
+                        currentCustomer.OnTableIsUnavailable();
+                    }
+                    else
+                    {
+                        currentCustomer.TableLocationChanged(position);
                     }
                 }
                 break;

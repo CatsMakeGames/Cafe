@@ -172,7 +172,7 @@ public static class SaveManager
                 currentDataReadingId++;
                 if(currentDataReadingId >= Furniture.SaveDataSize)
                 {
-                    cafe.Furnitures.Add(new Furniture(cafe,loadedData));
+                    cafe.AddFurniture(new Furniture(cafe,loadedData));
                     currentDataReadingId = 0;
                 }  
             }
@@ -185,6 +185,7 @@ public static class SaveManager
             {
                 person.SaveInit();
             }
+
             foreach (Furniture fur in cafe.Furnitures)
             {
                 fur.SaveInit();

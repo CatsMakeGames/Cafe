@@ -25,8 +25,6 @@ public class CafeObject : Godot.Object
 
     public bool Valid => !pendingKill;
 
-    public virtual Class Type => Class.Default;
-
     
     public static uint SaveDataSize = 5u;
 

@@ -4,41 +4,49 @@ using System.Linq;
 
 public class Customer : Person
 {
+
+    public enum Goal
+    {
+        /**<summary>Customer has no table and is actively looking for one</summary>*/
+        WaitForTable,
+        /**<summary>Customer is going to sit at the table</summary>*/
+        WalkToTable,
+        /**<summary>Customer is at the table and waits for waiter to come and take the order</summary>*/
+        WaitForWaiter,
+        /**<summary>Waiter took the order and now customer is waiting for food</summary>*/
+        WaitForFood,
+        /**<summary>Customer is eating</summary>*/
+        Eat,
+        /**<summary>Customer ate food and is now leaving</summary>*/
+        Leave,
+        /**<summary>Table has been moved and customer has to find it again</summary>*/
+        MoveBackToTable
+    }
+
+    /**<summary>If there are any temporary changes in environment this value is set to 
+    whatever goal is active until environmental changes are adopted to</summary>*/
+    private Goal _primaryGoalBackup;
+
+    private Goal _currentGoal;
+
     /**<summary>Because all orders are stored as a list we can just pass around id of the order</summary>*/
     protected int orderId = 0;
 
     public int OrderId => orderId;
 
-    protected bool isAtTheTable = false;
-
-    public bool IsAtTheTable => isAtTheTable;
-
-    protected bool movingToTheTable = false;
-
-    public bool MovingToTheTable => movingToTheTable;
-
-    protected bool ate = false;
-
-    protected bool eating = false;
-
-    public bool Eating => eating;
-
     /**<summary>Id of the table where customer sits</summary>*/
-    public int CurrentTableId = -1;
+    private int _currentTableId = -1;
+
+    public int CurrentTableId => _currentTableId;
 
     protected float defaultOrderTime = 3;
 
     public float OrderTime => defaultOrderTime;
 
-    public override bool ShouldUpdate => base.ShouldUpdate && !isAtTheTable;
+    public override bool ShouldUpdate => base.ShouldUpdate || (_currentGoal == Goal.Leave || _currentGoal == Goal.MoveBackToTable || _currentGoal == Goal.WalkToTable);
 
     [Signal]
     public delegate void FinishEating(int payment);
-
-    [Signal]
-    public delegate void ArivedToTheTable(Customer customer);
-
-    public static new Class Type = Class.Customer;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
     public new static uint SaveDataSize = 12u;
@@ -48,66 +56,31 @@ public class Customer : Person
 
     public bool orderTaken = false;
 
-    public bool Available => !IsAtTheTable && !Eating && !MovingToTheTable;
-    public bool FindAndMoveToTheTable()
+    public bool Available => _currentGoal == Goal.WaitForTable;
+
+    public void TableLocationChanged(Vector2 newLocation)
     {
-
-        Vector2[] path = null;
-
-        //find table to move to
-        var table = cafe.FindClosestFurniture(Furniture.FurnitureType.Table, position, out path);
-        //we don't want to reset paths accidentally
-        if (path != null)
-        {
-            PathToTheTarget = path;
-        }
-        pathId = 0;
-        if (table != null)
-        {
-            CurrentTableId = cafe.Furnitures.IndexOf(table);
-            table.CurrentState = Furniture.State.InUse;
-
-            movingToTheTable = true;
-            table.CurrentCustomer = this;
-            //handle table being moved via build mode
-            if (isAtTheTable && table.Position.DistanceTo(position) > 5f)
-            {
-                isAtTheTable = false;
-            }
-            else if (isAtTheTable)
-            {
-                GD.PrintErr($"Distance: {table.Position.DistanceTo(position)}. To {table}, from {this}");
-            }
-
-            return true;
-
-        }
-        return false;
+        PathToTheTarget = cafe.FindPathTo(position, newLocation);
+        _primaryGoalBackup = _currentGoal;
+        _currentGoal = Goal.MoveBackToTable;
+        
     }
 
-    private async void eat()
+    protected override void OnTaskTimerRunOut()
     {
-        GD.Print($"{ToString()}: Eating");
-        eating = true;
-        await ToSignal(cafe.GetTree().CreateTimer(5), "timeout");
-        GD.Print($"{ToString()}: Ate");
-        //TODO: make it so it would read payment from the table of values
-        cafe._onCustomerFinishedEating(this, 100);
-        isAtTheTable = false;
-        pathId = 0;
-        ate = true;
-        pathToTheTarget = cafe.FindLocation("Exit",Position);
-        //leave the cafe
-        /*pathToTheTarget = cafe.FindExit(Position);
-        if (pathToTheTarget.Length == 0)
+        base.OnTaskTimerRunOut();
+        if(_currentGoal == Goal.Eat)
         {
-            Destroy();
-        }*/
+            cafe.OnCustomerFinishedMeal(this);
+            _currentGoal = Goal.Leave;
+            PathToTheTarget = cafe.FindLocation("Exit",Position);
+        }
     }
 
     public void Eat()
     {
-        eat(); 
+        _currentGoal = Goal.Eat;
+        SetTaskTimer(1);
     }
 
     public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
@@ -121,71 +94,93 @@ public class Customer : Person
     {
         cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
         orderId = (int)data[7];
-        isAtTheTable = data[8] == 1u ? true : false;
-        movingToTheTable = data[9] == 1u ? true : false;
-        eating = data[10] == 1u ? true : false;
-        CurrentTableId = (int)data[11];
+        //TODO: update save system
+        _currentTableId = (int)data[10];
 
 
-        GenerateRIDBasedOnTexture(cafe.Textures["Customer"], ZOrderValues.Customer);
+        GenerateRIDBasedOnTexture(cafe.GetTexture("Customer"), ZOrderValues.Customer);
     }
 
     public void OnNewTableIsAvailable()
     {
-        if(cafe.AvailableTables.Any() && !IsAtTheTable && !Eating && !MovingToTheTable)
+        if(cafe.AvailableTables.Any() && _currentGoal == Goal.WaitForTable)
         {
             //check if path to new table exists
             //if it does move to it
-            Vector2[] path = cafe.FindPathTo(position, cafe.Furnitures[cafe.AvailableTables.Peek()].Position);
+            Vector2[] path = cafe.FindPathTo(position, cafe.GetFurniture(cafe.AvailableTables.Peek()).Position);
             if (path != null)
             {
-                CurrentTableId = cafe.AvailableTables.Peek();
-                cafe.Furnitures[CurrentTableId].SetNewCustomer(this);
-                movingToTheTable = true;
+                _currentTableId = cafe.AvailableTables.Peek();
+                cafe.GetFurniture(_currentTableId).SetNewCustomer(this);
                 cafe.AvailableTables.Pop();
+                _currentGoal = Goal.WalkToTable;
                 PathToTheTarget = path;
             }
         }
+    }
+
+    public void OnTableIsUnavailable()
+    {
+       _currentTableId = -1;
+       _primaryGoalBackup = _currentGoal;
+       _currentGoal = Goal.WaitForTable;
     }
 
     public override Godot.Collections.Array<uint> GetSaveData()
     {
         Godot.Collections.Array<uint> data = base.GetSaveData();
         data.Add((uint)orderId);//[7]
-        data.Add(isAtTheTable ? 1u: 0u);//[8]
-        data.Add(movingToTheTable ? 1u :0u);//[9]
-        data.Add(eating ? 1u :0u);//[10]
-        data.Add((uint)CurrentTableId);//[11]
+        data.Add((uint)_currentGoal);//[8]
+        data.Add((uint)_primaryGoalBackup);//[9]
+        data.Add((uint)_currentTableId);//[10]
         return data;
     }
 
-    public bool WantsOrder(int order)
+    public bool IsWaitingForOrder(int order)
     {
-        return orderId == order && IsAtTheTable && !Eating && CurrentWaiter == null;
+        return orderId == order && _currentGoal == Goal.WaitForFood && CurrentWaiter == null;
     }
+
+
 
     public override void SaveInit()
     {
         base.SaveInit();
     }
 
+    public void OnOrderTaken()
+    {
+        _currentGoal = Goal.WaitForFood;
+    }
+
     protected override void onArrivedToTheTarget()
     {
         base.onArrivedToTheTarget();
-        if (!ate)
+        switch (_currentGoal)
         {
-            isAtTheTable = true;
-            //check to make sure no waiters are already serving this table
-            if (cafe.Furnitures[CurrentTableId].CurrentUser == null)
-            {
-                //tell cafe that they are ready to order
-                cafe._onCustomerArrivedAtTheTable(this);
-            }
-        }
-        else
-        {
-            pendingKill = true;
-            cafe._onCustomerLeft(this);
+            case Goal.WalkToTable:
+                if (cafe.GetFurniture(_currentTableId).CurrentUser == null)
+                {
+                    //if customer had to find new table we want them to be reset
+                    //but because customer does not need to notify about it we just silently wait
+                    if (_primaryGoalBackup != Goal.WaitForTable)
+                    {
+                        _currentGoal = _primaryGoalBackup;
+                    }
+                    else
+                    {
+                        _currentGoal = Goal.WaitForWaiter;
+                        cafe.AddNewArrivedCustomer(this);
+                    }
+                }
+                break;
+            case Goal.Leave:
+                pendingKill = true;
+                cafe._onCustomerLeft(this);
+                break;
+            case Goal.MoveBackToTable:
+                _currentGoal = _primaryGoalBackup;
+                break;
         }
     }
 }

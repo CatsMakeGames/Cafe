@@ -190,7 +190,9 @@ public class Cafe : Node2D
 
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
-	public int MaxSpawnedCustomersInQueue = 2;
+	public int MinSpawnedCustomersInQueue = 1;
+
+	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.CurrentType == Furniture.FurnitureType.Table).Count();
 
 	/**
 	 * <summary>Overall rating of the front part of the establishment</summary>
@@ -235,8 +237,24 @@ public class Cafe : Node2D
 	public Godot.Collections.Array<Person> People => people;
 
 	/**<summary>Array containing every furniture object</summary>*/
-	public Godot.Collections.Array<Furniture> Furnitures = new Godot.Collections.Array<Furniture>();
+	private List<Furniture> _furnitures = new List<Furniture>();
 
+	public Furniture GetFurniture(int id)
+	{
+		return _furnitures[id];
+	}
+
+	public int GetFurnitureIndex(Furniture fur)
+	{
+		return _furnitures.IndexOf(fur);
+	}
+	public List<Furniture> Furnitures => _furnitures;
+
+	/**<summary>This function adds furniture without notifying objects. Useful for loading</summary>*/
+	public void AddFurniture(Furniture fur)
+	{
+		_furnitures.Add(fur);
+	}
 	protected Floor floor;
 
 	protected bool pressed = false;
@@ -274,6 +292,12 @@ public class Cafe : Node2D
 	protected MainMenu mainMenu;
 
 	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
+
+	/**<summary>Returns texture with the same name or default texture</summary>*/
+	public Texture GetTexture(string name)
+	{
+		return Textures[name] ?? FallbackTexture;
+	}
 
 	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
@@ -376,7 +400,7 @@ public class Cafe : Node2D
 
 	public Furniture FindClosestFurniture(Furniture.FurnitureType type, Vector2 pos, out Vector2[] path)
 	{
-		Furniture closest = Furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
+		Furniture closest = _furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
 				p => p.Position.DistanceSquaredTo(pos)
 			).FirstOrDefault<Furniture>();
 		if (closest != null)
@@ -427,11 +451,11 @@ public class Cafe : Node2D
 			}
 			people.Clear();
 
-			for (int i = Furnitures.Count - 1; i >= 0; i--)
+			for (int i = _furnitures.Count - 1; i >= 0; i--)
 			{
-				Furnitures[i].Destroy(true);
+				_furnitures[i].Destroy(true);
 			}
-		Furnitures.Clear();
+		_furnitures.Clear();
 	}
 
 	//TODO: move to separete class, maybe
@@ -456,7 +480,7 @@ public class Cafe : Node2D
 		//to prevent spawning on menu
 		if (playableArea.Encloses(rect2))
 		{
-			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
+			var fur = _furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 			if (!fur.Any())
 			{
 				try
@@ -464,7 +488,7 @@ public class Cafe : Node2D
 					Furniture.FurnitureType type;
 					Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
 					Money -= currentPlacingItem.Price;
-					Furnitures.Add(new Furniture
+					_furnitures.Add(new Furniture
 					(
 							type,
 							Textures[currentPlacingItem.TextureName],
@@ -475,7 +499,7 @@ public class Cafe : Node2D
 							currentPlacingItem.Level,
 							currentPlacingItem.FurnitureCategory
 					));
-					Furniture lastFur = Furnitures.Last();
+					Furniture lastFur = _furnitures.Last();
 					lastFur.Init();
 					lastFur.Id = _currentFurnitureId++;
 					lastFur.Price = currentPlacingItem.Price;
@@ -557,7 +581,7 @@ public class Cafe : Node2D
 								if (CurrentlyMovedItem != null)
 								{
 									//make sure we actually can place this item here
-									if (!Furnitures.Where(p =>
+									if (!_furnitures.Where(p =>
 										(
 											 p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
 											 && p != CurrentlyMovedItem
@@ -585,7 +609,7 @@ public class Cafe : Node2D
 									//find based on click
 									//because items are not ordered based on the grid by rather based on the placement order
 									//we have to use basic iteration search
-									var arr = Furnitures.Where(p => (new Rect2(p.Position, p.Size).HasPoint(mouseLoc)));
+									var arr = _furnitures.Where(p => (new Rect2(p.Position, p.Size).HasPoint(mouseLoc)));
 									if (arr.Any())
 									{
 										//take first element and work with it
@@ -640,27 +664,27 @@ public class Cafe : Node2D
 		EmitSignal(nameof(OnNewOrderAdded));
 	}
 
-	public void _onCustomerArrivedAtTheTable(Customer customer)
+	public void AddNewArrivedCustomer(Customer customer)
 	{
 		tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}
 
-	public void _onCustomerFinishedEating(Customer customer, int payment)
+	public void OnCustomerFinishedMeal(Customer customer)
 	{
 		//TODO: Add cleaning service >:(
 		//we don't have cleaning service yet
-		(Furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
-		AddNewAvailableTable((Furnitures[customer.CurrentTableId]));
-		Money += payment;
+		(_furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
+		AddNewAvailableTable((_furnitures[customer.CurrentTableId]));
+		Money += 100/*pay based on meal*/;
 		PaymentSoundPlayer?.Play();
 	}
 
 	/**<summary>Notifies customers that new table is available</summary>*/
 	public void AddNewAvailableTable(Furniture table)
 	{
-		AvailableTables.Push(Furnitures.IndexOf(table));
+		AvailableTables.Push(_furnitures.IndexOf(table));
 		EmitSignal(nameof(OnNewTableIsAvailable));
 	}
 
@@ -714,7 +738,7 @@ public class Cafe : Node2D
 			);
 
 			Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
-			var fur = Furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
+			var fur = _furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
 			if (!fur.Any() && playableArea.Encloses(rect2))
 			{
 				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(0, 1, 0));
@@ -734,7 +758,7 @@ public class Cafe : Node2D
 		}
 		else if (currentState == State.Moving && CurrentlyMovedItem != null)
 		{
-			if (!Furnitures.Where(p =>
+			if (!_furnitures.Where(p =>
 			(
 			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
 			&& p != CurrentlyMovedItem
@@ -751,7 +775,7 @@ public class Cafe : Node2D
 
 	private void _on_CustomerSpawnTimer_timeout()
 	{
-		int customerCount = people.OfType<Customer>().Count(customer => !customer.IsAtTheTable);
+		int customerCount = people.OfType<Customer>().Count();
 		//cafe's waiting area can only hold so many people, if they don't fit -> they leave
 		if (customerCount < MaxSpawnedCustomersInQueue)
 		{
@@ -798,7 +822,7 @@ public class Cafe : Node2D
 		{
 			CurrentlyMovedItem.Position = movedItemStartLocation;
 			Money += CurrentlyMovedItem.Price;
-			Furnitures.Remove(CurrentlyMovedItem);
+			_furnitures.Remove(CurrentlyMovedItem);
 			CurrentlyMovedItem.ResetUserPaths();
 			CurrentlyMovedItem.Destroy();
 			CurrentlyMovedItem = null;

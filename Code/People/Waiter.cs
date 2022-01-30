@@ -14,6 +14,8 @@ namespace Staff
 			None,
 			/**<summary>Take order from customer</summary>*/
 			TakeOrder,
+			/**<summary>Happends when waiter has to pretend to listen for a few seconds before giving order to kitchen</summary>*/
+			ListenToCustomerForOrder,
 			/**<summary>Give order to the kitchen</summary>*/
 			PassOrder,
 			/**<summary>Take cooked food from kitchen and give to the customer</summary>*/
@@ -93,7 +95,7 @@ namespace Staff
 				case Goal.TakeOrder:
 				case Goal.PassOrder:
 					//we reset by telling that new waiter needs to attend this customer
-					cafe._onCustomerArrivedAtTheTable(currentCustomer);
+					cafe.AddNewArrivedCustomer(currentCustomer);
 					break;
 				case Goal.AcquireOrder:   
 				case Goal.DeliverOrder:
@@ -122,7 +124,7 @@ namespace Staff
 					}
 					else
 					{
-						PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+						PathToTheTarget = cafe.FindPathTo(Position, cafe.GetFurniture(currentCustomer.CurrentTableId).Position);
 					}
 					break;
 				case Goal.TakeOrder:
@@ -136,7 +138,7 @@ namespace Staff
 						}
 						else
 						{
-							PathToTheTarget = cafe.FindPathTo(Position, cafe.Furnitures[currentCustomer.CurrentTableId].Position);
+							PathToTheTarget = cafe.FindPathTo(Position,cafe.GetFurniture(currentCustomer.CurrentTableId).Position);
 						}
 					}
 					break;
@@ -165,7 +167,7 @@ namespace Staff
 			CurrentGoal = Goal.None;
             if (currentCustomer != null)
             {
-                (cafe.Furnitures[currentCustomer.CurrentTableId]).CurrentUser = null;
+                (cafe.GetFurniture(currentCustomer.CurrentTableId)).CurrentUser = null;
                 //forget about this customer
                 currentCustomer = null;
             }
@@ -198,12 +200,12 @@ namespace Staff
         {
             if (cafe.tablesToTakeOrdersFrom.Any() && IsFree)
             {
-                Furniture table = cafe.Furnitures[cafe.tablesToTakeOrdersFrom.Last()];
+                Furniture table = cafe.GetFurniture(cafe.tablesToTakeOrdersFrom.Last());
                 PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
                 CurrentGoal = Goal.TakeOrder;
                 currentCustomer = table.CurrentCustomer;
                 table.CurrentUser = this;
-				cafe.tablesToTakeOrdersFrom.Remove(0);
+				cafe.tablesToTakeOrdersFrom.RemoveAt(0);
             }
         }
 
@@ -214,7 +216,7 @@ namespace Staff
 				//because we prioritize customers who arrived early(otherwise some of them might not get served their food at all)
 				//we have to take first
 				int orderId = cafe.completedOrders.First();
-                var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.WantsOrder(orderId));
+                var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.IsWaitingForOrder(orderId));
                 if (target != null)
                 {
                     CurrentGoal = Waiter.Goal.AcquireOrder;
@@ -231,6 +233,16 @@ namespace Staff
             }
 		}
 
+		protected override void OnTaskTimerRunOut()
+		{
+			CurrentGoal = Goal.PassOrder;
+
+			//don't reset current customer because we still need to know the order
+			//find path to the kitchen
+			PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+			currentCustomer.OnOrderTaken();	
+		}
+
 		protected override async void onArrivedToTheTarget()
 		{
 			base.onArrivedToTheTarget();
@@ -239,44 +251,34 @@ namespace Staff
 				switch (CurrentGoal)
 				{
 					case Goal.TakeOrder:
-						//goal changes to new one
-						CurrentGoal = Goal.PassOrder;
-						//this way we don't hold the execution
-						await System.Threading.Tasks.Task.Delay((int)(currentCustomer.OrderTime * 1000));
-						//TODO: remove this once issue with customer is found
-						currentCustomer.orderTaken = true;
-						//await ToSignal(cafe.GetTree().CreateTimer(currentCustomer.OrderTime), "timeout");
-						//don't reset current customer because we still need to know the order
-						//find path to the kitchen
-						PathToTheTarget = cafe.FindLocation("Kitchen", Position);
-						break;
-					case Goal.PassOrder:
-						//kitchen is now making the order                           
-						cafe.AddNewOrder(currentCustomer.OrderId);
-						BeFree();
-						break;
-					case Goal.AcquireOrder:
-						//make way towards customer now
-						PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
-						CurrentGoal = Goal.DeliverOrder;
-						break;
-					case Goal.DeliverOrder:
-						var cust = currentCustomer;
-						BeFree();
-						if (cust.IsAtTheTable && !cust.Eating)
-						{
-							cust.Eat();
-							GD.Print($"Feeding: {cust.ToString()}");
-						}
+                        CurrentGoal = Goal.ListenToCustomerForOrder;
+                        //wait fore a few second to make it look like waiter is listening
+                        //once timer runs out waiter will switch state to the next one
+                        SetTaskTimer(currentCustomer.OrderTime);
+                        break;
+                    case Goal.PassOrder:
+                        //kitchen is now making the order                           
+                        cafe.AddNewOrder(currentCustomer.OrderId);
+                        BeFree();
+                        break;
+                    case Goal.AcquireOrder:
+                        //make way towards customer now
+                        PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                        CurrentGoal = Goal.DeliverOrder;
+                        break;
+                    case Goal.DeliverOrder:
+                        currentCustomer.Eat();
+                        GD.Print($"Feeding: {currentCustomer.ToString()}");
 
-						break;
+                        BeFree();
+                        break;
 
-					case Goal.Leave:
-						CurrentGoal = Goal.None;
-						break;
-				}
-			}
+                    case Goal.Leave:
+                        CurrentGoal = Goal.None;
+                        break;
+                }
+            }
 
-		}
+        }
 	}
 }
