@@ -263,7 +263,7 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public List<int> tablesToTakeOrdersFrom = new List<int>();
+	public List<int> customersToTakeOrderFrom = new List<int>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
 	public List<int> completedOrders = new List<int>();
@@ -391,6 +391,15 @@ public class Cafe : Node2D
 		staffMenu = GetNode<Control>("UI/StaffManagmentMenuSimple");
 #endif
 	mainMenu = GetNode<MainMenu>("UI/MainMenu");
+	}
+
+	public void RemoveCustomerFromWaitingList(Customer customer)
+	{
+		int ind = People.IndexOf(customer);
+		if(ind >= 0 && ind < customersToTakeOrderFrom.Count)
+		{
+			customersToTakeOrderFrom.RemoveAt(ind);
+		}
 	}
 
 	public Vector2[] FindPathTo(Vector2 locStart, Vector2 locEnd)
@@ -666,7 +675,7 @@ public class Cafe : Node2D
 
 	public void AddNewArrivedCustomer(Customer customer)
 	{
-		tablesToTakeOrdersFrom.Add(customer.CurrentTableId);
+		customersToTakeOrderFrom.Add(people.IndexOf(customer));
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}

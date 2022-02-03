@@ -177,7 +177,7 @@ namespace Staff
 				TakeNewCompletedOrder();
 			}
 			//if not check if there are any waiting customers
-			else if (cafe.tablesToTakeOrdersFrom.Any())
+			else if (cafe.customersToTakeOrderFrom.Any())
 			{
 				OnNewCustomerIsAtTheTable();
 			}
@@ -198,14 +198,17 @@ namespace Staff
 
         public void OnNewCustomerIsAtTheTable()
         {
-            if (cafe.tablesToTakeOrdersFrom.Any() && IsFree)
+            if (cafe.customersToTakeOrderFrom.Any() && IsFree)
             {
-                Furniture table = cafe.GetFurniture(cafe.tablesToTakeOrdersFrom.Last());
-                PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position) ?? throw new NullReferenceException("Failed to find path to the table!");
-                CurrentGoal = Goal.TakeOrder;
-                currentCustomer = table.CurrentCustomer;
-                table.CurrentUser = this;
-				cafe.tablesToTakeOrdersFrom.RemoveAt(0);
+                Furniture table = cafe.GetFurniture((cafe.People[cafe.customersToTakeOrderFrom.First()] as Customer).CurrentTableId);
+                PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position);
+                if (pathToTheTarget != null)
+                {
+                    CurrentGoal = Goal.TakeOrder;
+                    currentCustomer = table.CurrentCustomer;
+                    table.CurrentUser = this;
+                    cafe.customersToTakeOrderFrom.RemoveAt(0);
+                }
             }
         }
 

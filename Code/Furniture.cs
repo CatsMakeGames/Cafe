@@ -117,13 +117,6 @@ public class Furniture : CafeObject
         }
     }
 
-    public override void LoadData(uint[] data)
-    {
-        base.LoadData(data);
-        Price = (int)data[5];
-        level = (byte)(data[6] & 0x000000ff);
-    }
-
     /**<summary>Person who is actively using this furniture<para/>If this is an appliance this is meant for recording staff</summary>*/
     private Person currentUser = null;
 
@@ -162,7 +155,7 @@ public class Furniture : CafeObject
         }
     }
 
-    /**<summary>If false this furntiure will not be considered in FindClosestFurniture search</summary>*/
+    /**<summary>If false this furniture will not be considered in FindClosestFurniture search</summary>*/
     public virtual bool CanBeUsed => CurrentState == State.Free;
 
     public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
@@ -245,8 +238,7 @@ public class Furniture : CafeObject
     }
 
     /**<summary>Updates cafe navigation tiles
-     * </summary><param name="clear">If true navigation tiles are removed</param>
-     */
+     * </summary><param name="clear">If true navigation tiles are removed</param>*/
     public void UpdateNavigation(bool clear)
     {
         int tile = clear ? -1 : 0;

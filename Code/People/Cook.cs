@@ -41,6 +41,7 @@ namespace Staff
         public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             Salary = 100;
+            OnNewOrder();
             cafe.Connect(nameof(Cafe.OnNewOrderAdded),this,nameof(OnNewOrder));
         }
 
@@ -56,6 +57,7 @@ namespace Staff
 			GenerateRIDBasedOnTexture(cafe.Textures["Cook"], ZOrderValues.Customer);
         }
 
+        [Obsolete]
         public void TakeNewOrder(int orderId)
         {
             Vector2[] temp;
@@ -128,8 +130,7 @@ namespace Staff
             currentGoal = Goal.None;
             if (cafe.orders.Any())
             {
-                TakeNewOrder(cafe.orders[0]);
-                cafe.orders.RemoveAt(0);
+               OnNewOrder();
             }
         }
 

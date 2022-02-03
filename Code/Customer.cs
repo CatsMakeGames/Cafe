@@ -120,9 +120,13 @@ public class Customer : Person
 
     public void OnTableIsUnavailable()
     {
-       _currentTableId = -1;
-       _primaryGoalBackup = _currentGoal;
-       _currentGoal = Goal.WaitForTable;
+        if (_currentGoal == Goal.WaitForWaiter)
+        {
+            cafe.RemoveCustomerFromWaitingList(this);
+        }
+        _currentTableId = -1;
+        _primaryGoalBackup = _currentGoal;
+        _currentGoal = Goal.WaitForTable;
     }
 
     public override Godot.Collections.Array<uint> GetSaveData()
@@ -161,11 +165,13 @@ public class Customer : Person
                 if (cafe.GetFurniture(_currentTableId).CurrentUser == null)
                 {
                     //if customer had to find new table we want them to be reset
-                    //but because customer does not need to notify about it we just silently wait
-                    if (_primaryGoalBackup != Goal.WaitForTable)
+                    //if customer was waiting for something else to happen(finish eating or for food to arrive) then
+                    //we silently reset and wait for next opportunity 
+                    if (_primaryGoalBackup != Goal.WaitForTable && _primaryGoalBackup != Goal.WaitForWaiter)
                     {
                         _currentGoal = _primaryGoalBackup;
                     }
+                    //if customer is waiting for table/waiter then we should notify cafe again
                     else
                     {
                         _currentGoal = Goal.WaitForWaiter;
