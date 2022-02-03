@@ -75,6 +75,7 @@ public class FurnitureBuildObject : CafeObject
                     _currentItemData.Level,
                     _currentItemData.FurnitureCategory
             ));
+            cafe.Furnitures.Last().Price = _currentItemData.Price;
         }
     }
 

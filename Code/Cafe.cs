@@ -23,11 +23,6 @@ public class Cafe : Node2D
 		UsingMenu
 	}
 
-	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
-	
-	[Obsolete("This will be replaced with separete object",true)]
-	private RID _placementPreviewTextureRID;
-
 	/**<summary>Id that will be given to next spawned person</summary>*/
 	private uint _currentPersonId = 0;
 
@@ -95,24 +90,14 @@ public class Cafe : Node2D
 	private int _textureFrameSize = 32;
 
 	[Export]
-	public int GridSize = 32;
-
-	/**<summary>2^n = GridSize</summary>*/
-	public int gridSizeP2;
+	public readonly int GridSize = 32;
 
 	[Export(PropertyHint.Layers2dPhysics)]
 	public int ClickTaken = 0;
 
-	/**<summary>Data for what object is going to be spawned via building system</summary>*/
-	public StoreItemData currentPlacingItem = null;
+	private FurnitureMover _furnitureMover;
 
 	public bool ShouldProcessMouse => ClickTaken == 0;
-
-	/**<summary>Item currently being moved around by player</summary>*/
-	public Furniture CurrentlyMovedItem = null;
-
-	/**<summary>Location where currently moved item was taken from</summary>*/
-	protected Vector2 movedItemStartLocation;
 
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
@@ -132,19 +117,13 @@ public class Cafe : Node2D
 			switch (oldState )
 			{
 				case State.Idle:case State.UsingMenu:
-					exitToIdleModeButton.Visible = true;
+					_cafeControlMenu.CloseAllMenus();
 				break;
 				case State.Building:
-					currentPlacingItem = null;
 					_furnitureBuildPreview.Destroy();
 				break;
 				case State.Moving:
-					if (CurrentlyMovedItem != null)
-					{
-						//reset item position cause nothing happened
-						CurrentlyMovedItem.Position = movedItemStartLocation;
-						CurrentlyMovedItem = null;
-					}
+					_furnitureMover.Drop();
 				break;
 				default:
 				break;
@@ -152,31 +131,13 @@ public class Cafe : Node2D
 
 			//process new state
 
-			if (currentState == State.Building && currentPlacingItem != null)
-			{
-				_furnitureBuildPreview = new FurnitureBuildObject(
-					currentPlacingItem,
-					Textures[currentPlacingItem.TextureName],
-					currentPlacingItem.Size,
-					new Vector2(32,32),//TODO: read from table
-					GridSize,
-					this);
-			}
 			if (currentState == State.Building || currentState == State.Idle)
 			{
-				foreach (Control cont in menus)
-				{
-					cont.Visible = false;
-				}
-
-				foreach (Button but in menuToggleButtons)
-				{
-					but.Pressed = false;
-				}
+				_cafeControlMenu.CloseAllMenus();
 			}
-			else if(currentState == State.Moving || currentState == State.Building)
+			if(currentState == State.Moving || currentState == State.Building)
 			{
-				exitToIdleModeButton.Visible = false;
+				_cafeControlMenu.ChangeModeExitButtonVisibility(true);
 			}
 			if(currentState == State.Idle)
 			{
@@ -218,7 +179,7 @@ public class Cafe : Node2D
 
 	protected Label CustomerCountLabel;
 
-	/**<summary>Nodes used for navigaiton</summary>*/
+	/**<summary>Nodes used for navigation</summary>*/
 	public Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
 
 	protected TileMap navigationTilemap;
@@ -235,6 +196,18 @@ public class Cafe : Node2D
 
 	/**<summary>Array containing every furniture object</summary>*/
 	private List<Furniture> _furnitures = new List<Furniture>();
+
+	public void StartBuildingItem(StoreItemData data)
+	{
+		_furnitureBuildPreview = new FurnitureBuildObject(
+					data,
+					Textures[data.TextureName],
+					data.Size,
+					new Vector2(32, 32),//TODO: read from table
+					GridSize,
+					this);
+		CurrentState = State.Building;
+	}
 
 	public Furniture GetFurniture(int id)
 	{
@@ -259,7 +232,6 @@ public class Cafe : Node2D
 		_furnitures.Add(fur);
 		fur.Init();
 		fur.Id = _currentFurnitureId++;
-		fur.Price = currentPlacingItem.Price;
 		fur.UpdateNavigation(true);
 	}
 	protected Floor floor;
@@ -280,21 +252,7 @@ public class Cafe : Node2D
 	public Stack<int> AvailableTables = new Stack<int>();
 	#endregion
 
-	protected System.Collections.Generic.List<Control> menus;
-
-	protected System.Collections.Generic.List<ModeSelectionButton> menuToggleButtons;
-
-	protected UI.StoreMenu storeMenu;
-
-#if !USE_SIMPLE_STAFF_MENU
-	protected StaffMenu staffMenu;
-#else
-	protected Control staffMenu;
-#endif
-
-	protected Button storeMenuButton;
-
-	protected Button exitToIdleModeButton;
+	private CafeControl _cafeControlMenu;
 
 	protected MainMenu mainMenu;
 
@@ -306,10 +264,8 @@ public class Cafe : Node2D
 		return Textures[name] ?? FallbackTexture;
 	}
 
-	#region CookToDoList
 	/**<summary>List of order IDs that need to be cooked</summary>*/
 	public List<int> orders = new List<int>();
-	#endregion
 
 	private FurnitureBuildObject _furnitureBuildPreview;
 
@@ -342,15 +298,10 @@ public class Cafe : Node2D
 
 	public override void _Ready()
 	{
-		base._Ready();
-		menus = GetTree().GetNodesInGroup("Menu").OfType<Control>().ToList();
-		menuToggleButtons = GetNode("UI/Menu").GetChildren().OfType<ModeSelectionButton>().ToList();
-
-		foreach (ModeSelectionButton but in menuToggleButtons)
-		{
-			but.cafe = this;
-		}
-		gridSizeP2 = (int)Math.Log(GridSize, 2);
+		base._Ready();	
+		_furnitureMover = new FurnitureMover(this);
+		_cafeControlMenu  = GetNode<CafeControl>("UI") ?? throw new NullReferenceException("Missing menu!");
+		_cafeControlMenu.Cafe = this;
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
 		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
@@ -359,30 +310,16 @@ public class Cafe : Node2D
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
-		storeMenu = GetNodeOrNull<UI.StoreMenu>("UI/StoreMenu") ?? throw new NullReferenceException("Failed to find store menu");
-		storeMenu.cafe = this;
-		storeMenu.Visible = false;
-
-		exitToIdleModeButton = GetNodeOrNull<Button>("UI/ExitToIdleModeButton") ?? throw new NullReferenceException("Failed to find mode reset button");
-
+		mainMenu = GetNode<MainMenu>("UI/MainMenu");
 
 		foreach (var loc in Locations)
 		{
 			LocationNodes.Add(loc.Key, GetNodeOrNull<Node2D>(loc.Value));
 		}
-
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
-#if !USE_SIMPLE_STAFF_MENU
-		staffMenu = GetNode<StaffMenu>("UI/StaffMenu");
-		staffMenu.cafe = this;
-		staffMenu.Create();
-#else
-		staffMenu = GetNode<Control>("UI/StaffManagmentMenuSimple");
-#endif
-	mainMenu = GetNode<MainMenu>("UI/MainMenu");
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
@@ -493,86 +430,8 @@ public class Cafe : Node2D
 			Load();
 			return;
 		}
-		if (Input.IsActionJustPressed("debug_fire"))
-		{
-			people.OfType<Cook>().FirstOrDefault()?.GetFired();
-		}
-
 		_furnitureBuildPreview?.OnInput(@event);
-		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
-		{
-			if (@event is InputEventMouseButton mouseEvent)
-			{
-				if (!pressed && mouseEvent.Pressed)
-				{
-					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
-					{
-						switch (CurrentState)
-						{
-							case State.Moving:
-								//first we allow player to select furniture to move
-								if (CurrentlyMovedItem != null)
-								{
-									//make sure we actually can place this item here
-									if (!_furnitures.Where(p =>
-										(
-											 p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
-											 && p != CurrentlyMovedItem
-										).Any())
-									{
-										//make this be new place
-										var loc = CurrentlyMovedItem.Position;
-										CurrentlyMovedItem.Position = movedItemStartLocation;
-										//clear old place
-										CurrentlyMovedItem.UpdateNavigation(false);
-										CurrentlyMovedItem.Position = loc;
-										CurrentlyMovedItem.UpdateNavigation(true);										
-										// Reset any person trying to get to this item						 
-										CurrentlyMovedItem = null;
-									}
-									return;
-								}
-								else
-								{
-									Vector2 mouseLoc = new Vector2
-										(
-											((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-											((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-										);
-									//find based on click
-									//because items are not ordered based on the grid by rather based on the placement order
-									//we have to use basic iteration search
-									var arr = _furnitures.Where(p => (new Rect2(p.Position, p.Size).HasPoint(mouseLoc)));
-									if (arr.Any())
-									{
-										//take first element and work with it
-										CurrentlyMovedItem = arr.ElementAt(0);
-										movedItemStartLocation = CurrentlyMovedItem.Position;
-										GD.Print($"Started to move item: {CurrentlyMovedItem}");
-									}
-								}
-								break;
-						}
-					}
-					pressed = true;
-				}
-				else if (!mouseEvent.Pressed)
-				{
-					pressed = false;
-				}
-			}
-			if (@event is InputEventMouseMotion motionEvent)
-			{
-				if (CurrentlyMovedItem != null)
-				{
-					CurrentlyMovedItem.Position = new Vector2
-					(
-						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-					);
-				}
-			}
-		}
+		_furnitureMover?.OnInput(@event);
 	}
 
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
@@ -637,6 +496,11 @@ public class Cafe : Node2D
 		return playableArea.Encloses(rect);
 	}
 
+	public bool IsInPlayableArea(Vector2 point)
+	{
+		return playableArea.HasPoint(point);
+	}
+
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
@@ -672,21 +536,6 @@ public class Cafe : Node2D
 				_furnitureBuildPreview.Update(delta);
 			}
 		}
-		else if (currentState == State.Moving && CurrentlyMovedItem != null)
-		{
-			if (!_furnitures.Where(p =>
-			(
-			p.CollisionRect.Intersects(CurrentlyMovedItem.CollisionRect) || p.CollisionRect.Encloses(CurrentlyMovedItem.CollisionRect))
-			&& p != CurrentlyMovedItem
-			).Any() || !playableArea.Encloses(CurrentlyMovedItem.CollisionRect))
-			{
-				CurrentlyMovedItem.TextureColor = new Color(1, 1, 1);
-			}
-			else
-			{
-				CurrentlyMovedItem.TextureColor = new Color(1, 0, 0);
-			}
-		}
 	}
 
 	private void _on_CustomerSpawnTimer_timeout()
@@ -699,51 +548,9 @@ public class Cafe : Node2D
 		}
 	}
 
-	/**<summary>Changes state of the given menu if current state allows that</summary>*/
-	public void ToggleMenu(Control menu,bool button_pressed)
+	public void SellCurrentHoldingFurniture()
 	{
-		if (currentState == State.UsingMenu || currentState == State.Idle || currentState == State.Moving)
-		{
-			foreach(Control _menu in menus)
-			{
-				_menu.Hide();
-			}
-			if (menu != null)
-			{
-				menu.Visible = button_pressed;
-				currentState = button_pressed ? State.UsingMenu : State.Idle;
-			}
-
-			//reset all buttons
-			//pressed button show set it's state by itself
-			foreach(Button but in menuToggleButtons)
-			{
-				but.SetPressedNoSignal(false);
-			}		
-		}
-	}
-	private void _on_ExitToIdleModeButton_pressed()
-	{
-		exitToIdleModeButton.Visible = false;
-		CurrentState = State.Idle;
-		if (CurrentlyMovedItem != null)
-		{
-			CurrentlyMovedItem = null;
-		}
-	}
-
-	private void _on_SellButton_pressed()
-	{
-		if (CurrentlyMovedItem != null)
-		{
-			CurrentlyMovedItem.Position = movedItemStartLocation;
-			Money += CurrentlyMovedItem.Price;
-			_furnitures.Remove(CurrentlyMovedItem);
-			CurrentlyMovedItem.ResetUserPaths();
-			CurrentlyMovedItem.Destroy();
-			CurrentlyMovedItem = null;
-			currentState = State.Idle;
-		}
+		_furnitureMover.Sell();
 	}
 
 	private void OnPaused(bool paused)

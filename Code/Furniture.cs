@@ -202,6 +202,11 @@ public class Furniture : CafeObject
         return CollisionRect.Intersects(rect) || CollisionRect.Encloses(rect);
     }
 
+    public bool CollistionContains(Vector2 point)
+    {
+        return CollisionRect.HasPoint(point);
+    }
+
     /**<summary>Forces any ai user to find a new furniture of the same type</summary>*/
     public virtual void ResetUserPaths()
     {
@@ -249,11 +254,11 @@ public class Furniture : CafeObject
         int tile = clear ? -1 : 0;
         //restore the tilemap
         //calculate before hand to avoid recalculating each iteration
-        int width = ((int)(size.x + position.x)) >> cafe.gridSizeP2;
-        int height = ((int)(size.y + position.y)) >> cafe.gridSizeP2;
-        for (int x = ((int)(position.x)) >> cafe.gridSizeP2/*convert location to tilemap location*/; x < width; x++)
+        int width = ((int)(size.x + position.x)) / cafe.GridSize;
+        int height = ((int)(size.y + position.y)) / cafe.GridSize;
+        for (int x = ((int)(position.x)) / cafe.GridSize/*convert location to tilemap location*/; x < width; x++)
         {
-            for (int y = ((int)(position.y)) >> cafe.gridSizeP2; y < height; y++)
+            for (int y = ((int)(position.y)) / cafe.GridSize; y < height; y++)
             {
                 cafe.NavigationTilemap.SetCell(x, y, tile);
             }

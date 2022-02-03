@@ -154,9 +154,7 @@ namespace UI
                 //check if was purchased
                 if (purchasedItems.Contains(data.tableId))
                 {
-                    //select the item
-                    cafe.currentPlacingItem = data;
-                    cafe.CurrentState = Cafe.State.Building;
+                   cafe.StartBuildingItem(data);
                 }
                 else
                 {
@@ -166,7 +164,6 @@ namespace UI
                     savePurchaseData();
                     //play some noise
                     //we don't jump to placing to let player know that it was purchased rather then selected
-
                 }
             }
         }

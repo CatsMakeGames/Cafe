@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/People/Customer.tres" type="Texture" id=2]
@@ -11,20 +11,9 @@
 [ext_resource path="res://Art_Pixel/People/Cook.tres" type="Texture" id=9]
 [ext_resource path="res://Art_Pixel/People/Waiter.tres" type="Texture" id=10]
 [ext_resource path="res://Art/table.png" type="Texture" id=11]
-[ext_resource path="res://Code/UI/Store/StoreMenu.cs" type="Script" id=12]
-[ext_resource path="res://Code/UI/MouseBlockArea.cs" type="Script" id=13]
-[ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=14]
-[ext_resource path="res://Art/UI/Stove.tres" type="Texture" id=15]
-[ext_resource path="res://MouseLocl.gd" type="Script" id=16]
-[ext_resource path="res://Art/UI/Fridge.tres" type="Texture" id=17]
-[ext_resource path="res://Code/UI/StaffMenu.cs" type="Script" id=18]
-[ext_resource path="res://StaffManagmentMenuSimple.tscn" type="PackedScene" id=19]
-[ext_resource path="res://debug/ui_generation_test.gd" type="Script" id=20]
+[ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
-[ext_resource path="res://Fonts/DefaultFont_Small.tres" type="DynamicFont" id=23]
-[ext_resource path="res://Code/Menu/ModeSelectionButton.cs" type="Script" id=24]
-[ext_resource path="res://Code/Menu/ModeChangeButton.cs" type="Script" id=25]
 [ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
 
 [node name="Cafe" type="Node2D"]
@@ -86,190 +75,9 @@ margin_top = -144.0
 margin_right = 256.0
 margin_bottom = -80.0
 
-[node name="UI" type="CanvasLayer" parent="."]
-layer = 3
+[node name="UI" parent="." instance=ExtResource( 12 )]
 scale = Vector2( 0.75, 0.75 )
 transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
-
-[node name="Menu" type="VBoxContainer" parent="UI"]
-margin_right = 112.0
-margin_bottom = 149.0
-rect_scale = Vector2( 2, 2 )
-mouse_filter = 2
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="StoreButton" type="Button" parent="UI/Menu"]
-margin_right = 112.0
-margin_bottom = 47.0
-focus_mode = 0
-size_flags_vertical = 3
-custom_fonts/font = ExtResource( 23 )
-toggle_mode = true
-enabled_focus_mode = 0
-text = "Store"
-script = ExtResource( 24 )
-MenuNodePath = "UI/StoreMenu"
-
-[node name="StaffButton" type="Button" parent="UI/Menu"]
-margin_top = 51.0
-margin_right = 112.0
-margin_bottom = 98.0
-focus_mode = 0
-size_flags_vertical = 3
-custom_fonts/font = ExtResource( 23 )
-toggle_mode = true
-enabled_focus_mode = 0
-text = "Staff"
-script = ExtResource( 24 )
-MenuNodePath = "UI/StaffManagmentMenuSimple"
-
-[node name="MoveButton" type="Button" parent="UI/Menu"]
-margin_top = 102.0
-margin_right = 112.0
-margin_bottom = 149.0
-focus_mode = 0
-size_flags_vertical = 3
-custom_fonts/font = ExtResource( 23 )
-toggle_mode = true
-enabled_focus_mode = 0
-text = "Redecorate"
-script = ExtResource( 25 )
-MenuNodePath = "UI/SellButton"
-
-[node name="CustomerCountLabel" type="Label" parent="UI"]
-margin_left = 968.0
-margin_top = 88.0
-margin_right = 1058.0
-margin_bottom = 102.0
-rect_scale = Vector2( 5, 5 )
-text = "asdadasdadfdf"
-script = ExtResource( 16 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="StoreMenu" type="Control" parent="UI" groups=["Menu"]]
-visible = false
-margin_left = 256.0
-margin_right = 1269.0
-margin_bottom = 760.0
-mouse_default_cursor_shape = 2
-script = ExtResource( 12 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-categoryFont = ExtResource( 14 )
-_iconTextures = [ ExtResource( 15 ), ExtResource( 17 ) ]
-ButtonScenePath = "res://FurnitureButton.tscn"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="UI/StoreMenu"]
-margin_left = -9.15527e-05
-margin_top = 10.6667
-margin_right = 768.0
-margin_bottom = 693.667
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/StoreMenu/ScrollContainer"]
-margin_right = 768.0
-margin_bottom = 192.0
-rect_min_size = Vector2( 192, 192 )
-size_flags_horizontal = 3
-custom_constants/separation = 2
-
-[node name="itemInfoContainer" type="VBoxContainer" parent="UI/StoreMenu"]
-margin_left = 757.333
-margin_top = 21.3333
-margin_right = 1098.33
-margin_bottom = 1692.33
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="ItemName" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
-margin_right = 340.0
-margin_bottom = 41.0
-custom_fonts/font = ExtResource( 14 )
-text = "Get Psyched!"
-
-[node name="label" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
-margin_top = 45.0
-margin_right = 340.0
-margin_bottom = 86.0
-custom_fonts/font = ExtResource( 14 )
-text = "Description"
-
-[node name="Description" type="Label" parent="UI/StoreMenu/itemInfoContainer"]
-margin_top = 90.0
-margin_right = 340.0
-margin_bottom = 1803.0
-custom_fonts/font = ExtResource( 14 )
-text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a metus pulvinar, fermentum sem id, blandit neque. Curabitur et consectetur mauris. Duis ipsum lacus, varius nec turpis ac, pretium auctor risus. Praesent sed tempus velit. Morbi ac risus tempus, feugiat nisl eget, placerat erat. Duis vehicula a arcu quis consectetur. Fusce magna nisl, pretium sit amet porta ut, commodo ut ipsum. Phasellus sed sapien posuere nisi lacinia faucibus quis vel elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
-autowrap = true
-
-[node name="MenuArea" type="Control" parent="UI" groups=["MouseBlock"]]
-visible = false
-margin_right = 256.0
-margin_bottom = 904.0
-mouse_filter = 2
-script = ExtResource( 13 )
-__meta__ = {
-"_edit_use_anchors_": false,
-"_editor_description_": "Mouse block area used to define where menu is"
-}
-areaId = 1
-
-[node name="StaffManagmentMenuSimple" parent="UI" groups=["Menu"] instance=ExtResource( 19 )]
-visible = false
-margin_left = 341.333
-margin_top = 213.333
-margin_right = 341.333
-margin_bottom = 213.333
-
-[node name="StaffMenu" type="Control" parent="UI" groups=["Menu"]]
-visible = false
-margin_left = 256.0
-margin_top = 8.0
-margin_right = 1195.0
-margin_bottom = 768.0
-mouse_filter = 1
-mouse_default_cursor_shape = 2
-script = ExtResource( 18 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-ButtonSceneName = "res://StaffButton.tscn"
-
-[node name="ScrollContainer" type="ScrollContainer" parent="UI/StaffMenu"]
-margin_right = 853.0
-margin_bottom = 803.0
-mouse_filter = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/StaffMenu/ScrollContainer"]
-margin_right = 853.0
-margin_bottom = 192.0
-rect_min_size = Vector2( 192, 192 )
-size_flags_horizontal = 3
-custom_constants/separation = 2
-
-[node name="ScrollContainer" type="ScrollContainer" parent="UI"]
-visible = false
-margin_left = 256.0
-margin_top = 8.0
-margin_right = 1272.0
-margin_bottom = 768.0
-script = ExtResource( 20 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="VBoxContainer" type="VBoxContainer" parent="UI/ScrollContainer"]
 
 [node name="MainMenu" parent="UI" instance=ExtResource( 22 )]
 visible = false
@@ -277,29 +85,6 @@ margin_left = 522.667
 margin_top = 213.333
 margin_right = 522.667
 margin_bottom = 213.333
-
-[node name="SellButton" type="Button" parent="UI"]
-visible = false
-margin_top = 650.667
-margin_right = 52.0
-margin_bottom = 677.667
-rect_scale = Vector2( 4.875, 4.875 )
-custom_fonts/font = ExtResource( 23 )
-text = "Sell"
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="ExitToIdleModeButton" type="Button" parent="UI"]
-visible = false
-margin_top = 544.0
-margin_right = 20.0
-margin_bottom = 564.0
-rect_scale = Vector2( 4.875, 4.875 )
-text = "X"
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="StuffDebugUI" parent="." instance=ExtResource( 26 )]
 margin_left = 656.0
@@ -310,5 +95,3 @@ rect_scale = Vector2( 1.43535, 2.88063 )
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]
-[connection signal="pressed" from="UI/SellButton" to="." method="_on_SellButton_pressed"]
-[connection signal="pressed" from="UI/ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
