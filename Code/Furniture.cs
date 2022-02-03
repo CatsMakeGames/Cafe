@@ -197,6 +197,11 @@ public class Furniture : CafeObject
         }
     }
 
+    public bool CollisionOverlaps(Rect2 rect)
+    {
+        return CollisionRect.Intersects(rect) || CollisionRect.Encloses(rect);
+    }
+
     /**<summary>Forces any ai user to find a new furniture of the same type</summary>*/
     public virtual void ResetUserPaths()
     {

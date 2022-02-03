@@ -145,7 +145,7 @@ public class Person : CafeObject
 		}
 	}
 
-	public void Update(float deltaTime)
+	public override void Update(float deltaTime)
 	{
 		if(TaskIsActive)
 		{

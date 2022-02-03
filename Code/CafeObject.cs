@@ -44,6 +44,12 @@ public class CafeObject : Godot.Object
 
     public Color TextureColor { set => VisualServer.CanvasItemSetModulate(textureRID, value); }
 
+    /**<summary>Version of the constructor that skips all of the construction</summary>*/
+    public CafeObject(Cafe cafe)
+    {
+        this.cafe = cafe;
+    }
+
     public CafeObject(Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
     {
         this.cafe = cafe;
@@ -149,5 +155,7 @@ public class CafeObject : Godot.Object
         VisualServer.FreeRid(textureRID);
         Free();
     }
+
+    public virtual void Update(float deltaTime){}
 }
 

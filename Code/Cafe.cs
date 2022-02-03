@@ -24,6 +24,8 @@ public class Cafe : Node2D
 	}
 
 	/**<summary>RID of elements that is used to preview if item can be placed</summary>*/
+	
+	[Obsolete("This will be replaced with separete object",true)]
 	private RID _placementPreviewTextureRID;
 
 	/**<summary>Id that will be given to next spawned person</summary>*/
@@ -120,20 +122,21 @@ public class Cafe : Node2D
 		get => currentState;
 		set
 		{
-			if(currentState == value)
+			State oldState = currentState;
+			currentState = value;
+			if(oldState  == value)
 			{
 				return;
 			}
-			//currentState at this point in time refers to previous state
-			//while value referse to new state
-			switch (currentState)
+			//process old state
+			switch (oldState )
 			{
 				case State.Idle:case State.UsingMenu:
 					exitToIdleModeButton.Visible = true;
 				break;
 				case State.Building:
 					currentPlacingItem = null;
-					VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
+					_furnitureBuildPreview.Destroy();
 				break;
 				case State.Moving:
 					if (CurrentlyMovedItem != null)
@@ -147,23 +150,16 @@ public class Cafe : Node2D
 				break;
 			}
 
-			//this is extremely bloated function, but the point is to change values based on state
-			currentState = value;
+			//process new state
+
 			if (currentState == State.Building && currentPlacingItem != null)
 			{
-				//generate preview item
-				VisualServer.CanvasItemAddTextureRect
-				(
-					_placementPreviewTextureRID,
-					new Rect2(new Vector2(0, 0),
-					new Vector2(128, 128)),
-					Textures[currentPlacingItem.TextureName].GetRid(),
-					true,
-					new Color(155, 0, 0),
-					false,
-					Textures[currentPlacingItem.TextureName].GetRid()
-				);
-				VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, true);
+				_furnitureBuildPreview = new FurnitureBuildObject(
+					Textures[currentPlacingItem.TextureName],
+					currentPlacingItem.Size,
+					new Vector2(32,32),//TODO: read from table
+					GridSize,
+					this);
 			}
 			if (currentState == State.Building || currentState == State.Idle)
 			{
@@ -304,6 +300,8 @@ public class Cafe : Node2D
 	public List<int> orders = new List<int>();
 	#endregion
 
+	private FurnitureBuildObject _furnitureBuildPreview;
+
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
 	{
@@ -366,23 +364,6 @@ public class Cafe : Node2D
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
-
-		_placementPreviewTextureRID = VisualServer.CanvasItemCreate();
-		VisualServer.CanvasItemAddTextureRect
-			(
-				_placementPreviewTextureRID,
-				new Rect2(new Vector2(0, 0),
-				new Vector2(128, 128)),
-				(Textures["Table"] ?? FallbackTexture).GetRid(),
-				true,
-				new Color(155, 0, 0),
-				false,
-				(Textures["Table"] ?? FallbackTexture).GetRid()
-			);
-		VisualServer.CanvasItemSetVisible(_placementPreviewTextureRID, false);
-		VisualServer.CanvasItemSetParent(_placementPreviewTextureRID, GetCanvasItem());
-		VisualServer.CanvasItemSetZIndex(_placementPreviewTextureRID, (int)ZOrderValues.MAX);
-
 #if !USE_SIMPLE_STAFF_MENU
 		staffMenu = GetNode<StaffMenu>("UI/StaffMenu");
 		staffMenu.cafe = this;
@@ -708,6 +689,11 @@ public class Cafe : Node2D
 		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
 	}
 
+	public bool IsInPlayableArea(Rect2 rect)
+	{
+		return playableArea.Encloses(rect);
+	}
+
 	public override void _Process(float delta)
 	{
 		base._Process(delta);
@@ -738,32 +724,10 @@ public class Cafe : Node2D
 		}
 		else if (currentState == State.Building)
 		{
-			//notexactly happy with this check running nearly every frame
-			//but testing shows that is has not much effect on the performance
-			Vector2 endLoc = new Vector2
-			(
-				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-			);
-
-			Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
-			var fur = _furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-			if (!fur.Any() && playableArea.Encloses(rect2))
+			if(_furnitureBuildPreview != null)
 			{
-				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(0, 1, 0));
+				_furnitureBuildPreview.Update(delta);
 			}
-			else
-			{
-				VisualServer.CanvasItemSetModulate(_placementPreviewTextureRID, new Color(1, 0, 0));
-			}
-			VisualServer.CanvasItemSetTransform(_placementPreviewTextureRID, new Transform2D
-				(
-					0,new Vector2
-					(
-						((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-						((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-					)
-				));
 		}
 		else if (currentState == State.Moving && CurrentlyMovedItem != null)
 		{
@@ -818,7 +782,7 @@ public class Cafe : Node2D
 	private void _on_ExitToIdleModeButton_pressed()
 	{
 		exitToIdleModeButton.Visible = false;
-		currentState = State.Idle;
+		CurrentState = State.Idle;
 		if (CurrentlyMovedItem != null)
 		{
 			CurrentlyMovedItem = null;
