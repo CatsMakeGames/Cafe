@@ -67,6 +67,8 @@ public class Person : CafeObject
 	/**<summary>Should timer be counted</summary>*/
 	protected bool TaskIsActive = false;
 
+	public new static uint SaveDataSize = 10u;
+
 	/**<summary>Sets new time for timer.<para/>This will reset timer if it's active</summary>*/
 	protected void SetTaskTimer(float time)
 	{
@@ -99,6 +101,9 @@ public class Person : CafeObject
             (float)saveData[5],
             (float)saveData[6]
         );
+		TaskIsActive 	=  	Convert.ToBoolean(saveData[7]);
+		TaskNeededTime 	= 	Convert.ToSingle(saveData[8]);
+		TaskCurrentTime	= 	Convert.ToSingle(saveData[9]);
 	}
 
 	/**<summary>Executed when staff member arrives to their goal</summary>*/
@@ -124,6 +129,10 @@ public class Person : CafeObject
 			data.Add((uint)position.x);//[5]
 			data.Add((uint)position.y);//[6]
 		}
+
+		data.Add((uint)TaskNeededTime);//[7]
+		data.Add((uint)TaskCurrentTime);//[8]
+		data.Add(TaskIsActive ? 1u : 0u);//[9]
 		return data;
 	}
 
@@ -133,7 +142,7 @@ public class Person : CafeObject
         if (_loadedDestination != Position)
         {
             PathToTheTarget = cafe.FindPathTo(position, _loadedDestination);
-        }
+		}
 	}
 
 	public void Update(float deltaTime)

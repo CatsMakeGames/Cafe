@@ -49,7 +49,7 @@ public class Customer : Person
     public delegate void FinishEating(int payment);
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 12u;
+    public new static uint SaveDataSize = 14u;
 
     /**<summary> Waiter that is currently bringing the cooked meal</summary>*/
     public Staff.Waiter CurrentWaiter;
@@ -93,11 +93,10 @@ public class Customer : Person
     public Customer(Cafe cafe,uint[] data) : base(cafe,data)
     {
         cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
-        orderId = (int)data[7];
-        //TODO: update save system
-        _currentTableId = (int)data[10];
-
-
+        orderId = (int)data[10];
+        _currentGoal = (Goal)data[11];
+        _primaryGoalBackup = (Goal)data[12];
+        _currentTableId = (int)data[13];
         GenerateRIDBasedOnTexture(cafe.GetTexture("Customer"), ZOrderValues.Customer);
     }
 
@@ -129,10 +128,10 @@ public class Customer : Person
     public override Godot.Collections.Array<uint> GetSaveData()
     {
         Godot.Collections.Array<uint> data = base.GetSaveData();
-        data.Add((uint)orderId);//[7]
-        data.Add((uint)_currentGoal);//[8]
-        data.Add((uint)_primaryGoalBackup);//[9]
-        data.Add((uint)_currentTableId);//[10]
+        data.Add((uint)orderId);//[10]
+        data.Add((uint)_currentGoal);//[11]
+        data.Add((uint)_primaryGoalBackup);//[12]
+        data.Add((uint)_currentTableId);//[13]
         return data;
     }
 

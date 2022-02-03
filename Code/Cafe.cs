@@ -241,7 +241,7 @@ public class Cafe : Node2D
 
 	public Furniture GetFurniture(int id)
 	{
-		return _furnitures[id];
+		return id  >= 0 && id < _furnitures.Count ?  _furnitures[id] : null;
 	}
 
 	public int GetFurnitureIndex(Furniture fur)
