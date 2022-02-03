@@ -155,6 +155,7 @@ public class Cafe : Node2D
 			if (currentState == State.Building && currentPlacingItem != null)
 			{
 				_furnitureBuildPreview = new FurnitureBuildObject(
+					currentPlacingItem,
 					Textures[currentPlacingItem.TextureName],
 					currentPlacingItem.Size,
 					new Vector2(32,32),//TODO: read from table
@@ -250,6 +251,16 @@ public class Cafe : Node2D
 	public void AddFurniture(Furniture fur)
 	{
 		_furnitures.Add(fur);
+	}
+
+	/**<summary>Adds new furniture to the world as well as updates ids</summary>*/
+	public void AddNewFurniture(Furniture fur)
+	{
+		_furnitures.Add(fur);
+		fur.Init();
+		fur.Id = _currentFurnitureId++;
+		fur.Price = currentPlacingItem.Price;
+		fur.UpdateNavigation(true);
 	}
 	protected Floor floor;
 
@@ -448,75 +459,9 @@ public class Cafe : Node2D
 		_furnitures.Clear();
 	}
 
-	//TODO: move to separete class, maybe
-	public void PlaceNewFurniture()
+	public bool CanAfford(int amount)
 	{
-		if (currentPlacingItem == null || Money < currentPlacingItem.Price || currentState != State.Building)
-		{
-			return;
-		}
-		//if we convert to int -> divide by grid size -> multiply by grid size we get location converted to grid
-		//for small speed benefit it bitshifts to the right to divide by two( int)GetLocalMousePosition().x  >> gridSizeP2 is same as int)GetLocalMousePosition().x /GridSize)
-		//and them bitshifts to the left to multiply by gridSize again
-		//2^gridSizeP2 = GridSize
-		//it's mostly like that because i wanted to play around with optimizing basic math operations today :D
-		Vector2 endLoc = new Vector2
-			(
-				((int)GetLocalMousePosition().x >> gridSizeP2) << gridSizeP2,
-				((int)GetLocalMousePosition().y >> gridSizeP2) << gridSizeP2
-			);
-
-		Rect2 rect2 = new Rect2(endLoc, currentPlacingItem.Size);
-		//to prevent spawning on menu
-		if (playableArea.Encloses(rect2))
-		{
-			var fur = _furnitures.Where(p => p.CollisionRect.Intersects(rect2) || p.CollisionRect.Encloses(rect2));
-			if (!fur.Any())
-			{
-				try
-				{
-					Furniture.FurnitureType type;
-					Enum.TryParse<Furniture.FurnitureType>(currentPlacingItem.ClassName, out type);
-					Money -= currentPlacingItem.Price;
-					_furnitures.Add(new Furniture
-					(
-							type,
-							Textures[currentPlacingItem.TextureName],
-							currentPlacingItem.Size,
-							new Vector2(_textureFrameSize,_textureFrameSize),
-							this,
-							endLoc,
-							currentPlacingItem.Level,
-							currentPlacingItem.FurnitureCategory
-					));
-					Furniture lastFur = _furnitures.Last();
-					lastFur.Init();
-					lastFur.Id = _currentFurnitureId++;
-					lastFur.Price = currentPlacingItem.Price;
-					//clear tilemap underneath
-					//tilemap is 32x32
-					var size = lastFur.Size;
-					var pos = lastFur.Position;
-					//calculate before hand to avoid recalculating each iteration
-					int width = ((int)(size.x + pos.x)) >> gridSizeP2;
-					int height = ((int)(size.y + pos.y)) >> gridSizeP2;
-					for (int x = ((int)(pos.x)) >> gridSizeP2/*convert location to tilemap location*/; x < width; x++)
-					{
-						for (int y = ((int)(pos.y)) >> gridSizeP2; y < height; y++)
-						{
-							navigationTilemap.SetCell(x, y, -1);
-						}
-					}
-
-					lastFur.Init();
-				}
-				catch (Exception e)
-				{
-					GD.PrintErr($"Unable to find or load type. Error: {e.Message} Type: {currentPlacingItem?.ClassName ?? null}");
-				}
-			}
-
-		}
+		return amount <= money;
 	}
 
 	public override void _Input(InputEvent @event)
@@ -552,6 +497,8 @@ public class Cafe : Node2D
 		{
 			people.OfType<Cook>().FirstOrDefault()?.GetFired();
 		}
+
+		_furnitureBuildPreview?.OnInput(@event);
 		if (!GetTree().IsInputHandled() && NeedsProcessPress(GetLocalMousePosition()))
 		{
 			if (@event is InputEventMouseButton mouseEvent)
@@ -560,12 +507,8 @@ public class Cafe : Node2D
 				{
 					if (mouseEvent.ButtonIndex == (int)ButtonList.Left)
 					{
-						GD.Print("button");
 						switch (CurrentState)
 						{
-							case State.Building:
-								PlaceNewFurniture();
-								break;
 							case State.Moving:
 								//first we allow player to select furniture to move
 								if (CurrentlyMovedItem != null)

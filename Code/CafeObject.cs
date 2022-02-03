@@ -157,5 +157,7 @@ public class CafeObject : Godot.Object
     }
 
     public virtual void Update(float deltaTime){}
+
+    public virtual void OnInput(InputEvent @event){}
 }
 
