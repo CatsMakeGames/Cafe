@@ -15,7 +15,7 @@ public class Cafe : Node2D
 	{
 		/**<summary>Player is not in any special state</summary>*/
 		Idle,
-		/**<summary>Placing funriniture</summary>*/
+		/**<summary>Placing furniture</summary>*/
 		Building,
 		/**<summary>Moving/deleting/selling furniture</summary>*/
 		Moving,
@@ -102,6 +102,16 @@ public class Cafe : Node2D
 	[Export(PropertyHint.Enum)]
 	protected State currentState;
 
+	private Timer _customerSpawnTimer;
+
+	private float _staffPayment = 1f;
+
+	public float StaffPaymentMultiplier
+	{
+		get => _staffPayment;
+		set => _staffPayment = value > 0.1f ? value : 0.1f;
+	}
+
 	public State CurrentState
 	{
 		get => currentState;
@@ -152,17 +162,9 @@ public class Cafe : Node2D
 
 	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.CurrentType == Furniture.FurnitureType.Table).Count();
 
-	/**
-	 * <summary>Overall rating of the front part of the establishment</summary>
-	 */
-	[Export]
-	public float CashierRating = 1;
+	Attraction 	_attraction = new Attraction();
 
-	[Export]
-	public float ServerRating = 1;
-
-	[Export]
-	public float DecorRating = 1;
+	FoodData 	_foodData 	= new FoodData();
 
 	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
 	[Export]
@@ -233,7 +235,24 @@ public class Cafe : Node2D
 		fur.Init();
 		fur.Id = _currentFurnitureId++;
 		fur.UpdateNavigation(true);
+		UpdateAttraction();
 	}
+
+	public void UpdateAttraction()
+	{
+		//TODO: add other furniture typese
+		//update attraction values
+		float average = 0;
+		var decorFurs =  _furnitures.Where(p=>p.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
+		decorFurs.ToList().ForEach(p=>average += p.Level + 1);//+1 because level starts at 0
+		_attraction.DecorationQuality = average / decorFurs.Count();
+		average = 0;
+		decorFurs =  _furnitures.Where(p=>	p.CurrentType == Furniture.FurnitureType.Fridge||
+											p.CurrentType == Furniture.FurnitureType.Stove);
+		decorFurs.ToList().ForEach(p=>average += p.Level + 1);
+		_attraction.FoodQuality = average / decorFurs.Count();
+	}
+
 	protected Floor floor;
 
 	protected bool pressed = false;
@@ -311,6 +330,7 @@ public class Cafe : Node2D
 		PaymentSoundPlayer = GetNode<AudioStreamPlayer>("PaymentSound");
 
 		mainMenu = GetNode<MainMenu>("UI/MainMenu");
+		_customerSpawnTimer = GetNode<Timer>("CustomerSpawnTimer");
 
 		foreach (var loc in Locations)
 		{
@@ -359,14 +379,6 @@ public class Cafe : Node2D
 		return navigation?.GetSimplePath(location, LocationNodes[locationName]?.GlobalPosition ?? Vector2.Zero) ?? null;
 	}
 
-	public void _onCustomerLeft(Customer customer)
-	{
-
-	}
-
-	/**<summary>Saves entire save data
-	 * <para>The save system uses json to allow simplier addition of additional data,but to avoid having variable names copied over several times</para>
-	 * <para>it will store the object data as array of ints(with each character representing the unsigned it value)</para></summary>*/
 	public void Save()
 	{
 		SaveManager.Save(this);	
@@ -422,9 +434,7 @@ public class Cafe : Node2D
 			mainMenu.Visible = !mainMenu.Visible;
 			playerPaused = !playerPaused;
 			OnPaused(Paused);
-			GD.Print($"Paused: {playerPaused}");
 		}
-
 		if (Input.IsActionJustPressed("load"))
 		{
 			Load();
@@ -437,7 +447,10 @@ public class Cafe : Node2D
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public Customer SpawnCustomer()
 	{
-		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition);
+		//TODO: replace with proper calculation
+		Random rand = new Random();
+		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition,
+			rand.Next(_attraction.CustomerLowestQuality,_attraction.CustomerHighestQuality));
 		people.Add(customer);
 		customer.Id = _currentPersonId++;
 		return customer;
@@ -469,7 +482,6 @@ public class Cafe : Node2D
 		//we don't have cleaning service yet
 		(_furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
 		AddNewAvailableTable((_furnitures[customer.CurrentTableId]));
-		Money += 100/*pay based on meal*/;
 		PaymentSoundPlayer?.Play();
 	}
 
@@ -482,13 +494,7 @@ public class Cafe : Node2D
 
 	public void OnCustomerServed(Customer customer)
 	{
-		/*
-		each time customer is served player gets some money
-		money is calculated as rating based system and on customer type
-		all of which is based on current rating of the staff
-		which is calculated based on what player has and who was serving them
-		*/
-		Money += (int)(CashierRating * ServerRating * DecorRating * 100);
+		Money += (int)((_foodData[customer.OrderId].Price * (_attraction.CustomerSatisfaction / 100) + _foodData[customer.OrderId].Price) * _attraction.PriceMultiplier);
 	}
 
 	public bool IsInPlayableArea(Rect2 rect)
@@ -536,19 +542,22 @@ public class Cafe : Node2D
 				_furnitureBuildPreview.Update(delta);
 			}
 		}
-	}
+    }
 
-	private void _on_CustomerSpawnTimer_timeout()
-	{
-		int customerCount = people.OfType<Customer>().Count();
-		//cafe's waiting area can only hold so many people, if they don't fit -> they leave
-		if (customerCount < MaxSpawnedCustomersInQueue)
-		{
-			SpawnCustomer();
-		}
-	}
+    private void _on_CustomerSpawnTimer_timeout()
+    {
+        int customerCount = people.OfType<Customer>().Count();
+        //cafe's waiting area can only hold so many people, if they don't fit -> they leave
+        if (customerCount < MaxSpawnedCustomersInQueue)
+        {
+            SpawnCustomer();
+        }
+        //perform timer update
+        //this number was chosen randomly, but it looked nice in spreadsheets :D
+        _customerSpawnTimer.WaitTime = _attraction.CustomerAttraction > 0 ? 20 / _attraction.CustomerAttraction : 1f;
+    }
 
-	public void SellCurrentHoldingFurniture()
+    public void SellCurrentHoldingFurniture()
 	{
 		_furnitureMover.Sell();
 	}

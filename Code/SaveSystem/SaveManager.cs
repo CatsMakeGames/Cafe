@@ -191,6 +191,8 @@ public static class SaveManager
                 fur.SaveInit();
             }
 
+            cafe.UpdateAttraction();
+
             //all objects are loaded -> init them
 
             return true;

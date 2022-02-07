@@ -49,7 +49,7 @@ public class Customer : Person
     public delegate void FinishEating(int payment);
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 14u;
+    public new static uint SaveDataSize = 15u;
 
     /**<summary> Waiter that is currently bringing the cooked meal</summary>*/
     public Staff.Waiter CurrentWaiter;
@@ -57,6 +57,12 @@ public class Customer : Person
     public bool orderTaken = false;
 
     public bool Available => _currentGoal == Goal.WaitForTable;
+
+    private int _type = 0;
+
+    /**<summary> Type defines texture and payment<para/>
+    Type is chosen upon spawn based on cafe stats</summary>*/
+    public int Type => _type;
 
     public void TableLocationChanged(Vector2 newLocation)
     {
@@ -72,6 +78,7 @@ public class Customer : Person
         if(_currentGoal == Goal.Eat)
         {
             cafe.OnCustomerFinishedMeal(this);
+            cafe.OnCustomerServed(this);
             _currentGoal = Goal.Leave;
             PathToTheTarget = cafe.FindLocation("Exit",Position);
         }
@@ -80,14 +87,21 @@ public class Customer : Person
     public void Eat()
     {
         _currentGoal = Goal.Eat;
-        SetTaskTimer(1);
+        Random rand = new Random();
+        //pick random time to simulate eating
+        SetTaskTimer(rand.Next(1,20));
     }
 
-    public Customer(Texture texture, Cafe cafe, Vector2 pos) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
+    public Customer(Texture texture, Cafe cafe, Vector2 pos,int type) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
     {
-       OnNewTableIsAvailable();
+        _type = type;
+        //this function has built-in check so we can call it even if we don't know about tables
+        OnNewTableIsAvailable();
 
         cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
+
+        //note: "sprite" is generated twice, because parent class also generates them
+        GenerateRIDBasedOnTexture(texture,ZOrderValues.Customer,new Rect2(_type * 32,0,32,32));
     }
 
     public Customer(Cafe cafe,uint[] data) : base(cafe,data)
@@ -136,6 +150,7 @@ public class Customer : Person
         data.Add((uint)_currentGoal);//[11]
         data.Add((uint)_primaryGoalBackup);//[12]
         data.Add((uint)_currentTableId);//[13]
+        data.Add((uint)_type);//[14]
         return data;
     }
 
@@ -181,7 +196,6 @@ public class Customer : Person
                 break;
             case Goal.Leave:
                 pendingKill = true;
-                cafe._onCustomerLeft(this);
                 break;
             case Goal.MoveBackToTable:
                 _currentGoal = _primaryGoalBackup;
