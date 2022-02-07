@@ -93,4 +93,16 @@ public class CafeControl : Node
 	{
 		_cafe?.SellCurrentHoldingFurniture();
 	}
+
+	private void _onStaffPaymentSliderChanged(float value)
+	{
+	   _cafe.StaffPaymentMultiplier = value;
+	   GetNode<Label>("StaffManagmentMenuSimple/Label2").Text = $"Current: {_cafe.StaffPaymentMultiplier.ToString()}";
+	}
+
+	private void _on_PriceRate_value_changed(float value)
+	{
+		_cafe.Attraction.PriceMultiplier = value;
+		GetNode<Label>("CafeStats/VBOX/HBoxContainer/label3").Text = _cafe.Attraction.PriceMultiplier.ToString();
+	}
 }

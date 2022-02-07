@@ -164,6 +164,8 @@ public class Cafe : Node2D
 
 	Attraction 	_attraction = new Attraction();
 
+	public Attraction Attraction => _attraction;
+
 	FoodData 	_foodData 	= new FoodData();
 
 	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
@@ -542,22 +544,22 @@ public class Cafe : Node2D
 				_furnitureBuildPreview.Update(delta);
 			}
 		}
-    }
+	}
 
-    private void _on_CustomerSpawnTimer_timeout()
-    {
-        int customerCount = people.OfType<Customer>().Count();
-        //cafe's waiting area can only hold so many people, if they don't fit -> they leave
-        if (customerCount < MaxSpawnedCustomersInQueue)
-        {
-            SpawnCustomer();
-        }
-        //perform timer update
-        //this number was chosen randomly, but it looked nice in spreadsheets :D
-        _customerSpawnTimer.WaitTime = _attraction.CustomerAttraction > 0 ? 20 / _attraction.CustomerAttraction : 1f;
-    }
+	private void _on_CustomerSpawnTimer_timeout()
+	{
+		int customerCount = people.OfType<Customer>().Count();
+		//cafe's waiting area can only hold so many people, if they don't fit -> they leave
+		if (customerCount < MaxSpawnedCustomersInQueue)
+		{
+			SpawnCustomer();
+		}
+		//perform timer update
+		//this number was chosen randomly, but it looked nice in spreadsheets :D
+		_customerSpawnTimer.WaitTime = _attraction.CustomerAttraction > 0 ? 20 / _attraction.CustomerAttraction : 1f;
+	}
 
-    public void SellCurrentHoldingFurniture()
+	public void SellCurrentHoldingFurniture()
 	{
 		_furnitureMover.Sell();
 	}
@@ -577,7 +579,6 @@ public class Cafe : Node2D
 		//loop over all the staff and count how much money you owe them
 		int payment = 0;
 		people.Where(p => !p.Fired).ToList().ForEach(p => { payment += p.Salary; });
-		Money -= payment;
-		GD.Print($"You payed {payment} to your staff");
+		Money -= (int)(payment * StaffPaymentMultiplier);
 	}
 }

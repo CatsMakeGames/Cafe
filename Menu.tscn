@@ -28,7 +28,7 @@ __meta__ = {
 
 [node name="StoreButton" type="Button" parent="Menu"]
 margin_right = 112.0
-margin_bottom = 47.0
+margin_bottom = 34.0
 focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 4 )
@@ -39,9 +39,9 @@ script = ExtResource( 12 )
 MenuNodePath = "StoreMenu"
 
 [node name="StaffButton" type="Button" parent="Menu"]
-margin_top = 51.0
+margin_top = 38.0
 margin_right = 112.0
-margin_bottom = 98.0
+margin_bottom = 72.0
 focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 4 )
@@ -52,9 +52,9 @@ script = ExtResource( 12 )
 MenuNodePath = "StaffManagmentMenuSimple"
 
 [node name="MoveButton" type="Button" parent="Menu"]
-margin_top = 102.0
+margin_top = 76.0
 margin_right = 112.0
-margin_bottom = 149.0
+margin_bottom = 110.0
 focus_mode = 0
 size_flags_vertical = 3
 custom_fonts/font = ExtResource( 4 )
@@ -63,6 +63,19 @@ enabled_focus_mode = 0
 text = "Redecorate"
 script = ExtResource( 13 )
 MenuNodePath = "SellButton"
+
+[node name="SetupButton" type="Button" parent="Menu"]
+margin_top = 114.0
+margin_right = 112.0
+margin_bottom = 149.0
+focus_mode = 0
+size_flags_vertical = 3
+custom_fonts/font = ExtResource( 4 )
+toggle_mode = true
+enabled_focus_mode = 0
+text = "Management"
+script = ExtResource( 12 )
+MenuNodePath = "CafeStats"
 
 [node name="CustomerCountLabel" type="Label" parent="."]
 margin_left = 968.0
@@ -136,6 +149,59 @@ custom_fonts/font = ExtResource( 3 )
 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas a metus pulvinar, fermentum sem id, blandit neque. Curabitur et consectetur mauris. Duis ipsum lacus, varius nec turpis ac, pretium auctor risus. Praesent sed tempus velit. Morbi ac risus tempus, feugiat nisl eget, placerat erat. Duis vehicula a arcu quis consectetur. Fusce magna nisl, pretium sit amet porta ut, commodo ut ipsum. Phasellus sed sapien posuere nisi lacinia faucibus quis vel elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
 autowrap = true
 
+[node name="CafeStats" type="Control" parent="." groups=["Menu"]]
+visible = false
+margin_left = 256.0
+margin_right = 1269.0
+margin_bottom = 760.0
+mouse_default_cursor_shape = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBOX" type="VBoxContainer" parent="CafeStats"]
+margin_left = 61.0
+margin_top = 5.0
+margin_right = 401.997
+margin_bottom = 1676.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="label" type="Label" parent="CafeStats/VBOX"]
+margin_right = 340.0
+margin_bottom = 41.0
+custom_fonts/font = ExtResource( 3 )
+text = "Price Rates"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CafeStats/VBOX"]
+margin_top = 45.0
+margin_right = 340.0
+margin_bottom = 86.0
+
+[node name="label2" type="Label" parent="CafeStats/VBOX/HBoxContainer"]
+margin_right = 200.0
+margin_bottom = 41.0
+custom_fonts/font = ExtResource( 3 )
+text = "Current : "
+
+[node name="label3" type="Label" parent="CafeStats/VBOX/HBoxContainer"]
+margin_left = 204.0
+margin_right = 224.0
+margin_bottom = 41.0
+custom_fonts/font = ExtResource( 3 )
+text = "0"
+
+[node name="PriceRate" type="HSlider" parent="CafeStats/VBOX"]
+margin_top = 90.0
+margin_right = 340.0
+margin_bottom = 106.0
+min_value = 0.1
+max_value = 5.0
+step = 0.1
+value = 0.1
+allow_greater = true
+
 [node name="MenuArea" type="Control" parent="." groups=["MouseBlock"]]
 visible = false
 margin_right = 256.0
@@ -154,6 +220,41 @@ margin_left = 341.333
 margin_top = 213.333
 margin_right = 341.333
 margin_bottom = 213.333
+
+[node name="Label" type="Label" parent="StaffManagmentMenuSimple"]
+margin_left = -19.333
+margin_top = -75.333
+margin_right = 833.667
+margin_bottom = -34.333
+custom_fonts/font = ExtResource( 3 )
+text = "Payment Multiplier:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="StaffManagmentMenuSimple"]
+margin_left = -19.333
+margin_top = -75.333
+margin_right = 833.667
+margin_bottom = -34.333
+custom_fonts/font = ExtResource( 3 )
+text = "Payment Multiplier:"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HSlider" type="HSlider" parent="StaffManagmentMenuSimple"]
+margin_left = -19.333
+margin_top = -32.333
+margin_right = 833.667
+margin_bottom = -16.333
+min_value = 0.1
+max_value = 5.0
+step = 0.05
+value = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="StaffMenu" type="Control" parent="." groups=["Menu"]]
 margin_left = 256.0
@@ -177,27 +278,11 @@ __meta__ = {
 }
 
 [node name="VBoxContainer" type="VBoxContainer" parent="StaffMenu/ScrollContainer"]
-visible = false
 margin_right = 853.0
 margin_bottom = 192.0
 rect_min_size = Vector2( 192, 192 )
 size_flags_horizontal = 3
 custom_constants/separation = 2
-
-[node name="Label" type="Label" parent="StaffMenu/ScrollContainer/VBoxContainer"]
-margin_right = 853.0
-margin_bottom = 41.0
-custom_fonts/font = ExtResource( 3 )
-text = "Payment Multiplier:"
-
-[node name="HSlider" type="HSlider" parent="StaffMenu/ScrollContainer/VBoxContainer"]
-margin_top = 43.0
-margin_right = 853.0
-margin_bottom = 59.0
-min_value = 1.0
-max_value = 5.0
-step = 0.05
-value = 1.0
 
 [node name="ScrollContainer" type="ScrollContainer" parent="."]
 visible = false
@@ -235,5 +320,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[connection signal="value_changed" from="CafeStats/VBOX/PriceRate" to="." method="_on_PriceRate_value_changed"]
+[connection signal="value_changed" from="StaffManagmentMenuSimple/HSlider" to="." method="_onStaffPaymentSliderChanged"]
 [connection signal="pressed" from="SellButton" to="." method="_on_SellButton_pressed"]
 [connection signal="pressed" from="ExitToIdleModeButton" to="." method="_on_ExitToIdleModeButton_pressed"]
