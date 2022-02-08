@@ -234,9 +234,9 @@ public class Cafe : Node2D
 	public void AddNewFurniture(Furniture fur)
 	{
 		_furnitures.Add(fur);
+		fur.UpdateNavigation(true);
 		fur.Init();
 		fur.Id = _currentFurnitureId++;
-		fur.UpdateNavigation(true);
 		UpdateAttraction();
 	}
 
@@ -454,6 +454,8 @@ public class Cafe : Node2D
 		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition,
 			rand.Next(_attraction.CustomerLowestQuality,_attraction.CustomerHighestQuality));
 		people.Add(customer);
+		//init function needs customer to be in cafe
+		customer.Init();
 		customer.Id = _currentPersonId++;
 		return customer;
 	}
@@ -474,6 +476,7 @@ public class Cafe : Node2D
 	public void AddNewArrivedCustomer(Customer customer)
 	{
 		customersToTakeOrderFrom.Add(people.IndexOf(customer));
+		GD.Print($"Added customer with index: {customersToTakeOrderFrom.Last()}");
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}

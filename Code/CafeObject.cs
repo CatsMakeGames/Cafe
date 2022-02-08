@@ -73,6 +73,10 @@ public class CafeObject : Godot.Object
     /**<summary>Creates and Initialises RID based on provided texture</summary>*/
     protected void GenerateRIDBasedOnTexture(Texture texture,ZOrderValues zOrder)
     {
+        if(textureRID != null)
+        {
+            VisualServer.FreeRid(textureRID);
+        }
         //spawn image in the world
         if (texture != null && cafe != null)
         {
@@ -90,6 +94,10 @@ public class CafeObject : Godot.Object
     */
     protected void GenerateRIDBasedOnTexture(Texture texture,ZOrderValues zOrder,Rect2 renderingFrame)
     {
+        if(textureRID != null)
+        {
+            VisualServer.FreeRid(textureRID);
+        }
         //spawn image in the world
         if (texture != null && cafe != null)
         {

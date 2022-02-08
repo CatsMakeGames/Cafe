@@ -69,7 +69,6 @@ public class Customer : Person
         PathToTheTarget = cafe.FindPathTo(position, newLocation);
         _primaryGoalBackup = _currentGoal;
         _currentGoal = Goal.MoveBackToTable;
-        
     }
 
     protected override void OnTaskTimerRunOut()
@@ -92,31 +91,34 @@ public class Customer : Person
         SetTaskTimer(rand.Next(1,20));
     }
 
-    public Customer(Texture texture, Cafe cafe, Vector2 pos,int type) : base(texture,new Vector2(128,128),texture.GetSize(), cafe, pos,(int)ZOrderValues.Customer)
+    public Customer(Texture texture, Cafe cafe, Vector2 pos, int type) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
     {
         _type = type;
-        //this function has built-in check so we can call it even if we don't know about tables
-        OnNewTableIsAvailable();
-
-        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
-
+        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable), this, nameof(OnNewTableIsAvailable));
         //note: "sprite" is generated twice, because parent class also generates them
-        GenerateRIDBasedOnTexture(texture,ZOrderValues.Customer,new Rect2(_type * 32,0,32,32));
+        GenerateRIDBasedOnTexture(texture, ZOrderValues.Customer, new Rect2(_type * 32, 0, 32, 32));
     }
 
-    public Customer(Cafe cafe,uint[] data) : base(cafe,data)
+    public override void Init()
     {
-        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable),this,nameof(OnNewTableIsAvailable));
+        base.Init();
+        OnNewTableIsAvailable();
+    }
+
+    public Customer(Cafe cafe, uint[] data) : base(cafe, data)
+    {
+        cafe.Connect(nameof(Cafe.OnNewTableIsAvailable), this, nameof(OnNewTableIsAvailable));
         orderId = (int)data[10];
         _currentGoal = (Goal)data[11];
         _primaryGoalBackup = (Goal)data[12];
         _currentTableId = (int)data[13];
-        GenerateRIDBasedOnTexture(cafe.GetTexture("Customer"), ZOrderValues.Customer);
+        _type = (int)data[14];
+        GenerateRIDBasedOnTexture(cafe.GetTexture("Customer"), ZOrderValues.Customer, new Rect2(_type * 32, 0, 32, 32));
     }
 
     public void OnNewTableIsAvailable()
     {
-        if(cafe.AvailableTables.Any() && _currentGoal == Goal.WaitForTable)
+        if (cafe.AvailableTables.Any() && _currentGoal == Goal.WaitForTable)
         {
             //check if path to new table exists
             //if it does move to it
@@ -190,6 +192,7 @@ public class Customer : Person
                     else
                     {
                         _currentGoal = Goal.WaitForWaiter;
+                        GD.Print($"{ToString()}At the table!");
                         cafe.AddNewArrivedCustomer(this);
                     }
                 }
