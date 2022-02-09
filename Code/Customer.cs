@@ -91,7 +91,7 @@ public class Customer : Person
         SetTaskTimer(rand.Next(1,20));
     }
 
-    public Customer(Texture texture, Cafe cafe, Vector2 pos, int type) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+    public Customer(uint id,Texture texture, Cafe cafe, Vector2 pos, int type) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
     {
         _type = type;
         cafe.Connect(nameof(Cafe.OnNewTableIsAvailable), this, nameof(OnNewTableIsAvailable));
@@ -125,8 +125,8 @@ public class Customer : Person
             Vector2[] path = cafe.FindPathTo(position, cafe.GetFurniture(cafe.AvailableTables.Peek()).Position);
             if (path != null)
             {
-                _currentTableId = cafe.AvailableTables.Peek();
-                cafe.GetFurniture(_currentTableId).SetNewCustomer(this);
+                _currentTableId = (int)cafe.AvailableTables.Peek();
+                cafe.GetFurniture((uint)_currentTableId).SetNewCustomer(this);
                 cafe.AvailableTables.Pop();
                 _currentGoal = Goal.WalkToTable;
                 PathToTheTarget = path;
@@ -179,7 +179,7 @@ public class Customer : Person
         switch (_currentGoal)
         {
             case Goal.WalkToTable:
-                if (cafe.GetFurniture(_currentTableId).CurrentUser == null)
+                if (cafe.GetFurniture((uint)_currentTableId).CurrentUser == null)
                 {
                     //if customer had to find new table we want them to be reset
                     //if customer was waiting for something else to happen(finish eating or for food to arrive) then

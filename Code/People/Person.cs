@@ -84,13 +84,13 @@ public class Person : CafeObject
 	}
 	protected virtual void OnTaskTimerRunOut(){}
 #endregion
-	public Person(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(texture, size, textureSize, cafe, pos, zorder)
+	public Person(uint id,Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder) : base(id,texture, size, textureSize, cafe, pos, zorder)
 	{
 		//load speed from the table
 	}
 
 	/**<summary>Default constructor that assumes size of the humans</summary>*/
-	public Person(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+	public Person(uint id,Texture texture, Cafe cafe, Vector2 pos) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
 	{
 		//load speed from the table
 	}

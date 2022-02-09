@@ -50,12 +50,13 @@ public class CafeObject : Godot.Object
         this.cafe = cafe;
     }
 
-    public CafeObject(Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
+    public CafeObject(uint id,Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
     {
         this.cafe = cafe;
         this.textureSize = textureSize;
         this.size = size;
         this.Position = pos;
+        Id = id;
 
         GenerateRIDBasedOnTexture(texture, (ZOrderValues)zorder);
     }

@@ -72,9 +72,9 @@ public static class SaveManager
             saveFile.StoreLine(cafe.cafeName);
             //mainly for easier debugging
             saveFile.StoreLine("furniture_begin");
-            foreach(Furniture fur in cafe.Furnitures)
+            foreach(var fur in cafe.Furnitures)
             {
-                Godot.Collections.Array<uint> data = fur.GetSaveData();
+                Godot.Collections.Array<uint> data = fur.Value?.GetSaveData();
                 foreach(uint dat in data)
                 {
                     saveFile.Store32(dat);
@@ -130,9 +130,10 @@ public static class SaveManager
             {
                 loadedData[i] = saveFile.Get32();
             }
-            cafe.People.Add(ctor(cafe,loadedData));            
+            //objects save id as first element
+            //adding directly to avoid cafe events
+            cafe.People.Add(loadedData[0], ctor(cafe, loadedData));
         }
- 
     }
 
     /**<summary>Loads save data from file game.sav<para/>
@@ -172,23 +173,23 @@ public static class SaveManager
                 currentDataReadingId++;
                 if(currentDataReadingId >= Furniture.SaveDataSize)
                 {
-                    cafe.AddFurniture(new Furniture(cafe,loadedData));
+                    cafe.Furnitures[loadedData[0]] = new Furniture(cafe,loadedData);
                     currentDataReadingId = 0;
-                }  
+                }
             }
 
             while (!saveFile.EofReached())
             {
                 LoadPerson(cafe, saveFile);
             }
-            foreach(Person person in cafe.People)
+            foreach(var person in cafe.People)
             {
-                person.SaveInit();
+                person.Value.SaveInit();
             }
 
-            foreach (Furniture fur in cafe.Furnitures)
+            foreach (var fur in cafe.Furnitures)
             {
-                fur.SaveInit();
+                fur.Value.SaveInit();
             }
 
             cafe.UpdateAttraction();

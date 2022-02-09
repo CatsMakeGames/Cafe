@@ -6,7 +6,6 @@ using System.Linq;
 using Staff;
 using System.Collections.Generic;
 
-//TODO: Refactor this code and make it simplier if possible
 public class Cafe : Node2D
 {
 	/**<summary>Which state is player currently in<para/>
@@ -28,6 +27,9 @@ public class Cafe : Node2D
 
 	/**<summary>Id that will be given to next spawned furniture</summary>*/
 	private uint _currentFurnitureId = 0;
+
+	public uint CurrentFurnitureId => _currentFurnitureId;
+	public uint CurrentPersonId => _currentPersonId;
 
 	/**<summary>This is used for save file naming</summary>*/
 	public int currentSaveId = 0;
@@ -160,7 +162,7 @@ public class Cafe : Node2D
 	[Export]
 	public int MinSpawnedCustomersInQueue = 1;
 
-	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.CurrentType == Furniture.FurnitureType.Table).Count();
+	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table).Count();
 
 	Attraction 	_attraction = new Attraction();
 
@@ -193,13 +195,13 @@ public class Cafe : Node2D
 
 	public Navigation2D navigation;
 
-	protected Godot.Collections.Array<Person> people = new Godot.Collections.Array<Person>();
+	protected Dictionary<uint,Person> people = new Dictionary<uint,Person>();
 	/**<summary>Collection of all people in the cafe.<para/> Used for global updates or any function that applies to any human<para/>
 	 * for working with specific staff members use dedicated arrays</summary>*/
-	public Godot.Collections.Array<Person> People => people;
+	public Dictionary<uint,Person> People => people;
 
 	/**<summary>Array containing every furniture object</summary>*/
-	private List<Furniture> _furnitures = new List<Furniture>();
+	private Dictionary<uint,Furniture> _furnitures = new Dictionary<uint,Furniture>();
 
 	public void StartBuildingItem(StoreItemData data)
 	{
@@ -213,45 +215,47 @@ public class Cafe : Node2D
 		CurrentState = State.Building;
 	}
 
-	public Furniture GetFurniture(int id)
+	public Furniture GetFurniture(uint id)
 	{
-		return id  >= 0 && id < _furnitures.Count ?  _furnitures[id] : null;
+		return _furnitures.ContainsKey(id) ? _furnitures[id] : null;
 	}
 
 	public int GetFurnitureIndex(Furniture fur)
 	{
-		return _furnitures.IndexOf(fur);
+		KeyValuePair<uint,Furniture> pair = _furnitures.FirstOrDefault(p=>p.Value == fur);
+		return pair.Value == null ? -1 : (int)pair.Key; 
 	}
-	public List<Furniture> Furnitures => _furnitures;
+	public Dictionary<uint,Furniture>  Furnitures => _furnitures;
 
 	/**<summary>This function adds furniture without notifying objects. Useful for loading</summary>*/
 	public void AddFurniture(Furniture fur)
 	{
-		_furnitures.Add(fur);
+		_furnitures[_currentFurnitureId++] = fur;
 	}
 
 	/**<summary>Adds new furniture to the world as well as updates ids</summary>*/
 	public void AddNewFurniture(Furniture fur)
 	{
-		_furnitures.Add(fur);
+		_furnitures[_currentFurnitureId] = fur;
+		fur.Id = _currentFurnitureId++;//because we don't know if it was set already
 		fur.UpdateNavigation(true);
 		fur.Init();
-		fur.Id = _currentFurnitureId++;
 		UpdateAttraction();
 	}
 
 	public void UpdateAttraction()
 	{
 		//TODO: add other furniture typese
+		//TODO: move to Attraction class
 		//update attraction values
 		float average = 0;
-		var decorFurs =  _furnitures.Where(p=>p.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
-		decorFurs.ToList().ForEach(p=>average += p.Level + 1);//+1 because level starts at 0
+		var decorFurs =  _furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);//+1 because level starts at 0
 		_attraction.DecorationQuality = average / decorFurs.Count();
 		average = 0;
-		decorFurs =  _furnitures.Where(p=>	p.CurrentType == Furniture.FurnitureType.Fridge||
-											p.CurrentType == Furniture.FurnitureType.Stove);
-		decorFurs.ToList().ForEach(p=>average += p.Level + 1);
+		decorFurs =  _furnitures.Where(p=>	p.Value.CurrentType == Furniture.FurnitureType.Fridge||
+											p.Value.CurrentType == Furniture.FurnitureType.Stove);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);
 		_attraction.FoodQuality = average / decorFurs.Count();
 	}
 
@@ -263,14 +267,14 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public List<int> customersToTakeOrderFrom = new List<int>();
+	public List<uint> customersToTakeOrderFrom = new List<uint>();
 
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
 	public List<int> completedOrders = new List<int>();
 
 	public Stack<int> halfFinishedOrders = new Stack<int>();
 
-	public Stack<int> AvailableTables = new Stack<int>();
+	public Stack<uint> AvailableTables = new Stack<uint>();
 	#endregion
 
 	private CafeControl _cafeControlMenu;
@@ -306,15 +310,14 @@ public class Cafe : Node2D
 	{
 		//this is simplest system of spawning that accounts for every future type
 		//a simple switch could work but that means more things to keep in mind when adding new staff types
-		people.Add(System.Activator.CreateInstance
-			(
+		people[_currentPersonId] =(System.Activator.CreateInstance
+			(	
 				typeof(T),
+				_currentPersonId++,
 				Textures[textureName] ?? FallbackTexture,
 				this,
 				(new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize
 			) as Person);
-			//set new id and increment it after wards
-			people.Last().Id = _currentPersonId++;
 	}
 
 	public override void _Ready()
@@ -346,10 +349,11 @@ public class Cafe : Node2D
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
 	{
-		int ind = People.IndexOf(customer);
+		//not the prettiest way but it gets the job done
+		uint ind = People.FirstOrDefault(p=>p.Value == customer).Key;
 		if(ind >= 0 && ind < customersToTakeOrderFrom.Count)
 		{
-			customersToTakeOrderFrom.RemoveAt(ind);
+			customersToTakeOrderFrom.Remove(ind);
 		}
 	}
 
@@ -360,9 +364,9 @@ public class Cafe : Node2D
 
 	public Furniture FindClosestFurniture(Furniture.FurnitureType type, Vector2 pos, out Vector2[] path)
 	{
-		Furniture closest = _furnitures.Where(p => p.CurrentType == type && p.CanBeUsed).OrderBy(
-				p => p.Position.DistanceSquaredTo(pos)
-			).FirstOrDefault<Furniture>();
+		Furniture closest = _furnitures.Where(p => p.Value.CurrentType == type && p.Value.CanBeUsed).OrderBy(
+				p => p.Value.Position.DistanceSquaredTo(pos)
+			).FirstOrDefault<KeyValuePair<uint,Furniture>>().Value;
 		if (closest != null)
 		{
 			path = navigation?.GetSimplePath(pos, closest.Position) ?? null;
@@ -375,7 +379,7 @@ public class Cafe : Node2D
 		}
 	}
 
-	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliencies</summary>*/
+	/**<summary>Finds path to location defined as Node2D.<para/>Does not work for finding paths to appliances</summary>*/
 	public Vector2[] FindLocation(string locationName, Vector2 location)
 	{
 		return navigation?.GetSimplePath(location, LocationNodes[locationName]?.GlobalPosition ?? Vector2.Zero) ?? null;
@@ -397,15 +401,15 @@ public class Cafe : Node2D
 	{
 		//clear the world because we will fill it with new data
 			//TODO: Make sure i actually cleaned everything
-			for (int i = people.Count - 1; i >= 0; i--)
+			foreach(var person in People)
 			{
-				people[i].Destroy(true);
+				person.Value.Destroy();
 			}
 			people.Clear();
 
-			for (int i = _furnitures.Count - 1; i >= 0; i--)
+			foreach(var fur in _furnitures)
 			{
-				_furnitures[i].Destroy(true);
+				fur.Value.Destroy(true);
 			}
 		_furnitures.Clear();
 	}
@@ -451,13 +455,11 @@ public class Cafe : Node2D
 	{
 		//TODO: replace with proper calculation
 		Random rand = new Random();
-		Customer customer = new Customer(Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition,
+		people[_currentPersonId] = new Customer(_currentPersonId++,Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition,
 			rand.Next(_attraction.CustomerLowestQuality,_attraction.CustomerHighestQuality));
-		people.Add(customer);
 		//init function needs customer to be in cafe
-		customer.Init();
-		customer.Id = _currentPersonId++;
-		return customer;
+		people[_currentPersonId - 1].Init();
+		return people[_currentPersonId - 1] as Customer;
 	}
 
 	public void AddCompletedOrder(int orderId)
@@ -475,7 +477,7 @@ public class Cafe : Node2D
 
 	public void AddNewArrivedCustomer(Customer customer)
 	{
-		customersToTakeOrderFrom.Add(people.IndexOf(customer));
+		customersToTakeOrderFrom.Add(people.First(p => p.Value == customer).Key);
 		GD.Print($"Added customer with index: {customersToTakeOrderFrom.Last()}");
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
@@ -485,15 +487,15 @@ public class Cafe : Node2D
 	{
 		//TODO: Add cleaning service >:(
 		//we don't have cleaning service yet
-		(_furnitures[customer.CurrentTableId]).CurrentState = Furniture.State.Free;
-		AddNewAvailableTable((_furnitures[customer.CurrentTableId]));
+		(_furnitures[(uint)customer.CurrentTableId]).CurrentState = Furniture.State.Free;
+		AddNewAvailableTable((_furnitures[(uint)customer.CurrentTableId]));
 		PaymentSoundPlayer?.Play();
 	}
 
 	/**<summary>Notifies customers that new table is available</summary>*/
 	public void AddNewAvailableTable(Furniture table)
 	{
-		AvailableTables.Push(_furnitures.IndexOf(table));
+		AvailableTables.Push((uint)GetFurnitureIndex(table));
 		EmitSignal(nameof(OnNewTableIsAvailable));
 	}
 
@@ -519,25 +521,32 @@ public class Cafe : Node2D
 		{
 			if (people.Any())
 			{
-				foreach (Person person in people)
+				foreach (var person in people)
 				{
-					if (IsInstanceValid(person))
+					if (IsInstanceValid(person.Value))
 					{
-						if (person.ShouldUpdate)
-							person.Update(delta);
+						if (person.Value.ShouldUpdate)
+							person.Value.Update(delta);
 					}
 				}
 			}
 
-			//TODO: look into storing people as sets or generating new list with no invalid objects and updating the ref
-			for (int i = people.Count - 1; i >= 0; i--)
+            List<uint> idsToRemove = new List<uint>();
+
+            //if this doesn't work just write bad indices and remove them afterwards
+            foreach(var person in People)
 			{
-				if (IsInstanceValid(people[i]) && !people[i].Valid)
+				if(IsInstanceValid(person.Value) && !person.Value.Valid)
 				{
-					if (IsInstanceValid(people[i]))
-						people[i].Destroy();
-					people.RemoveAt(i);
+					person.Value.Destroy();
+					idsToRemove.Add(person.Key);
+					
 				}
+			}
+
+			foreach(uint key in idsToRemove)
+			{
+				people.Remove(key);
 			}
 		}
 		else if (currentState == State.Building)
@@ -581,7 +590,7 @@ public class Cafe : Node2D
 	{
 		//loop over all the staff and count how much money you owe them
 		int payment = 0;
-		people.Where(p => !p.Fired).ToList().ForEach(p => { payment += p.Salary; });
+		people.Where(p => !p.Value.Fired).ToList().ForEach(p => { payment += p.Value.Salary; });
 		Money -= (int)(payment * StaffPaymentMultiplier);
 	}
 }

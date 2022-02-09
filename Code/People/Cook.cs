@@ -38,7 +38,7 @@ namespace Staff
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
 
 
-        public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+        public Cook(uint id, Texture texture, Cafe cafe, Vector2 pos) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             Salary = 100;
             OnNewOrder();
@@ -101,7 +101,7 @@ namespace Staff
             base.GetFired();
             if (currentApplianceId > -1)
             {
-                cafe.GetFurniture(currentApplianceId).CurrentUser = null;
+                cafe.GetFurniture((uint)currentApplianceId).CurrentUser = null;
             }
             /**
              * Raw food that needs to be cut just dissapears as it would be no different from raw food that was not touched
@@ -194,8 +194,7 @@ namespace Staff
         public override void SaveInit()
         {
             base.SaveInit();
-            //TODO: check if internal id matches new id
-            Furniture fur  = cafe.GetFurniture(currentApplianceId);
+            Furniture fur  = cafe.GetFurniture((uint)currentApplianceId);
             if(fur != null)
             {
                 fur.CurrentUser = this;

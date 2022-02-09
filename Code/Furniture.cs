@@ -103,7 +103,7 @@ public class Furniture : CafeObject
         base.SaveInit();
         if(_loadedUserId > 0)
         {
-           CurrentUser = cafe.People.FirstOrDefault(p=>p.Id == _loadedUserId - 1u);
+           CurrentUser = cafe.People[_loadedUserId - 1u];
         }
         if(_loadedCustomerId > 0)
         {
@@ -158,7 +158,8 @@ public class Furniture : CafeObject
     /**<summary>If false this furniture will not be considered in FindClosestFurniture search</summary>*/
     public virtual bool CanBeUsed => CurrentState == State.Free;
 
-    public Furniture(Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
+    public Furniture(uint id,Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) 
+        : base(id,texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
         _currentType = type;
         Random rand = new Random();
