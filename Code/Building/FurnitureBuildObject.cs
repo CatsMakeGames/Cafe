@@ -68,7 +68,7 @@ public class FurnitureBuildObject : CafeObject
             (
                     cafe.CurrentFurnitureId,
                     type,
-                    cafe.GetTexture(_currentItemData.TextureName),
+                    cafe.TextureManager[_currentItemData.TextureName],
                     _currentItemData.Size,
                     new Vector2(32, 32),
                     cafe,

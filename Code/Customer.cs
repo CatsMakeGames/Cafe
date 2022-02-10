@@ -113,7 +113,7 @@ public class Customer : Person
         _primaryGoalBackup = (Goal)data[12];
         _currentTableId = (int)data[13];
         _type = (int)data[14];
-        GenerateRIDBasedOnTexture(cafe.GetTexture("Customer"), ZOrderValues.Customer, new Rect2(_type * 32, 0, 32, 32));
+        GenerateRIDBasedOnTexture(cafe.TextureManager["Customer"], ZOrderValues.Customer, new Rect2(_type * 32, 0, 32, 32));
     }
 
     public void OnNewTableIsAvailable()

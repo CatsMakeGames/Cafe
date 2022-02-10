@@ -14,6 +14,7 @@
 
 using System;
 using Godot;
+using System.Linq;
 
 /**<summary> Class for storing and calculating various customer attraction values</summary>*/
 public class Attraction
@@ -46,4 +47,20 @@ public class Attraction
     public float StaffRating { get => _staffRating; set => _staffRating = value; }
     public float FoodQuality { get => _foodQuality; set => _foodQuality = value; }
     public float MarketingBudget { get => _marketingBudget; set => _marketingBudget = value; }
+
+    /**<summary>Recalculates values based on given furnitures</summary>*/
+    public void Update(Cafe cafe)
+    {
+        //TODO: add other furniture typese
+		float average = 0;
+		var decorFurs =  cafe.Furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);//+1 because level starts at 0
+		_decorationQuality = average / decorFurs.Count();
+		average = 0;
+        //defining supported types via array is avoided due to how weirdly godot's arrays work in editor window
+		decorFurs =  cafe.Furnitures.Where(p=>	p.Value.CurrentType == Furniture.FurnitureType.Fridge||
+											    p.Value.CurrentType == Furniture.FurnitureType.Stove);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);
+		_foodQuality = average / decorFurs.Count();
+    }
 }

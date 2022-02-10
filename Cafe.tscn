@@ -4,7 +4,6 @@
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
-[ext_resource path="res://Art_Pixel/Floors/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
@@ -12,6 +11,7 @@
 [ext_resource path="res://Art_Pixel/people_v2/Waiter.tres" type="Texture" id=10]
 [ext_resource path="res://Art/table.png" type="Texture" id=11]
 [ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
+[ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
 [ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
@@ -19,8 +19,6 @@
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 playableArea = Rect2( 0, 0, 1024, 704 )
-FallbackTexture = ExtResource( 11 )
-FloorTexture = ExtResource( 5 )
 Textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
@@ -92,6 +90,17 @@ margin_top = -143.0
 margin_right = 872.0
 margin_bottom = -14.0
 rect_scale = Vector2( 1.43535, 2.88063 )
+
+[node name="TextureManager" parent="." instance=ExtResource( 13 )]
+_fallbackTexture = ExtResource( 10 )
+_textures = {
+"Cook": ExtResource( 9 ),
+"Customer": ExtResource( 2 ),
+"Fridge": ExtResource( 8 ),
+"Stove": ExtResource( 7 ),
+"Table": ExtResource( 3 ),
+"Waiter": ExtResource( 10 )
+}
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]

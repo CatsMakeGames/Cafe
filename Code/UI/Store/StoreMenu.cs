@@ -38,13 +38,6 @@ namespace UI
 
         protected Label descriptionLabel;
 
-        Texture this[string name]
-        {
-            get
-            {
-                return cafe.Textures[name];
-            }
-        }
         /**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/
         bool savePurchaseData()
         {
@@ -119,7 +112,7 @@ namespace UI
 
                         StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
                         currentContainer.AddChild(button);
-                        button.Texture.Texture = this[item.TextureName] ?? cafe.FallbackTexture;
+                        button.Texture.Texture = cafe.TextureManager[item.TextureName];
 
                         button.ItemData = item;
                         button.ParentMenu = this;

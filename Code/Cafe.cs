@@ -76,20 +76,9 @@ public class Cafe : Node2D
 		set
 		{
 			money = value;
-			//this way cafe manager does not care about specific implementations of
 			EmitSignal("MoneyUpdated", money);
 		}
 	}
-
-	/**<summary>Texture for table. Also is used as fallback texture</summary>*/
-	[Export]
-	public Texture FallbackTexture;
-
-	[Export]
-	public Texture FloorTexture;
-
-	[Export]
-	private int _textureFrameSize = 32;
 
 	[Export]
 	public readonly int GridSize = 32;
@@ -222,8 +211,8 @@ public class Cafe : Node2D
 
 	public int GetFurnitureIndex(Furniture fur)
 	{
-		KeyValuePair<uint,Furniture> pair = _furnitures.FirstOrDefault(p=>p.Value == fur);
-		return pair.Value == null ? -1 : (int)pair.Key; 
+		KeyValuePair<uint, Furniture> pair = _furnitures.FirstOrDefault(p => p.Value == fur);
+		return pair.Value == null ? -1 : (int)pair.Key;
 	}
 	public Dictionary<uint,Furniture>  Furnitures => _furnitures;
 
@@ -245,18 +234,7 @@ public class Cafe : Node2D
 
 	public void UpdateAttraction()
 	{
-		//TODO: add other furniture typese
-		//TODO: move to Attraction class
-		//update attraction values
-		float average = 0;
-		var decorFurs =  _furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
-		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);//+1 because level starts at 0
-		_attraction.DecorationQuality = average / decorFurs.Count();
-		average = 0;
-		decorFurs =  _furnitures.Where(p=>	p.Value.CurrentType == Furniture.FurnitureType.Fridge||
-											p.Value.CurrentType == Furniture.FurnitureType.Stove);
-		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);
-		_attraction.FoodQuality = average / decorFurs.Count();
+		_attraction.Update(this);
 	}
 
 	protected Floor floor;
@@ -283,16 +261,14 @@ public class Cafe : Node2D
 
 	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
 
-	/**<summary>Returns texture with the same name or default texture</summary>*/
-	public Texture GetTexture(string name)
-	{
-		return Textures[name] ?? FallbackTexture;
-	}
-
 	/**<summary>List of order IDs that need to be cooked</summary>*/
 	public List<int> orders = new List<int>();
 
 	private FurnitureBuildObject _furnitureBuildPreview;
+
+	private TextureManager _textureManager;
+
+	public TextureManager TextureManager => _textureManager;
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
@@ -314,7 +290,7 @@ public class Cafe : Node2D
 			(	
 				typeof(T),
 				_currentPersonId++,
-				Textures[textureName] ?? FallbackTexture,
+				_textureManager[textureName],
 				this,
 				(new Vector2(((int)GetLocalMousePosition().x / GridSize), ((int)GetLocalMousePosition().y / GridSize))) * GridSize
 			) as Person);
@@ -323,12 +299,13 @@ public class Cafe : Node2D
 	public override void _Ready()
 	{
 		base._Ready();	
+		_textureManager = GetNode<TextureManager>("TextureManager");
 		_furnitureMover = new FurnitureMover(this);
 		_cafeControlMenu  = GetNode<CafeControl>("UI") ?? throw new NullReferenceException("Missing menu!");
 		_cafeControlMenu.Cafe = this;
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
 
-		floor = new Floor(FloorTexture, new Vector2(1000, 1000), this);
+		floor = new Floor(_textureManager["Floor"], new Vector2(1000, 1000), this);
 
 		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
@@ -345,6 +322,7 @@ public class Cafe : Node2D
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}
+		
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
@@ -455,7 +433,7 @@ public class Cafe : Node2D
 	{
 		//TODO: replace with proper calculation
 		Random rand = new Random();
-		people[_currentPersonId] = new Customer(_currentPersonId++,Textures["Customer"] ?? FallbackTexture, this, LocationNodes["Entrance"].GlobalPosition,
+		people[_currentPersonId] = new Customer(_currentPersonId++,_textureManager["Customer"], this, LocationNodes["Entrance"].GlobalPosition,
 			rand.Next(_attraction.CustomerLowestQuality,_attraction.CustomerHighestQuality));
 		//init function needs customer to be in cafe
 		people[_currentPersonId - 1].Init();
@@ -530,17 +508,14 @@ public class Cafe : Node2D
 					}
 				}
 			}
-
-            List<uint> idsToRemove = new List<uint>();
-
-            //if this doesn't work just write bad indices and remove them afterwards
-            foreach(var person in People)
+			List<uint> idsToRemove = new List<uint>();
+			//if this doesn't work just write bad indices and remove them afterwards
+			foreach(var person in People)
 			{
 				if(IsInstanceValid(person.Value) && !person.Value.Valid)
 				{
 					person.Value.Destroy();
 					idsToRemove.Add(person.Key);
-					
 				}
 			}
 
