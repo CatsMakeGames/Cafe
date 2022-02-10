@@ -58,6 +58,13 @@ public class Attraction
         return res;
     }
 
+    public void Load(List<uint> data)
+    {
+        _priceMultiplier = (float)data[0];
+        _marketingBudget = (float)data[1];
+        _staffPayment = (float)data[2];
+    }
+
     /**<summary>Recalculates values based on given furnitures</summary>*/
     public void Update(Cafe cafe)
     {

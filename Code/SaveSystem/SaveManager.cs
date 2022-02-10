@@ -13,7 +13,7 @@ public class SaveManager
     <para/> Update this based on current system</summary>*/
     public long DataBegining = 1;
 
-    public byte CurrentSaveSystemVersion = 4;
+    public byte CurrentSaveSystemVersion = 5;
 
     private int _currentSaveId;
 
@@ -25,7 +25,7 @@ public class SaveManager
     public void StorePerson<T>(File saveFile, Cafe cafe) where T : Person
     {
         saveFile.StoreLine($"{typeof(T).Name}_begin");
-        var people = cafe.People.OfType<T>();
+        var people = cafe.People.Values.OfType<T>();
         foreach (T person in people)
         {
             if (!person.Fired)
@@ -54,7 +54,7 @@ public class SaveManager
         {
             saveFile.Store32((uint)dat);
         }
-         saveFile.StoreLine("array_break");
+        saveFile.StoreLine("array_break");
         foreach (int dat in cafe.CompletedOrders)
         {
             saveFile.Store32((uint)dat);
@@ -78,7 +78,7 @@ public class SaveManager
         }
         saveFile.StoreLine("array_break");
 
-        foreach(int dat in cafe.ShopData)
+        foreach (int dat in cafe.ShopData)
         {
             saveFile.Store32((uint)dat);
         }
@@ -94,6 +94,26 @@ public class SaveManager
             ulong pos = saveFile.GetPosition();
             var debug = saveFile.GetLine();
             if (debug.Contains("array_break"))
+            {
+                return res;
+            }
+            else
+            {
+                saveFile.Seek((long)pos);
+                res.Add((int)saveFile.Get32());
+            }
+        }
+        return res;
+    }
+
+    private List<int> _loadArray(Cafe cafe, File saveFile,string endName = "array_break")
+    {
+        List<int> res = new List<int>();
+        while (!saveFile.EofReached())
+        {
+            ulong pos = saveFile.GetPosition();
+            var debug = saveFile.GetLine();
+            if (debug.Contains(endName))
             {
                 return res;
             }
@@ -124,6 +144,30 @@ public class SaveManager
             }
         }
         return res;
+    }
+
+    private void _loadAttractionSystem(Cafe cafe, File saveFile)
+    {
+        string line = saveFile.GetLine();
+        if ( line == "attr_begin")
+        {
+            List<uint> res = new List<uint>();
+            while (!saveFile.EofReached())
+            {
+                ulong pos = saveFile.GetPosition();
+                var debug = saveFile.GetLine();
+                if (debug.Contains("attr_end"))
+                {
+                    cafe.Attraction.Load(res);
+                    return;
+                }
+                else
+                {
+                    saveFile.Seek((long)pos);
+                    res.Add(saveFile.Get32());
+                }
+            }
+        }
     }
 
     private void _storeAttractionSystem(File saveFile, Cafe cafe)
@@ -182,7 +226,7 @@ public class SaveManager
             saveFile.StoreLine(cafe.cafeName);
 
             _storeCafe(saveFile, cafe);
-            _storeAttractionSystem(saveFile,cafe);
+            _storeAttractionSystem(saveFile, cafe);
 
             //mainly for easier debugging
             saveFile.StoreLine("furniture_begin");
@@ -266,14 +310,25 @@ public class SaveManager
             cafe.cafeName = saveFile.GetLine();
             //now move past this
             saveFile.Seek((long)saveFile.GetPosition() + "cafe_begin".Length + 1u);
-            cafe.Load(_loadArray(cafe,saveFile));
-
-            cafe.CustomersToTakeOrderFrom = _loadArrayUint(cafe,saveFile);
-            cafe.CompletedOrders = _loadArray(cafe,saveFile);
-            cafe.HalfFinishedOrders =  new Stack<int>(_loadArray(cafe,saveFile));
-            cafe.AvailableTables =   new Stack<uint>(_loadArrayUint(cafe,saveFile));
-            cafe.Orders =  _loadArray(cafe,saveFile);
-            cafe.ShopData =  _loadArray(cafe,saveFile);
+            cafe.Load(_loadArray(cafe, saveFile,"cafe_end"));
+            if (saveFile.GetLine() == "cafe_arrays_begin")
+            {
+                cafe.CustomersToTakeOrderFrom = _loadArrayUint(cafe, saveFile);
+                cafe.CompletedOrders = _loadArray(cafe, saveFile);
+                cafe.HalfFinishedOrders = new Stack<int>(_loadArray(cafe, saveFile));
+                cafe.AvailableTables = new Stack<uint>(_loadArrayUint(cafe, saveFile));
+                cafe.Orders = _loadArray(cafe, saveFile);
+                cafe.ShopData = _loadArray(cafe, saveFile);
+            }
+            else
+            {
+                throw new Exception("Failed to find cafe arrays in save file!");
+            }
+            if (saveFile.GetLine() != "cafe_arrays_end")
+            {
+                 throw new Exception("Missing end of cafe arrays in save file!");
+            }
+            _loadAttractionSystem(cafe, saveFile);
             //cafe name is last single object data so after that we read furniture
             saveFile.Seek((long)saveFile.GetPosition() + "furniture_begin".Length + 1u);
 
@@ -313,9 +368,7 @@ public class SaveManager
             {
                 fur.Value.SaveInit();
             }
-
             cafe.UpdateAttraction();
-
             //all objects are loaded -> init them
 
             return true;

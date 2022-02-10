@@ -332,6 +332,7 @@ public class Cafe : Node2D
 			mouseBlockAreas.Add(node as MouseBlockArea);
 		}	
 		_cafeControlMenu.Init();
+		_saveManager = new SaveManager();
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
