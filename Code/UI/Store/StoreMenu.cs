@@ -15,9 +15,6 @@ namespace UI
 
         public Cafe cafe;
 
-        /**<summary>Key is id of the item in the table and value is true if item is bought</summary>*/
-        Godot.Collections.Array<ushort> purchasedItems = new Godot.Collections.Array<ushort>();
-
         Godot.Collections.Array<StoreItemData> data = new Godot.Collections.Array<StoreItemData>();
 
         [Export()]
@@ -38,57 +35,9 @@ namespace UI
 
         protected Label descriptionLabel;
 
-        /**<summary>saves purchasedItems to the file<para/>Save data is simply continous line of 16bit unsigned integerts(2 byte numbers always bigger then 0) each representing an id</summary>*/
-        bool savePurchaseData()
-        {
-            var save = new File();
-            Directory dir = new Directory();
-            //file fails to create file if directory does not exist
-            if (!dir.DirExists("user://Cafe/"))
-                dir.MakeDir("user://Cafe/");
-
-            var err = save.Open("user://Cafe/store.sav", File.ModeFlags.Write);
-            if (err == Error.Ok)
-            {
-                foreach (var item in purchasedItems)
-                {
-                    save.Store16(item);
-                }
-                save.Close();
-                return true;
-            }
-            else
-            {
-                GD.PrintErr(err.ToString());
-            }
-            return false;
-        }
-
-        bool loadPurchaseData()
-        {
-            var save = new File();
-            var err = save.Open("user://Cafe/store.sav", File.ModeFlags.Read);
-            if (err == Error.Ok)
-            {
-                while (!save.EofReached())
-                {
-                    purchasedItems.Add(save.Get16());
-                    GD.Print(purchasedItems);
-                }
-                save.Close();
-
-                return true;
-            }
-            else
-            {
-                GD.PrintErr(err.ToString());
-            }
-            return false;
-        }
         /**<summary>Spawn child nodes based on data</summary>*/
         protected void Create()
         {
-
             foreach (var category in Enum.GetValues(typeof(Furniture.Category)))
             {
                 var arr = data.Where(p => p.DisplayCategory == (Furniture.Category)category);
@@ -113,13 +62,11 @@ namespace UI
                         StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
                         currentContainer.AddChild(button);
                         button.Texture.Texture = cafe.TextureManager[item.TextureName];
-
                         button.ItemData = item;
                         button.ParentMenu = this;
-
                         button.PriceLabel.Text = item.Price.ToString();
 
-                        if (!purchasedItems.Contains(item.tableId))
+                        if (!cafe.ShopData.Contains(item.tableId))
                         {
                             button.Modulate = Color.Color8(125, 0, 0);
                         }
@@ -145,16 +92,15 @@ namespace UI
             if (cafe.Money >= data.Price)
             {
                 //check if was purchased
-                if (purchasedItems.Contains(data.tableId))
+                if ( cafe.ShopData.Contains(data.tableId))
                 {
                    cafe.StartBuildingItem(data);
                 }
                 else
                 {
                     cafe.Money -= data.Price;
-                    purchasedItems.Add(data.tableId);
+                    cafe.ShopData.Add(data.tableId);
                     button.Modulate = Color.Color8(255, 255, 255);
-                    savePurchaseData();
                     //play some noise
                     //we don't jump to placing to let player know that it was purchased rather then selected
                 }
@@ -198,8 +144,6 @@ namespace UI
                     }
                 }
             }
-
-
         }
 
         public override void _Ready()
@@ -211,16 +155,18 @@ namespace UI
                 throw new NullReferenceException($"Unable to find button template for store menu! Given path: {ButtonScenePath}");
             }
             buttonScene = ResourceLoader.Load<PackedScene>(ButtonScenePath);
-            itemContainer =
-                GetNodeOrNull<VBoxContainer>("ScrollContainer/VBoxContainer")
+            itemContainer = GetNodeOrNull<VBoxContainer>("ScrollContainer/VBoxContainer")
                 ?? throw new NullReferenceException("Failed to find container for store items.\n There must be scroll box with child vbox attached to menu node");
-
             nameLabel = GetNode<Label>("itemInfoContainer/ItemName");
-            descriptionLabel = GetNode<Label>("itemInfoContainer/Description");
-            loadPurchaseData();
+            descriptionLabel = GetNode<Label>("itemInfoContainer/Description");        
+        }
+
+        /**<summary>Initialises the menu<para/>
+        There is an error caused by godot calling _Ready on this object before cafe, so this must be called ONLY after cafe updated values for this object</summary>*/
+        public void Init()
+        {
             Load();
             Create();
-
 			HideItemInfo();
         }
     }

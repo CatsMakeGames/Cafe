@@ -24,18 +24,19 @@ public class Cafe : Node2D
 
 	/**<summary>Id that will be given to next spawned person</summary>*/
 	private uint _currentPersonId = 0;
-
 	/**<summary>Id that will be given to next spawned furniture</summary>*/
 	private uint _currentFurnitureId = 0;
-
 	public uint CurrentFurnitureId => _currentFurnitureId;
 	public uint CurrentPersonId => _currentPersonId;
 
 	/**<summary>This is used for save file naming</summary>*/
-	public int currentSaveId = 0;
+	protected int currentSaveId = 0;
 
 	/**<Summary>This is used in save file management to help players identify their saves</summary>*/
 	public string cafeName = "Get Psyched!";
+
+	private SaveManager _saveManager;
+	public SaveManager SaveManager => _saveManager;
 
 	[Export]
 	protected Rect2 playableArea;
@@ -43,22 +44,16 @@ public class Cafe : Node2D
 	/**<summary>Additional flag that would allow player to keep game pause no matter the state<summary>*/
 	protected bool playerPaused = false;
 	public bool Paused => (currentState == State.Building || currentState == State.Moving)|| playerPaused;
-
 	[Signal]
 	public delegate void MoneyUpdated(int amount);
-
 	[Signal]
 	public delegate void ChangedPlayerPause(bool paused);
-
 	[Signal]
 	public delegate void OnNewOrderAdded();
-
 	[Signal]
 	public delegate void OnCustomerArrivedAtTheTable();
-
 	[Signal]
 	public delegate void OnNewTableIsAvailable();
-
 	[Signal]
 	public delegate void OnOderFinished();
 	/**
@@ -96,7 +91,6 @@ public class Cafe : Node2D
 	private Timer _customerSpawnTimer;
 
 	private float _staffPayment = 1f;
-
 	public float StaffPaymentMultiplier
 	{
 		get => _staffPayment;
@@ -129,9 +123,7 @@ public class Cafe : Node2D
 				default:
 				break;
 			}
-
 			//process new state
-
 			if (currentState == State.Building || currentState == State.Idle)
 			{
 				_cafeControlMenu.CloseAllMenus();
@@ -154,10 +146,9 @@ public class Cafe : Node2D
 	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table).Count();
 
 	Attraction 	_attraction = new Attraction();
-
 	public Attraction Attraction => _attraction;
 
-	FoodData 	_foodData 	= new FoodData();
+	FoodData _foodData 	= new FoodData();
 
 	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
 	[Export]
@@ -168,7 +159,6 @@ public class Cafe : Node2D
 
 	/**<summary>How much money was spent during last pay check time</summary>*/
 	protected int lastSpending = 0;
-
 	/**<summary>How much money was earned between updates</summary>*/
 	protected int lastEarning = 0;
 
@@ -178,10 +168,8 @@ public class Cafe : Node2D
 	public Godot.Collections.Dictionary<string, Node2D> LocationNodes = new Godot.Collections.Dictionary<string, Node2D>();
 
 	protected TileMap navigationTilemap;
-
 	/**<summary>Navigation tilemap used for the cafe<para/>Set unwalkable areas to -1 and walkable to 0</summary>*/
 	public TileMap NavigationTilemap => navigationTilemap;
-
 	public Navigation2D navigation;
 
 	protected Dictionary<uint,Person> people = new Dictionary<uint,Person>();
@@ -195,12 +183,9 @@ public class Cafe : Node2D
 	public void StartBuildingItem(StoreItemData data)
 	{
 		_furnitureBuildPreview = new FurnitureBuildObject(
-					data,
-					Textures[data.TextureName],
-					data.Size,
+					data,Textures[data.TextureName],data.Size,
 					new Vector2(32, 32),//TODO: read from table
-					GridSize,
-					this);
+					GridSize,this);
 		CurrentState = State.Building;
 	}
 
@@ -245,30 +230,34 @@ public class Cafe : Node2D
 
 	#region WaiterToDoList
 	/**<summary>List of tables where customer is sitting and waiting to have their order taken</summary>*/
-	public List<uint> customersToTakeOrderFrom = new List<uint>();
-
+	private List<uint> _customersToTakeOrderFrom = new List<uint>();
 	/**<summary>Orders that have been completed by cooks<para/>Note about how is this used: Waiters search thought the customer list and find those who want this food and who are sitted</summary>*/
-	public List<int> completedOrders = new List<int>();
-
-	public Stack<int> halfFinishedOrders = new Stack<int>();
-
-	public Stack<uint> AvailableTables = new Stack<uint>();
+	private List<int> _completedOrders = new List<int>();
+	private Stack<int> _halfFinishedOrders = new Stack<int>();
+	private Stack<uint> _availableTables = new Stack<uint>();
+	/**<summary>List of order IDs that need to be cooked</summary>*/
+	private List<int> _orders = new List<int>();
 	#endregion
+	
+	private List<int> _shopData = new List<int>();
 
 	private CafeControl _cafeControlMenu;
-
+	public CafeControl CafeControlMenu => _cafeControlMenu;
 	protected MainMenu mainMenu;
 
 	protected Godot.Collections.Array<MouseBlockArea> mouseBlockAreas = new Godot.Collections.Array<MouseBlockArea>();
 
-	/**<summary>List of order IDs that need to be cooked</summary>*/
-	public List<int> orders = new List<int>();
-
 	private FurnitureBuildObject _furnitureBuildPreview;
 
 	private TextureManager _textureManager;
-
 	public TextureManager TextureManager => _textureManager;
+
+	public List<uint> CustomersToTakeOrderFrom { get => _customersToTakeOrderFrom; set => _customersToTakeOrderFrom = value; }
+	public List<int> CompletedOrders { get => _completedOrders; set => _completedOrders = value; }
+	public Stack<int> HalfFinishedOrders { get => _halfFinishedOrders; set => _halfFinishedOrders = value; }
+	public Stack<uint> AvailableTables { get => _availableTables; set => _availableTables = value; }
+	public List<int> Orders { get => _orders; set => _orders = value; }
+	public List<int> ShopData { get => _shopData; set => _shopData = value; }
 
 	/**<summary>More touch friendly version of the function that just makes sure that press/touch didn't happen inside of any visible MouseBlocks</summary>*/
 	public bool NeedsProcessPress(Vector2 pressLocation)
@@ -282,6 +271,26 @@ public class Cafe : Node2D
 		)).Any();
 	}
 
+	public List<float> GetSaveData()
+	{
+		List<float> result = new List<float>();
+		result.Add((float)_currentFurnitureId);//[0]
+		result.Add((float)_currentPersonId);//[1]
+		result.Add((float)money);//[2]
+		result.Add(_staffPayment);//[3]
+
+		//rest of the save file will be dedicated to listing all of the unsaved orders
+		return result;
+	}
+
+	public void Load(List<int> data)
+	{
+		_currentFurnitureId = (uint)data[0];
+		_currentPersonId = (uint)data[1];
+		money = data[2];
+		_staffPayment = data[3];
+	}
+	 
 	public void SpawnStaff<T>(string textureName) where T : Person
 	{
 		//this is simplest system of spawning that accounts for every future type
@@ -298,13 +307,13 @@ public class Cafe : Node2D
 
 	public override void _Ready()
 	{
-		base._Ready();	
 		_textureManager = GetNode<TextureManager>("TextureManager");
+		base._Ready();	
+		
 		_furnitureMover = new FurnitureMover(this);
 		_cafeControlMenu  = GetNode<CafeControl>("UI") ?? throw new NullReferenceException("Missing menu!");
 		_cafeControlMenu.Cafe = this;
 		navigationTilemap = GetNode<TileMap>("Navigation2D/TileMap") ?? throw new NullReferenceException("Failed to find navigation grid");
-
 		floor = new Floor(_textureManager["Floor"], new Vector2(1000, 1000), this);
 
 		navigation = GetNode<Navigation2D>("Navigation2D") ?? throw new NullReferenceException("Failed to find navigation node");
@@ -321,17 +330,17 @@ public class Cafe : Node2D
 		foreach (var node in GetTree().GetNodesInGroup("MouseBlock"))
 		{
 			mouseBlockAreas.Add(node as MouseBlockArea);
-		}
-		
+		}	
+		_cafeControlMenu.Init();
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
 	{
 		//not the prettiest way but it gets the job done
 		uint ind = People.FirstOrDefault(p=>p.Value == customer).Key;
-		if(ind >= 0 && ind < customersToTakeOrderFrom.Count)
+		if(ind >= 0 && ind < _customersToTakeOrderFrom.Count)
 		{
-			customersToTakeOrderFrom.Remove(ind);
+			_customersToTakeOrderFrom.Remove(ind);
 		}
 	}
 
@@ -365,37 +374,39 @@ public class Cafe : Node2D
 
 	public void Save()
 	{
-		SaveManager.Save(this);	
+		_saveManager.Save(this);	
 	}
 
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
 		Clean();
-		return SaveManager.Load(this);
+		return _saveManager.Load(this);
 	}
 
 	public void Clean()
 	{
 		//clear the world because we will fill it with new data
-			//TODO: Make sure i actually cleaned everything
-			foreach(var person in People)
-			{
-				person.Value.Destroy();
-			}
-			people.Clear();
+		//TODO: Make sure i actually cleaned everything
+		foreach (var person in People)
+		{
+			person.Value.Destroy();
+		}
+		people.Clear();
 
-			foreach(var fur in _furnitures)
-			{
-				fur.Value.Destroy(true);
-			}
+		foreach (var fur in _furnitures)
+		{
+			fur.Value.Destroy(true);
+		}
+		_customersToTakeOrderFrom.Clear();
+		Orders.Clear();
+		_halfFinishedOrders.Clear();
+		_availableTables.Clear();
+		_completedOrders.Clear();
 		_furnitures.Clear();
 	}
 
-	public bool CanAfford(int amount)
-	{
-		return amount <= money;
-	}
+	public bool CanAfford(int amount) => amount <= money;
 
 	public override void _Input(InputEvent @event)
 	{
@@ -442,21 +453,20 @@ public class Cafe : Node2D
 
 	public void AddCompletedOrder(int orderId)
 	{
-		completedOrders.Add(orderId);
+		_completedOrders.Add(orderId);
 		EmitSignal(nameof(OnOderFinished));
 	}
 
 	/**<summary>Finds a free cook or puts it into the list of orders</summary>*/
 	public void AddNewOrder(int orderId)
 	{
-		orders.Add(orderId);
+		Orders.Add(orderId);
 		EmitSignal(nameof(OnNewOrderAdded));
 	}
 
 	public void AddNewArrivedCustomer(Customer customer)
 	{
-		customersToTakeOrderFrom.Add(people.First(p => p.Value == customer).Key);
-		GD.Print($"Added customer with index: {customersToTakeOrderFrom.Last()}");
+		_customersToTakeOrderFrom.Add(people.First(p => p.Value == customer).Key);
 		//now it's up to waiters to find if they want to serve this table
 		EmitSignal(nameof(OnCustomerArrivedAtTheTable));
 	}
@@ -473,7 +483,7 @@ public class Cafe : Node2D
 	/**<summary>Notifies customers that new table is available</summary>*/
 	public void AddNewAvailableTable(Furniture table)
 	{
-		AvailableTables.Push((uint)GetFurnitureIndex(table));
+		_availableTables.Push((uint)GetFurnitureIndex(table));
 		EmitSignal(nameof(OnNewTableIsAvailable));
 	}
 
@@ -482,15 +492,8 @@ public class Cafe : Node2D
 		Money += (int)((_foodData[customer.OrderId].Price * (_attraction.CustomerSatisfaction / 100) + _foodData[customer.OrderId].Price) * _attraction.PriceMultiplier);
 	}
 
-	public bool IsInPlayableArea(Rect2 rect)
-	{
-		return playableArea.Encloses(rect);
-	}
-
-	public bool IsInPlayableArea(Vector2 point)
-	{
-		return playableArea.HasPoint(point);
-	}
+	public bool IsInPlayableArea(Rect2 rect) =>  playableArea.Encloses(rect);
+	public bool IsInPlayableArea(Vector2 point) => playableArea.HasPoint(point);
 
 	public override void _Process(float delta)
 	{
@@ -518,7 +521,6 @@ public class Cafe : Node2D
 					idsToRemove.Add(person.Key);
 				}
 			}
-
 			foreach(uint key in idsToRemove)
 			{
 				people.Remove(key);
@@ -546,10 +548,7 @@ public class Cafe : Node2D
 		_customerSpawnTimer.WaitTime = _attraction.CustomerAttraction > 0 ? 20 / _attraction.CustomerAttraction : 1f;
 	}
 
-	public void SellCurrentHoldingFurniture()
-	{
-		_furnitureMover.Sell();
-	}
+	public void SellCurrentHoldingFurniture() => _furnitureMover.Sell();
 
 	private void OnPaused(bool paused)
 	{

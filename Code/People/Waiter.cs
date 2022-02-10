@@ -119,7 +119,7 @@ namespace Staff
 					//customer has been left table-less
 					if (currentCustomer.CurrentTableId == -1 || forceCancel)
 					{
-						cafe.completedOrders.Add(currentOrder);
+						cafe.CompletedOrders.Add(currentOrder);
 						BeFree();
 					}
 					else
@@ -172,12 +172,12 @@ namespace Staff
                 currentCustomer = null;
             }
 			//are there any finished orders?
-			if (cafe.completedOrders.Any())
+			if (cafe.CompletedOrders.Any())
 			{
 				TakeNewCompletedOrder();
 			}
 			//if not check if there are any waiting customers
-			else if (cafe.customersToTakeOrderFrom.Any())
+			else if (cafe.CustomersToTakeOrderFrom.Any())
 			{
 				OnNewCustomerIsAtTheTable();
 			}
@@ -198,27 +198,27 @@ namespace Staff
 
         public void OnNewCustomerIsAtTheTable()
         {
-            if (cafe.customersToTakeOrderFrom.Any() && IsFree)
+            if (cafe.CustomersToTakeOrderFrom.Any() && IsFree)
             {
-                Furniture table = cafe.GetFurniture((uint)(cafe.People[cafe.customersToTakeOrderFrom.First()] as Customer).CurrentTableId);
+                Furniture table = cafe.GetFurniture((uint)(cafe.People[cafe.CustomersToTakeOrderFrom.First()] as Customer).CurrentTableId);
                 PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position);
                 if (pathToTheTarget != null)
                 {
                     CurrentGoal = Goal.TakeOrder;
                     currentCustomer = table.CurrentCustomer;
                     table.CurrentUser = this;
-                    cafe.customersToTakeOrderFrom.RemoveAt(0);
+                    cafe.CustomersToTakeOrderFrom.RemoveAt(0);
                 }
             }
         }
 
 		public void TakeNewCompletedOrder()
 		{
-            if (cafe.completedOrders.Any() && IsFree)
+            if (cafe.CompletedOrders.Any() && IsFree)
             {
 				//because we prioritize customers who arrived early(otherwise some of them might not get served their food at all)
 				//we have to take first
-				int orderId = cafe.completedOrders.First();
+				int orderId = cafe.CompletedOrders.First();
 				
                 var target = cafe.People.Values.OfType<Customer>().FirstOrDefault(p => p.IsWaitingForOrder(orderId));
                 if (target != null)
@@ -228,7 +228,7 @@ namespace Staff
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     currentCustomer = target;
 					target.CurrentWaiter = this;
-                    cafe.completedOrders.Remove(0);
+                    cafe.CompletedOrders.Remove(0);
                 }
 				else
 				{

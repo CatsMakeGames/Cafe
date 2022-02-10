@@ -1,9 +1,10 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=17 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://Art/navigation.tres" type="TileSet" id=4]
+[ext_resource path="res://Art_Pixel/Floors/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
@@ -96,6 +97,7 @@ _fallbackTexture = ExtResource( 10 )
 _textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
+"Floor": ExtResource( 5 ),
 "Fridge": ExtResource( 8 ),
 "Stove": ExtResource( 7 ),
 "Table": ExtResource( 3 ),
