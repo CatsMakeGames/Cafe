@@ -45,7 +45,7 @@ namespace Staff
         /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
         public new static uint SaveDataSize = 13u;
 
-		public Waiter(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+		public Waiter(uint id,Texture texture, Cafe cafe, Vector2 pos) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
 		{
 			BeFree();
 
@@ -119,12 +119,12 @@ namespace Staff
 					//customer has been left table-less
 					if (currentCustomer.CurrentTableId == -1 || forceCancel)
 					{
-						cafe.completedOrders.Add(currentOrder);
+						cafe.CompletedOrders.Add(currentOrder);
 						BeFree();
 					}
 					else
 					{
-						PathToTheTarget = cafe.FindPathTo(Position, cafe.GetFurniture(currentCustomer.CurrentTableId).Position);
+						PathToTheTarget = cafe.FindPathTo(Position, cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
 					}
 					break;
 				case Goal.TakeOrder:
@@ -138,7 +138,7 @@ namespace Staff
 						}
 						else
 						{
-							PathToTheTarget = cafe.FindPathTo(Position,cafe.GetFurniture(currentCustomer.CurrentTableId).Position);
+							PathToTheTarget = cafe.FindPathTo(Position,cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
 						}
 					}
 					break;
@@ -167,17 +167,17 @@ namespace Staff
 			CurrentGoal = Goal.None;
             if (currentCustomer != null)
             {
-                (cafe.GetFurniture(currentCustomer.CurrentTableId)).CurrentUser = null;
+                (cafe.GetFurniture((uint)currentCustomer.CurrentTableId)).CurrentUser = null;
                 //forget about this customer
                 currentCustomer = null;
             }
 			//are there any finished orders?
-			if (cafe.completedOrders.Any())
+			if (cafe.CompletedOrders.Any())
 			{
 				TakeNewCompletedOrder();
 			}
 			//if not check if there are any waiting customers
-			else if (cafe.customersToTakeOrderFrom.Any())
+			else if (cafe.CustomersToTakeOrderFrom.Any())
 			{
 				OnNewCustomerIsAtTheTable();
 			}
@@ -198,28 +198,29 @@ namespace Staff
 
         public void OnNewCustomerIsAtTheTable()
         {
-            if (cafe.customersToTakeOrderFrom.Any() && IsFree)
+            if (cafe.CustomersToTakeOrderFrom.Any() && IsFree)
             {
-                Furniture table = cafe.GetFurniture((cafe.People[cafe.customersToTakeOrderFrom.First()] as Customer).CurrentTableId);
+                Furniture table = cafe.GetFurniture((uint)(cafe.People[cafe.CustomersToTakeOrderFrom.First()] as Customer).CurrentTableId);
                 PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position);
                 if (pathToTheTarget != null)
                 {
                     CurrentGoal = Goal.TakeOrder;
                     currentCustomer = table.CurrentCustomer;
                     table.CurrentUser = this;
-                    cafe.customersToTakeOrderFrom.RemoveAt(0);
+                    cafe.CustomersToTakeOrderFrom.RemoveAt(0);
                 }
             }
         }
 
 		public void TakeNewCompletedOrder()
 		{
-            if (cafe.completedOrders.Any() && IsFree)
+            if (cafe.CompletedOrders.Any() && IsFree)
             {
 				//because we prioritize customers who arrived early(otherwise some of them might not get served their food at all)
 				//we have to take first
-				int orderId = cafe.completedOrders.First();
-                var target = cafe.People.OfType<Customer>().FirstOrDefault(p => p.IsWaitingForOrder(orderId));
+				int orderId = cafe.CompletedOrders.First();
+				
+                var target = cafe.People.Values.OfType<Customer>().FirstOrDefault(p => p.IsWaitingForOrder(orderId));
                 if (target != null)
                 {
                     CurrentGoal = Waiter.Goal.AcquireOrder;
@@ -227,7 +228,7 @@ namespace Staff
                     PathToTheTarget = cafe.FindLocation("Kitchen", Position);
                     currentCustomer = target;
 					target.CurrentWaiter = this;
-                    cafe.completedOrders.Remove(0);
+                    cafe.CompletedOrders.Remove(0);
                 }
 				else
 				{

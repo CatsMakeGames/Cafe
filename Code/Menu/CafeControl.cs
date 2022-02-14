@@ -35,6 +35,14 @@ public class CafeControl : Node
 		_exitToIdleButton = GetNode<Button>("ExitToIdleModeButton");
 	}
 
+    public void Init()
+    {
+        foreach (Control menu in _menus)
+        {
+            menu.Call("Init");
+        }
+	}
+
 	public void CloseAllMenus()
 	{
 		foreach(Control menu in _menus)

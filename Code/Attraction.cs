@@ -14,6 +14,8 @@
 
 using System;
 using Godot;
+using System.Linq;
+using System.Collections.Generic;
 
 /**<summary> Class for storing and calculating various customer attraction values</summary>*/
 public class Attraction
@@ -23,14 +25,14 @@ public class Attraction
 
     private float _decorationQuality = 1f;
 
-    private float _staffRating = 1f;
+    private float _staffPayment = 1f;
 
     private float _foodQuality = 1f;
 
     private float _marketingBudget = 100f;
 
     //honestly, this some random function that i put very little thought in
-    public int CustomerAttraction => (int)((_decorationQuality + _foodQuality + _staffRating) / _marketingBudget / (100 - _priceMultiplier));
+    public int CustomerAttraction => (int)((_decorationQuality + _foodQuality + _staffPayment) / _marketingBudget / (100 - _priceMultiplier));
 
     /**<summary>Min level of customer that will come to cafe</summary>*/
     public int CustomerLowestQuality => (int)_priceMultiplier;
@@ -39,11 +41,43 @@ public class Attraction
     public int CustomerHighestQuality => (int)(_priceMultiplier + 1/*min level*/ + Mathf.Log(_decorationQuality));
 
     /**<summary>How much customers are satisfied.<para/> Multiply this by price and you get value for tips</summary>*/
-    public int CustomerSatisfaction => (int)((_decorationQuality + _foodQuality + _staffRating) / (_priceMultiplier));
+    public int CustomerSatisfaction => (int)((_decorationQuality + _foodQuality + _staffPayment) / (_priceMultiplier));
 
     public float PriceMultiplier { get => _priceMultiplier; set => _priceMultiplier = value; }
     public float DecorationQuality { get => _decorationQuality; set => _decorationQuality = value; }
-    public float StaffRating { get => _staffRating; set => _staffRating = value; }
+    public float staffPayment { get => _staffPayment; set => _staffPayment = value; }
     public float FoodQuality { get => _foodQuality; set => _foodQuality = value; }
     public float MarketingBudget { get => _marketingBudget; set => _marketingBudget = value; }
+
+    public List<float> GetSaveData()
+    {
+        List<float> res = new List<float>();
+        res.Add(_priceMultiplier);//[0]
+        res.Add(_marketingBudget);//[1]
+        res.Add(_staffPayment);//[2]
+        return res;
+    }
+
+    public void Load(List<uint> data)
+    {
+        _priceMultiplier = (float)data[0];
+        _marketingBudget = (float)data[1];
+        _staffPayment = (float)data[2];
+    }
+
+    /**<summary>Recalculates values based on given furnitures</summary>*/
+    public void Update(Cafe cafe)
+    {
+        //TODO: add other furniture typese
+		float average = 0;
+		var decorFurs =  cafe.Furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table/*add other types that only customer sees here*/);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);//+1 because level starts at 0
+		_decorationQuality = average / decorFurs.Count();
+		average = 0;
+        //defining supported types via array is avoided due to how weirdly godot's arrays work in editor window
+		decorFurs =  cafe.Furnitures.Where(p=>	p.Value.CurrentType == Furniture.FurnitureType.Fridge||
+											    p.Value.CurrentType == Furniture.FurnitureType.Stove);
+		decorFurs.ToList().ForEach(p=>average += p.Value.Level + 1);
+		_foodQuality = average / decorFurs.Count();
+    }
 }

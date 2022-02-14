@@ -12,7 +12,7 @@ public class FurnitureBuildObject : CafeObject
 
     private StoreItemData _currentItemData;
     public FurnitureBuildObject(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
-        : base(texture, size, textureSize, cafe, pos, (int)ZOrderValues.Preview)
+        : base(0/*this object exists outside of the lists, so we just set id to 0*/,texture, size, textureSize, cafe, pos, (int)ZOrderValues.Preview)
     {
 
     }
@@ -54,7 +54,7 @@ public class FurnitureBuildObject : CafeObject
             ((int)cafe.GetLocalMousePosition().y / _gridCellSize) * _gridCellSize
         );
         Position = _objectRect.Position;
-        CanBePlaced = !cafe.Furnitures.Where(p => p.CollisionOverlaps(_objectRect)).Any() && cafe.IsInPlayableArea(_objectRect);
+        CanBePlaced = !cafe.Furnitures.Where(p => p.Value.CollisionOverlaps(_objectRect)).Any() && cafe.IsInPlayableArea(_objectRect);
     }
 
     public void PlaceNewFurniture()
@@ -66,8 +66,9 @@ public class FurnitureBuildObject : CafeObject
             cafe.Money -= _currentItemData.Price;
             cafe.AddNewFurniture(new Furniture
             (
+                    cafe.CurrentFurnitureId,
                     type,
-                    cafe.GetTexture(_currentItemData.TextureName),
+                    cafe.TextureManager[_currentItemData.TextureName],
                     _currentItemData.Size,
                     new Vector2(32, 32),
                     cafe,
@@ -75,7 +76,7 @@ public class FurnitureBuildObject : CafeObject
                     _currentItemData.Level,
                     _currentItemData.FurnitureCategory
             ));
-            cafe.Furnitures.Last().Price = _currentItemData.Price;
+            cafe.Furnitures[cafe.CurrentFurnitureId - 1/*because it was already updated*/].Price = _currentItemData.Price;
         }
     }
 

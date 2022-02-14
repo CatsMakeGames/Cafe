@@ -38,7 +38,7 @@ namespace Staff
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
 
 
-        public Cook(Texture texture, Cafe cafe, Vector2 pos) : base(texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
+        public Cook(uint id, Texture texture, Cafe cafe, Vector2 pos) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
         {
             Salary = 100;
             OnNewOrder();
@@ -76,7 +76,7 @@ namespace Staff
 
         public void OnNewOrder()
         {
-            if (cafe.orders.Any() && IsFree)
+            if (cafe.Orders.Any() && IsFree)
             {
                 Vector2[] temp;
                 //first try to find the fridge and if succeeded do the thing
@@ -85,12 +85,12 @@ namespace Staff
                 if (fridge != null)
                 {
                     currentGoal = Cook.Goal.TakeFood;
-                    goalOrderId = cafe.orders.First();
+                    goalOrderId = cafe.Orders.First();
                     //mark this fridge as used by this cook for movement mode 
                     fridge.CurrentUser = this;
                     currentApplianceId = cafe.GetFurnitureIndex(fridge);
                     PathToTheTarget = temp;
-                    cafe.orders.RemoveAt(0);
+                    cafe.Orders.RemoveAt(0);
                 }
             }
         }
@@ -101,7 +101,7 @@ namespace Staff
             base.GetFired();
             if (currentApplianceId > -1)
             {
-                cafe.GetFurniture(currentApplianceId).CurrentUser = null;
+                cafe.GetFurniture((uint)currentApplianceId).CurrentUser = null;
             }
             /**
              * Raw food that needs to be cut just dissapears as it would be no different from raw food that was not touched
@@ -110,7 +110,7 @@ namespace Staff
 
             if (currentGoal == Goal.CookFood)
             {
-                cafe.halfFinishedOrders.Push(goalOrderId);
+                cafe.HalfFinishedOrders.Push(goalOrderId);
             }
             switch (currentGoal)
             {         
@@ -128,7 +128,7 @@ namespace Staff
             currentApplianceId = -1;
             goalOrderId = -1;
             currentGoal = Goal.None;
-            if (cafe.orders.Any())
+            if (cafe.Orders.Any())
             {
                OnNewOrder();
             }
@@ -146,7 +146,7 @@ namespace Staff
                     var stove = cafe.FindClosestFurniture(Furniture.FurnitureType.Stove,Position, out temp);
                     if (forceCancel || stove == null)
                     {
-                        cafe.orders.Add(goalOrderId);
+                        cafe.Orders.Add(goalOrderId);
                         BeFree();
                     }
                     else
@@ -168,7 +168,7 @@ namespace Staff
                     var fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge,Position, out temp);
                     if (forceCancel || fridge == null)
                     {
-                        cafe.orders.Add(goalOrderId);
+                        cafe.Orders.Add(goalOrderId);
                         BeFree();
                     }
                     else
@@ -194,8 +194,7 @@ namespace Staff
         public override void SaveInit()
         {
             base.SaveInit();
-            //TODO: check if internal id matches new id
-            Furniture fur  = cafe.GetFurniture(currentApplianceId);
+            Furniture fur  = cafe.GetFurniture((uint)currentApplianceId);
             if(fur != null)
             {
                 fur.CurrentUser = this;

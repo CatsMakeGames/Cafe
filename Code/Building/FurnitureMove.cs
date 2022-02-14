@@ -34,7 +34,7 @@ public class FurnitureMover
         {
             _currentlyMovedFurniture.Position = _startLocation;
             cafe.Money += _currentlyMovedFurniture.Price;
-            cafe.Furnitures.Remove(_currentlyMovedFurniture);
+            cafe.Furnitures.Remove((uint)cafe.GetFurnitureIndex(_currentlyMovedFurniture));
             _currentlyMovedFurniture.ResetUserPaths();
             _currentlyMovedFurniture.Destroy();
             _currentlyMovedFurniture = null;
@@ -51,7 +51,7 @@ public class FurnitureMover
             //first we allow player to select furniture to move
             if (_currentlyMovedFurniture != null)
             {
-                if (!cafe.Furnitures.Where(p => p.CollistionContains(cafe.GetLocalMousePosition()) && p != _currentlyMovedFurniture).Any())
+                if (!cafe.Furnitures.Where(p => p.Value.CollistionContains(cafe.GetLocalMousePosition()) && p.Value != _currentlyMovedFurniture).Any())
                 {
                     //make this be new place
                     var loc = _currentlyMovedFurniture.Position;
@@ -67,7 +67,7 @@ public class FurnitureMover
             }
             else
             {
-                _currentlyMovedFurniture = cafe.Furnitures.FirstOrDefault(p => p.CollistionContains(cafe.GetLocalMousePosition()));
+                _currentlyMovedFurniture = cafe.Furnitures.FirstOrDefault(p => p.Value.CollistionContains(cafe.GetLocalMousePosition())).Value;
                 if (_currentlyMovedFurniture != null)
                 {
                     _startLocation = _currentlyMovedFurniture.Position;
@@ -87,7 +87,7 @@ public class FurnitureMover
                     ((int)cafe.GetLocalMousePosition().y / cafe.GridSize) * cafe.GridSize
                 );
 
-                if (cafe.Furnitures.Where(p => p.CollisionOverlaps(_currentlyMovedFurniture.CollisionRect)).Any() &&
+                if (cafe.Furnitures.Where(p => p.Value.CollisionOverlaps(_currentlyMovedFurniture.CollisionRect)).Any() &&
                     cafe.IsInPlayableArea(_currentlyMovedFurniture.CollisionRect))
                 {
                     _currentlyMovedFurniture.TextureColor = new Color(1, 1, 1);

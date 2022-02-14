@@ -4,7 +4,9 @@ using System;
 public class CafeObject : Godot.Object
 {
     /**<summary>Object id in the cafe</summary>*/
-    public uint Id = 0;
+    private uint _id = 0;
+
+    public uint Id { get => _id; set => _id = value; }
 
     protected Cafe cafe;
 
@@ -50,12 +52,13 @@ public class CafeObject : Godot.Object
         this.cafe = cafe;
     }
 
-    public CafeObject(Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
+    public CafeObject(uint id,Texture texture, Vector2 size,Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
     {
         this.cafe = cafe;
         this.textureSize = textureSize;
         this.size = size;
         this.Position = pos;
+        _id = id;
 
         GenerateRIDBasedOnTexture(texture, (ZOrderValues)zorder);
     }
@@ -65,7 +68,7 @@ public class CafeObject : Godot.Object
     public CafeObject(Cafe cafe, uint[] saveData)
     {
         this.cafe = cafe;
-        Id = saveData[0];
+        _id = saveData[0];
         this.size = new Vector2(128, 128);
         LoadData(saveData);
     }
