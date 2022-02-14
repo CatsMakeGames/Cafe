@@ -161,8 +161,6 @@ public class Customer : Person
         return orderId == order && _currentGoal == Goal.WaitForFood && CurrentWaiter == null;
     }
 
-
-
     public override void SaveInit()
     {
         base.SaveInit();

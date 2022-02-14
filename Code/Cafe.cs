@@ -484,8 +484,12 @@ public class Cafe : Node2D
 	/**<summary>Notifies customers that new table is available</summary>*/
 	public void AddNewAvailableTable(Furniture table)
 	{
-		_availableTables.Push((uint)GetFurnitureIndex(table));
-		EmitSignal(nameof(OnNewTableIsAvailable));
+		uint tableId = (uint)GetFurnitureIndex(table);
+		if (!_availableTables.Contains(tableId))
+		{
+			_availableTables.Push(tableId);
+			EmitSignal(nameof(OnNewTableIsAvailable));
+		}
 	}
 
 	public void OnCustomerServed(Customer customer)
