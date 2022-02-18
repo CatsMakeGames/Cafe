@@ -124,7 +124,7 @@ namespace Staff
 					}
 					else
 					{
-						PathToTheTarget = cafe.FindPathTo(Position, cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
+						PathToTheTarget = cafe.Navigation.FindPathTo(Position, cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
 					}
 					break;
 				case Goal.TakeOrder:
@@ -138,7 +138,7 @@ namespace Staff
 						}
 						else
 						{
-							PathToTheTarget = cafe.FindPathTo(Position,cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
+							PathToTheTarget = cafe.Navigation.FindPathTo(Position,cafe.GetFurniture((uint)currentCustomer.CurrentTableId).Position);
 						}
 					}
 					break;
@@ -152,7 +152,7 @@ namespace Staff
 					}
 					else
 					{
-						PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+						PathToTheTarget = cafe.Navigation.FindLocation("Kitchen", Position);
 					}
 					break;
 				default:
@@ -184,14 +184,14 @@ namespace Staff
 			else
 			{
 				//move waiter to "staff location"
-				PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+				PathToTheTarget = cafe.Navigation.FindLocation("Kitchen", Position);
 				CurrentGoal = Goal.Leave;
 			}
 		}
 
 		void changeTask(Vector2 target, Waiter.Goal goal, Customer customer)
 		{
-			PathToTheTarget = cafe.navigation.GetSimplePath(Position, target) ?? throw new NullReferenceException("Failed to find path to the task!");
+			PathToTheTarget = cafe.Navigation.GetSimplePath(Position, target) ?? throw new NullReferenceException("Failed to find path to the task!");
 			CurrentGoal = goal;
 			currentCustomer = customer;
 		}
@@ -201,7 +201,7 @@ namespace Staff
             if (cafe.CustomersToTakeOrderFrom.Any() && IsFree)
             {
                 Furniture table = cafe.GetFurniture((uint)(cafe.People[cafe.CustomersToTakeOrderFrom.First()] as Customer).CurrentTableId);
-                PathToTheTarget = cafe.navigation.GetSimplePath(Position, table.Position);
+                PathToTheTarget = cafe.Navigation.GetSimplePath(Position, table.Position);
                 if (pathToTheTarget != null)
                 {
                     CurrentGoal = Goal.TakeOrder;
@@ -225,7 +225,7 @@ namespace Staff
                 {
                     CurrentGoal = Waiter.Goal.AcquireOrder;
                     currentOrder = orderId;
-                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    PathToTheTarget = cafe.Navigation.FindLocation("Kitchen", Position);
                     currentCustomer = target;
 					target.CurrentWaiter = this;
                     cafe.CompletedOrders.Remove(0);
@@ -243,7 +243,7 @@ namespace Staff
 
 			//don't reset current customer because we still need to know the order
 			//find path to the kitchen
-			PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+			PathToTheTarget = cafe.Navigation.FindLocation("Kitchen", Position);
 			currentCustomer.OnOrderTaken();	
 		}
 
@@ -267,7 +267,7 @@ namespace Staff
                         break;
                     case Goal.AcquireOrder:
                         //make way towards customer now
-                        PathToTheTarget = cafe.FindPathTo(Position, currentCustomer.Position);
+                        PathToTheTarget = cafe.Navigation.FindPathTo(Position, currentCustomer.Position);
                         CurrentGoal = Goal.DeliverOrder;
                         break;
                     case Goal.DeliverOrder:

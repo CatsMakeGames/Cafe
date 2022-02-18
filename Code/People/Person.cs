@@ -52,7 +52,7 @@ public class Person : CafeObject
 	{
 		fired = true;
 
-		PathToTheTarget = cafe.FindLocation("Exit", Position);
+		PathToTheTarget = cafe.Navigation.FindLocation("Exit", Position);
 	}
 
 //This is version of wait system, that can actually be saved
@@ -141,7 +141,7 @@ public class Person : CafeObject
 		base.SaveInit();
         if (_loadedDestination != Position)
         {
-            PathToTheTarget = cafe.FindPathTo(position, _loadedDestination);
+            PathToTheTarget = cafe.Navigation.FindPathTo(position, _loadedDestination);
 		}
 	}
 

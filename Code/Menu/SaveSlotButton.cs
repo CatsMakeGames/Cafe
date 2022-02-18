@@ -27,7 +27,8 @@ public class SaveSlotButton : Button
                 Menu.CurrentCafe.Save();
                 Menu.CurrentCafe.SaveManager.CurrentSaveId = SaveSlotId;
                 Menu.CurrentCafe.Clean();
-
+                //we are doing full reset
+                Menu.GetTree().ReloadCurrentScene();
                 Menu.SaveSlotPopup.Hide();
             }
         }

@@ -220,7 +220,7 @@ namespace Staff
                 case Goal.CookFood:
                     currentApplianceId = -1;
                     currentGoal = Goal.GiveFood;
-                    PathToTheTarget = cafe.FindLocation("Kitchen", Position);
+                    PathToTheTarget = cafe.Navigation.FindLocation("Kitchen", Position);
                     break;
             }
         }

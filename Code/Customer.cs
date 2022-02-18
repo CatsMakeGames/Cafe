@@ -66,7 +66,7 @@ public class Customer : Person
 
     public void TableLocationChanged(Vector2 newLocation)
     {
-        PathToTheTarget = cafe.FindPathTo(position, newLocation);
+        PathToTheTarget = cafe.Navigation.FindPathTo(position, newLocation);
         _primaryGoalBackup = _currentGoal;
         _currentGoal = Goal.MoveBackToTable;
     }
@@ -79,7 +79,7 @@ public class Customer : Person
             cafe.OnCustomerFinishedMeal(this);
             cafe.OnCustomerServed(this);
             _currentGoal = Goal.Leave;
-            PathToTheTarget = cafe.FindLocation("Exit",Position);
+            PathToTheTarget = cafe.Navigation.FindLocation("Exit",Position);
         }
     }
 
@@ -122,7 +122,7 @@ public class Customer : Person
         {
             //check if path to new table exists
             //if it does move to it
-            Vector2[] path = cafe.FindPathTo(position, cafe.GetFurniture(cafe.AvailableTables.Peek()).Position);
+            Vector2[] path = cafe.Navigation.FindPathTo(position, cafe.GetFurniture(cafe.AvailableTables.Peek()).Position);
             if (path != null)
             {
                 _currentTableId = (int)cafe.AvailableTables.Peek();

@@ -109,6 +109,7 @@ public class Furniture : CafeObject
         {
             CurrentCustomer = cafe.People.OfType<Customer>().FirstOrDefault(p=>p.Id == _loadedCustomerId - 1u);
         }
+        UpdateNavigation(true);
     }
 
     /**<summary>Person who is actively using this furniture<para/>If this is an appliance this is meant for recording staff</summary>*/
@@ -214,7 +215,7 @@ public class Furniture : CafeObject
                 }
                 if (CurrentCustomer != null)
                 {
-                    if(cafe.FindPathTo(currentCustomer.Position, position) == null)
+                    if(cafe.Navigation.FindPathTo(currentCustomer.Position, position) == null)
                     {
                         //customer has to look for other alternatives
                         CurrentUser?.ResetOrCancelGoal(true);
@@ -246,7 +247,6 @@ public class Furniture : CafeObject
      * </summary><param name="clear">If true navigation tiles are removed</param>*/
     public void UpdateNavigation(bool clear)
     {
-        int tile = clear ? -1 : 0;
         //restore the tilemap
         //calculate before hand to avoid recalculating each iteration
         int width = ((int)(size.x + position.x)) / cafe.GridSize;
@@ -255,7 +255,7 @@ public class Furniture : CafeObject
         {
             for (int y = ((int)(position.y)) / cafe.GridSize; y < height; y++)
             {
-                cafe.NavigationTilemap.SetCell(x, y, tile);
+                cafe.Navigation.SetNavigationTile(x, y, !clear);
             }
         }
         //force any using ai to get reset

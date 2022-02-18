@@ -77,8 +77,7 @@ public class MainMenu : Control
 				Error err = saveFile.Open($"user://Cafe/game{i}.sav", File.ModeFlags.Read);
 				saveFile.Seek(1u);
 
-				but.Text = saveFile.GetLine();
-				
+				but.Text = saveFile.GetLine();	
 			}
 			else
 			{
@@ -89,7 +88,6 @@ public class MainMenu : Control
 			but.SizeFlagsHorizontal = (int)(SizeFlags.Fill | SizeFlags.Expand);
 			but.SizeFlagsVertical = (int)(SizeFlags.Fill | SizeFlags.Expand);
 		}
-
 	}
 
 	private void _on_NewCafe_pressed()
