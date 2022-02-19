@@ -113,8 +113,10 @@ public class Cafe : Node2D
 				break;
 				case State.Building:
 					_furnitureBuildPreview.Destroy();
+					OnPaused(Paused);
 				break;
 				case State.Moving:
+					OnPaused(Paused);
 					_furnitureMover.Drop();
 				break;
 				default:
@@ -128,6 +130,7 @@ public class Cafe : Node2D
 			if(currentState == State.Moving || currentState == State.Building)
 			{
 				_cafeControlMenu.ChangeModeExitButtonVisibility(true);
+				OnPaused(true);
 			}
 			if(currentState == State.Idle)
 			{
@@ -138,9 +141,9 @@ public class Cafe : Node2D
 
 	/**<summary>How many customers are actually going to spawned even if there are no tables available</summary>*/
 	[Export]
-	public int MinSpawnedCustomersInQueue = 1;
+	public readonly int MinSpawnedCustomersInQueue = 1;
 
-	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Where(p=>p.Value.CurrentType == Furniture.FurnitureType.Table).Count();
+	public int MaxSpawnedCustomersInQueue => MinSpawnedCustomersInQueue + Furnitures.Count(p=>p.Value.CurrentType == Furniture.FurnitureType.Table);
 
 	Attraction 	_attraction = new Attraction();
 	public Attraction Attraction => _attraction;
@@ -473,14 +476,13 @@ public class Cafe : Node2D
 		{
 			if (people.Any())
 			{
-				foreach (var person in people)
+				people.ToList().ForEach(p =>
 				{
-					if (IsInstanceValid(person.Value))
+					if ((IsInstanceValid(p.Value) && p.Value.ShouldUpdate))
 					{
-						if (person.Value.ShouldUpdate)
-							person.Value.Update(delta);
+						p.Value.Update(delta);
 					}
-				}
+				});
 			}
 			List<uint> idsToRemove = new List<uint>();
 			//if this doesn't work just write bad indices and remove them afterwards
