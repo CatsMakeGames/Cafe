@@ -200,17 +200,25 @@ public class Cafe : Node2D
 	/**<summary>This function adds furniture without notifying objects. Useful for loading</summary>*/
 	public void AddFurniture(Furniture fur)
 	{
-		_furnitures[_currentFurnitureId++] = fur;
+		if (!_furnitures.ContainsValue(fur))
+		{
+			_furnitures[_currentFurnitureId++] = fur;
+		}
 	}
 
 	/**<summary>Adds new furniture to the world as well as updates ids</summary>*/
 	public void AddNewFurniture(Furniture fur)
 	{
-		_furnitures[_currentFurnitureId] = fur;
-		fur.Id = _currentFurnitureId++;//because we don't know if it was set already
-		fur.UpdateNavigation(true);
-		fur.Init();
-		UpdateAttraction();
+		
+		if (!_furnitures.ContainsValue(fur))
+		{
+			_furnitures[_currentFurnitureId] = fur;
+			GD.Print($"added{_currentFurnitureId}");
+			fur.Id = _currentFurnitureId++;//because we don't know if it was set already
+			fur.UpdateNavigation(true);
+			fur.Init();
+			UpdateAttraction();
+		}
 	}
 
 	public void UpdateAttraction()

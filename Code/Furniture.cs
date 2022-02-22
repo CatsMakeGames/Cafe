@@ -123,18 +123,16 @@ public class Furniture : CafeObject
 
     /**<summary>If this is machine that needs customer and staff operation<para/>
     most left as compatibility thing(to avoid casting and possible issues)</summary>*/
-    private Customer currentCustomer = null;
+    private Customer _currentCustomer = null;
 
     public Customer CurrentCustomer 
     {
-        set => currentCustomer = value;
-        get => currentCustomer;
-    }
-
-    public void SetNewCustomer(Customer customer)
-    {
-        CurrentState = Furniture.State.InUse;
-        CurrentCustomer = customer;
+        set 
+        {
+            CurrentState = Furniture.State.InUse;
+            _currentCustomer =value;
+        }
+        get => _currentCustomer;
     }
 
     public byte Level
@@ -215,16 +213,16 @@ public class Furniture : CafeObject
                 }
                 if (CurrentCustomer != null)
                 {
-                    if(cafe.Navigation.FindPathTo(currentCustomer.Position, position) == null)
+                    if(cafe.Navigation.FindPathTo(_currentCustomer.Position, position) == null)
                     {
                         //customer has to look for other alternatives
                         CurrentUser?.ResetOrCancelGoal(true);
 
-                        currentCustomer.OnTableIsUnavailable();
+                        _currentCustomer.OnTableIsUnavailable();
                     }
                     else
                     {
-                        currentCustomer.TableLocationChanged(position);
+                        _currentCustomer.TableLocationChanged(position);
                     }
                 }
                 break;

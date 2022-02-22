@@ -8,8 +8,6 @@ public class FurnitureBuildObject : CafeObject
 
     private Rect2 _objectRect;
 
-    private bool _canBePlaced = false;
-
     private StoreItemData _currentItemData;
     public FurnitureBuildObject(Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos, int zorder)
         : base(0/*this object exists outside of the lists, so we just set id to 0*/,texture, size, textureSize, cafe, pos, (int)ZOrderValues.Preview)
@@ -38,11 +36,10 @@ public class FurnitureBuildObject : CafeObject
 
     public bool CanBePlaced
     {
-        get => _canBePlaced;
+        get => !cafe.Furnitures.Where(p => p.Value.CollisionOverlaps(_objectRect)).Any() && cafe.IsInPlayableArea(_objectRect);
         set
         {
             VisualServer.CanvasItemSetModulate(textureRID, value ? new Color(0, 255, 0) : new Color(255, 0, 0));
-            _canBePlaced = value;
         }
     }
 

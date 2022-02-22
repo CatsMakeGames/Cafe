@@ -125,11 +125,11 @@ public class Customer : Person
             Vector2[] path = cafe.Navigation.FindPathTo(position, cafe.GetFurniture(cafe.AvailableTables.Peek()).Position);
             if (path != null)
             {
-                _currentTableId = (int)cafe.AvailableTables.Peek();
-                cafe.GetFurniture((uint)_currentTableId).SetNewCustomer(this);
-                cafe.AvailableTables.Pop();
+                _currentTableId = (int)cafe.AvailableTables.Pop();
+                cafe.GetFurniture((uint)_currentTableId).CurrentCustomer = this;
                 _currentGoal = Goal.WalkToTable;
                 PathToTheTarget = path;
+                GD.Print($"{ToString()} got table with id {_currentTableId}");
             }
         }
     }
