@@ -52,6 +52,7 @@ position = Vector2( 960, 840 )
 stream = ExtResource( 6 )
 
 [node name="CustomerSpawnTimer" type="Timer" parent="." groups=["Timers"]]
+autostart = true
 
 [node name="PaycheckTimer" type="Timer" parent="." groups=["Timers"]]
 wait_time = 60.0

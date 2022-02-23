@@ -28,7 +28,7 @@ public class SaveManager
 		var people = cafe.People.Values.OfType<T>();
 		foreach (T person in people)
 		{
-			if (!person.Fired)
+			if (!person.Fired && person.Valid)
 			{
 				Godot.Collections.Array<uint> data = person.GetSaveData();
 				foreach (uint dat in data)
@@ -232,11 +232,14 @@ public class SaveManager
 			saveFile.StoreLine("furniture_begin");
 			foreach (var fur in cafe.Furnitures)
 			{
-				Godot.Collections.Array<uint> data = fur.Value?.GetSaveData();
-				foreach (uint dat in data)
-				{
-					saveFile.Store32(dat);
-				}
+                if (fur.Value.Valid)
+                {
+                    Godot.Collections.Array<uint> data = fur.Value?.GetSaveData();
+                    foreach (uint dat in data)
+                    {
+                        saveFile.Store32(dat);
+                    }
+                }
 			}
 			saveFile.StoreLine("furniture_end");
 

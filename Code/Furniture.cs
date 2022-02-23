@@ -213,7 +213,7 @@ public class Furniture : CafeObject
                 }
                 if (CurrentCustomer != null)
                 {
-                    if(cafe.Navigation.FindPathTo(_currentCustomer.Position, position) == null)
+                    if(cafe.Navigation.FindPathTo(_currentCustomer.Position, position) == null || pendingKill)
                     {
                         //customer has to look for other alternatives
                         CurrentUser?.ResetOrCancelGoal(true);

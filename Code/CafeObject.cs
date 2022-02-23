@@ -16,7 +16,8 @@ public class CafeObject : Godot.Object
 
     protected Vector2 textureSize;
     
-
+    /**<summary>Should this object be deleted on the next frame?<para/>
+    Note that not every object will actually be deleted on the next frame</summary>*/
     protected bool pendingKill = false;
 
     /**<summary>How big the object is in the game world</summary>*/
@@ -27,10 +28,8 @@ public class CafeObject : Godot.Object
 
     public bool Valid => !pendingKill;
 
-    
     public static uint SaveDataSize = 5u;
 
-    
     public virtual Vector2 Position
     {
         get => position;
@@ -170,5 +169,11 @@ public class CafeObject : Godot.Object
     public virtual void Update(float deltaTime){}
 
     public virtual void OnInput(InputEvent @event){}
+
+    /**<summary> Sets pending kill to true, but does not actually remove anything</summary>*/
+    public void MarkToKIll()
+    {
+        pendingKill = true;
+    }
 }
 

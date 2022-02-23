@@ -32,6 +32,7 @@ public class FurnitureMover
     {
         if (_currentlyMovedFurniture != null)
         {
+            _currentlyMovedFurniture.MarkToKIll();
             _currentlyMovedFurniture.Position = _startLocation;
             cafe.Money += _currentlyMovedFurniture.Price;
             cafe.Furnitures.Remove((uint)cafe.GetFurnitureIndex(_currentlyMovedFurniture));
