@@ -57,23 +57,6 @@ namespace Staff
 			GenerateRIDBasedOnTexture(cafe.Textures["Cook"], ZOrderValues.Customer);
         }
 
-        [Obsolete]
-        public void TakeNewOrder(int orderId)
-        {
-            Vector2[] temp;
-            //first try to find the fridge and if succeeded do the thing
-            Furniture fridge = cafe.FindClosestFurniture(Furniture.FurnitureType.Fridge, Position, out temp);
-            if (fridge != null)
-            {
-                currentGoal = Cook.Goal.TakeFood;
-                goalOrderId = orderId;
-                //mark this fridge as used by this cook for movement mode 
-                fridge.CurrentUser = this;
-                currentApplianceId = cafe.GetFurnitureIndex(fridge);
-                PathToTheTarget = temp;
-            }
-        }
-
         public void OnNewOrder()
         {
             if (cafe.Orders.Any() && IsFree)

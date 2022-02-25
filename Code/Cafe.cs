@@ -420,13 +420,20 @@ public class Cafe : Node2D
 	/**<summary>This function creates new customer object<para/>Frequency of customer spawn is based on cafe</summary>*/
 	public Customer SpawnCustomer()
 	{
-		//TODO: replace with proper calculation
-		Random rand = new Random();
-		people[_currentPersonId] = new Customer(_currentPersonId++,_textureManager["Customer"], this, _navigation["Entrance"],
-			rand.Next(_attraction.CustomerLowestQuality,_attraction.CustomerHighestQuality));
-		//init function needs customer to be in cafe
-		people[_currentPersonId - 1].Init();
-		return people[_currentPersonId - 1] as Customer;
+        //TODO: replace with proper calculation
+        if (_furnitures.Values.Any(p => p.CurrentType == Furniture.FurnitureType.Table))
+        {
+            Random rand = new Random();
+            people[_currentPersonId] = new Customer(_currentPersonId++, _textureManager["Customer"], this, _navigation["Entrance"],
+                rand.Next(_attraction.CustomerLowestQuality, _attraction.CustomerHighestQuality));
+            //init function needs customer to be in cafe
+            people[_currentPersonId - 1].Init();
+            return people[_currentPersonId - 1] as Customer;
+        }
+		else
+		{
+			return null;//we should not spawn customers if there are no tables
+		}
 	}
 
 	public void AddCompletedOrder(int orderId)

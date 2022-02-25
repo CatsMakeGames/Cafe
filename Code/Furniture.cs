@@ -135,6 +135,12 @@ public class Furniture : CafeObject
         get => _currentCustomer;
     }
 
+    private void _remakeTexture()
+    {
+        //idk how should texture atlases should be structured so idk move around variation and level if it looks weird
+        GenerateRIDBasedOnTexture(_texture,ZOrderValues.Furniture,new Rect2(variation* textureSize.x,level * textureSize.y, textureSize));
+    }
+
     public byte Level
     {
         get => level;
@@ -144,7 +150,7 @@ public class Furniture : CafeObject
             //clean current textures
             VisualServer.FreeRid(textureRID);
             //generate new texture
-            GenerateRIDBasedOnTexture(_texture,ZOrderValues.Furniture,new Rect2(value * textureSize.x, variation * textureSize.y, textureSize));
+            _remakeTexture();
         }
     }
 
@@ -178,7 +184,7 @@ public class Furniture : CafeObject
         variation = (int)data[13];
         _texture = cafe.Textures[CurrentType.ToString()];
         level = (byte)data[10];
-        GenerateRIDBasedOnTexture(cafe.Textures[CurrentType.ToString()], ZOrderValues.Furniture,new Rect2(level * textureSize.x, variation * textureSize.y, textureSize));
+        _remakeTexture();
         //because level directly affects texture 
     }
 
