@@ -4,7 +4,7 @@
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://CafeNavigation.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Art_Pixel/Floors/floor.png" type="Texture" id=5]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture57.tres" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
@@ -39,13 +39,14 @@ Textures = {
 _navigationSystemPrefab = ExtResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 511.243, 299.004 )
+position = Vector2( 960, 488 )
 current = true
-zoom = Vector2( 1.5, 1.5 )
+zoom = Vector2( 2, 2 )
 
 [node name="Entrance" type="Node2D" parent="."]
 
 [node name="CafeNavigation" parent="." instance=ExtResource( 4 )]
+visible = false
 _locationNodes = {
 "Entrance": "Entrance",
 "Exit": "Entrance",
@@ -54,6 +55,10 @@ _locationNodes = {
 
 [node name="Kitchen" type="Node2D" parent="."]
 position = Vector2( 960, 840 )
+
+[node name="TileMap" parent="." instance=ExtResource( 16 )]
+scale = Vector2( 2, 2 )
+tile_data = PoolIntArray( -65537, 0, 65537, -131072, 0, 131076, -131071, 0, 131076, -131070, 0, 131076, -131069, 0, 131076, -131068, 0, 131076, -131067, 0, 131076, -131066, 0, 131076, -131065, 0, 131076, -131064, 0, 131076, -131063, 0, 131076, -131062, 0, 131076, -131061, 0, 131076, -131060, 0, 131076, -131059, 0, 131076, -131058, 0, 131076, -131057, 0, 131076, -131056, 0, 131076, -131055, 0, 131076, -131054, 0, 131076, -131053, 0, 131076, -131052, 0, 131076, -131051, 0, 131076, -131050, 0, 131076, -131049, 0, 131076, -131048, 0, 131076, -131047, 0, 131076, -131046, 0, 131076, -131045, 0, 131076, -131044, 0, 131076, -131043, 0, 131076, -131042, 0, 65542, -1, 0, 65538, -65536, 0, 196611, -65535, 0, 196611, -65534, 0, 196611, -65533, 0, 196611, -65532, 0, 196611, -65531, 0, 196611, -65530, 0, 196611, -65529, 0, 196611, -65528, 0, 196611, -65527, 0, 196611, -65526, 0, 196611, -65525, 0, 196611, -65524, 0, 196611, -65523, 0, 196611, -65522, 0, 196611, -65521, 0, 196611, -65520, 0, 196611, -65519, 0, 196611, -65518, 0, 196611, -65517, 0, 196611, -65516, 0, 196611, -65515, 0, 196611, -65514, 0, 196611, -65513, 0, 196611, -65512, 0, 196611, -65511, 0, 196611, -65510, 0, 196611, -65509, 0, 196611, -65508, 0, 196611, -65507, 0, 196611, -65506, 0, 65541, 65535, 0, 327681, 30, 0, 327686, 131071, 0, 327681, 65566, 0, 327686, 196607, 0, 327681, 131102, 0, 327686, 262143, 0, 327681, 196638, 0, 327686, 327679, 0, 327681, 262174, 0, 327686, 393215, 0, 327681, 327710, 0, 327686, 458751, 0, 327681, 393246, 0, 131077, 524287, 0, 327681, 458782, 0, 131077, 589823, 0, 327681, 524318, 0, 131077, 655359, 0, 327681, 589854, 0, 131077, 720895, 0, 327681, 655390, 0, 131077, 786431, 0, 327681, 720926, 0, 131077, 851967, 0, 327681, 786462, 0, 131077, 917503, 0, 327681, 851998, 0, 131077, 983039, 0, 327681, 917534, 0, 131077, 1048575, 0, 327681, 983070, 0, 131077, 1114111, 0, 327682, 1048576, 0, 327683, 1048577, 0, 327683, 1048578, 0, 327683, 1048579, 0, 327683, 1048580, 0, 327683, 1048581, 0, 327683, 1048582, 0, 327683, 1048583, 0, 327683, 1048584, 0, 327683, 1048585, 0, 327683, 1048586, 0, 327683, 1048587, 0, 327683, 1048588, 0, 327683, 1048589, 0, 327683, 1048590, 0, 327683, 1048591, 0, 327683, 1048592, 0, 327683, 1048593, 0, 327683, 1048594, 0, 327683, 1048595, 0, 327683, 1048596, 0, 327683, 1048597, 0, 327683, 1048598, 0, 327683, 1048599, 0, 327683, 1048600, 0, 327683, 1048601, 0, 327683, 1048602, 0, 327683, 1048603, 0, 327683, 1048604, 0, 327683, 1048605, 0, 327683, 1048606, 0, 327683 )
 
 [node name="PaymentSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 6 )
@@ -68,16 +73,17 @@ __meta__ = {
 "_editor_description_": "This timer manages how often does player loose their money when paying their staff"
 }
 
-[node name="Stats" parent="." instance=ExtResource( 21 )]
+[node name="UI" parent="." instance=ExtResource( 12 )]
+scale = Vector2( 0.5, 0.5 )
+transform = Transform2D( 0.5, 0, 0, 0.5, 0, 0 )
+
+[node name="Stats" parent="UI" instance=ExtResource( 21 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = -144.0
-margin_right = 256.0
-margin_bottom = -80.0
-
-[node name="UI" parent="." instance=ExtResource( 12 )]
-scale = Vector2( 0.75, 0.75 )
-transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
+margin_left = 1536.0
+margin_right = 1792.0
+margin_bottom = 64.0
+rect_scale = Vector2( 1.5, 1.5 )
 
 [node name="MainMenu" parent="UI" instance=ExtResource( 22 )]
 visible = false
@@ -107,8 +113,6 @@ _textures = {
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )
 }
-
-[node name="TileMap" parent="." instance=ExtResource( 16 )]
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]
