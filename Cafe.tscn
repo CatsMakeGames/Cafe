@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=20 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
@@ -15,6 +15,7 @@
 [ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
 [ext_resource path="res://Art_Pixel/lamp.png" type="Texture" id=14]
 [ext_resource path="res://Art_Pixel/plant.png" type="Texture" id=15]
+[ext_resource path="res://TileMap.tscn" type="PackedScene" id=16]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
 [ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
@@ -106,6 +107,8 @@ _textures = {
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )
 }
+
+[node name="TileMap" parent="." instance=ExtResource( 16 )]
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]
