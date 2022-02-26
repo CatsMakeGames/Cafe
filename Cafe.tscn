@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
@@ -13,6 +13,8 @@
 [ext_resource path="res://Art/table.png" type="Texture" id=11]
 [ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
 [ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
+[ext_resource path="res://Art_Pixel/lamp.png" type="Texture" id=14]
+[ext_resource path="res://Art_Pixel/plant.png" type="Texture" id=15]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
 [ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
@@ -20,11 +22,15 @@
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 playableArea = Rect2( 0, 0, 1024, 704 )
+DecorFurnitureTypes = [ 1, 4, 5 ]
+FoodFurnitureTypes = [ 3, 2 ]
 Textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
 "Fridge": ExtResource( 8 ),
 "Furniture": ExtResource( 11 ),
+"Lamp": ExtResource( 14 ),
+"Plant": ExtResource( 15 ),
 "Stove": ExtResource( 7 ),
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )
@@ -85,6 +91,7 @@ margin_top = -143.0
 margin_right = 872.0
 margin_bottom = -14.0
 rect_scale = Vector2( 1.43535, 2.88063 )
+types = [ 0 ]
 
 [node name="TextureManager" parent="." instance=ExtResource( 13 )]
 _fallbackTexture = ExtResource( 10 )
@@ -93,6 +100,8 @@ _textures = {
 "Customer": ExtResource( 2 ),
 "Floor": ExtResource( 5 ),
 "Fridge": ExtResource( 8 ),
+"Lamp": ExtResource( 14 ),
+"Plant": ExtResource( 15 ),
 "Stove": ExtResource( 7 ),
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )

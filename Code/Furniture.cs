@@ -34,7 +34,10 @@ public class Furniture : CafeObject
         Invalid,
         Table,
         Stove,
-        Fridge
+        Fridge,
+        /**<summary>These items can not be used by anybody but improve cafe rating</summary>*/
+        Decor,
+        Poster
     }
 
     /**<summary>Texture used for this object</summary>*/
@@ -44,6 +47,9 @@ public class Furniture : CafeObject
     private uint _loadedCustomerId = 0;
 
     protected int variation = 0;
+
+    private int _decorLevel = 1;
+    public int DecorLevel => _decorLevel;
     public State CurrentState = State.Free;
 
     private FurnitureType _currentType = FurnitureType.Invalid;
@@ -55,10 +61,6 @@ public class Furniture : CafeObject
 
     /**<summary>Space that is taken up by this furniture</summary>*/
     public Rect2 CollisionRect => new Rect2(Position, size);
-
-    [Obsolete("No longer in use",true)]
-    protected bool isInUse = false;
-
     public virtual bool IsInUse => CurrentState == State.InUse;
 
     /**<summary>Current level of the furniture.<para/>Used to store same types of furniture under same class<para/>
@@ -67,7 +69,7 @@ public class Furniture : CafeObject
     protected byte level;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 14u;
+    public new static uint SaveDataSize = 17u;
 
     public override Array<uint> GetSaveData()
     {
@@ -84,17 +86,18 @@ public class Furniture : CafeObject
         //this might be a strange solution but if it's 0 then no id was recorded if it's anything but 0 then it's a proper id
         //upon loading we will just subtract or ignore this value(storing signed it would waste a lot of possible space)
         //note that id of 0 is possible in the game itself
-        baseSaveData.Add(CurrentUser?.Id + 1 ?? 0x0);//[6]
-        baseSaveData.Add(CurrentCustomer?.Id + 1 ?? 0x0);//[7]
+        baseSaveData.Add(CurrentUser?.Id + 1 ?? 0x0);//[8]
+        baseSaveData.Add(CurrentCustomer?.Id + 1 ?? 0x0);//[9]
 
-        baseSaveData.Add((uint)CurrentType);//[8]
-        baseSaveData.Add((uint)CurrentState);//[9]
-        baseSaveData.Add((uint)Level);//[10]
+        baseSaveData.Add((uint)CurrentType);//[10]
+        baseSaveData.Add((uint)CurrentState);//[11]
+        baseSaveData.Add((uint)Level);//[12]
 
-        baseSaveData.Add((uint)size.x);//[11]
-        baseSaveData.Add((uint)size.y);//[12]
+        baseSaveData.Add((uint)size.x);//[13]
+        baseSaveData.Add((uint)size.y);//[14]
 
-        baseSaveData.Add((uint)variation);//[13]
+        baseSaveData.Add((uint)variation);//[15]
+        baseSaveData.Add((uint)_decorLevel);//[16]
         return baseSaveData;
     }
 
@@ -169,21 +172,22 @@ public class Furniture : CafeObject
 
     public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
     {
-        _currentType = (FurnitureType)data[8];
-        CurrentState = (State)data[9];
+        _currentType = (FurnitureType)data[10];
+        CurrentState = (State)data[11];
        
 
-        _loadedUserId = data[6];
-        _loadedCustomerId = data[7];
+        _loadedUserId = data[8];
+        _loadedCustomerId = data[9];
         size = new Vector2
                         (
-                            (float)data[11],
-                            (float)data[12]
+                            (float)data[13],
+                            (float)data[14]
                         );
         //level = (byte)data[10];
-        variation = (int)data[13];
+        variation = (int)data[15];
         _texture = cafe.Textures[CurrentType.ToString()];
-        level = (byte)data[10];
+        level = (byte)data[12];
+        _decorLevel = (int)data[16];
         _remakeTexture();
         //because level directly affects texture 
     }
@@ -237,6 +241,8 @@ public class Furniture : CafeObject
                 var temp = CurrentUser;
 			    CurrentUser = null;
 			    temp?.ResetOrCancelGoal();   
+                break;
+            case FurnitureType.Decor:case FurnitureType.Poster:
                 break;
             default:
                 throw new NotImplementedException("Attempted to use unfinished furniture type");

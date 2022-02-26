@@ -43,7 +43,7 @@ namespace Staff
 		public Customer currentCustomer = null;
 
         /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-        public new static uint SaveDataSize = 13u;
+        public new static uint SaveDataSize = 15u;
 
 		public Waiter(uint id,Texture texture, Cafe cafe, Vector2 pos) : base(id,texture, new Vector2(128, 128), texture.GetSize(), cafe, pos, (int)ZOrderValues.Customer)
 		{
@@ -62,18 +62,18 @@ namespace Staff
             Salary = 100;
 			textureSize = cafe.Textures["Waiter"].GetSize();
 			size = new Vector2(128, 128);
-            CurrentGoal = (Goal)saveData[10];
-            currentOrder = (int)saveData[11] - 1;
-            _loadedCustomerId = saveData[12];
+            CurrentGoal = (Goal)saveData[12];
+            currentOrder = (int)saveData[13] - 1;
+            _loadedCustomerId = saveData[14];
 			GenerateRIDBasedOnTexture(cafe.Textures["Waiter"], ZOrderValues.Customer);
 		}
 
 		public override Array<uint> GetSaveData()
 		{
 			Array<uint> data = base.GetSaveData();//total count of CafeObject is 5; total count of Person is 2
-			data.Add((uint)CurrentGoal);//[10]
-			data.Add((uint)(currentOrder < 0 ? 0 : currentOrder + 1));//[11]
-			data.Add((currentCustomer?.Id + 1u ?? 0x00));//[12]
+			data.Add((uint)CurrentGoal);//[12]
+			data.Add((uint)(currentOrder < 0 ? 0 : currentOrder + 1));//[13]
+			data.Add((currentCustomer?.Id + 1u ?? 0x00));//[14]
 			return data;
 		}
 

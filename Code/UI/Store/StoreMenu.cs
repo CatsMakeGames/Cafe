@@ -58,8 +58,7 @@ namespace UI
                     int elemCount = 0;
                     foreach (var item in arr)
                     {
-
-                        StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create isntance from buttom template. Maybe template is incorrect?");
+                        StoreMenuItemButton button = buttonScene.InstanceOrNull<StoreMenuItemButton>() ?? throw new NullReferenceException("Unable to create instance from buttom template. Maybe template is incorrect?");
                         currentContainer.AddChild(button);
                         button.Texture.Texture = cafe.TextureManager[item.TextureName];
                         button.ItemData = item;

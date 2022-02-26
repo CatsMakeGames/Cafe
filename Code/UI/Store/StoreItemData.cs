@@ -2,7 +2,7 @@
 using System;
 
 
-/**<summary>Class that stores item data loaded from datatable</summary>*/
+/**<summary>Data class that stores item data that is loaded from datatable</summary>*/
 public class StoreItemData : Godot.Object
 {
     /**<summart>Id of the item in the original item table<para/>This way id stays consitstent no matter what</summart>*/
@@ -18,9 +18,13 @@ public class StoreItemData : Godot.Object
 
     public byte Level = 0;
 
+    public byte DecorLevel = 1;
+
     public int Price = 100;
 
     public Vector2 Size = new Vector2(128, 128);
+
+    public Vector2 FrameSize = new Vector2(32,32);
 
     public Furniture.Category FurnitureCategory = Furniture.Category.None;
 
@@ -32,15 +36,16 @@ public class StoreItemData : Godot.Object
     public StoreItemData(string data)
     {
         string[] subData = data.Split(';');
-        fillData(subData);
+        _fillData(subData);
     }
 
     public StoreItemData(string[] subData)
     {
-        fillData(subData);
+        _fillData(subData);
     }
 
-    void fillData(string[] subData)
+    /**<summary>Converts raw byte data into item data</summary>*/
+    private void _fillData(string[] subData)
     {
         //because id is 16bit integer that is always bigger then 0
         tableId = System.Convert.ToUInt16(subData[0]);
@@ -61,5 +66,11 @@ public class StoreItemData : Godot.Object
 
         Description = subData[9];
         Level = Convert.ToByte(subData[10]);
+        DecorLevel = System.Convert.ToByte(subData[11], System.Globalization.CultureInfo.InvariantCulture);
+        FrameSize = new Vector2
+        (
+            System.Convert.ToInt32(subData[12], System.Globalization.CultureInfo.InvariantCulture),
+            System.Convert.ToInt32(subData[13], System.Globalization.CultureInfo.InvariantCulture)
+        );
     }
 }

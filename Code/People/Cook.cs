@@ -32,7 +32,7 @@ namespace Staff
         protected int currentApplianceId = -1;
 
         /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-        public new static uint SaveDataSize = 13u;
+        public new static uint SaveDataSize = 15u;
 
         //prepare and cook are basically wait tasks done using timers so no need for update function
         public override bool ShouldUpdate => (base.ShouldUpdate && currentGoal != Goal.None && goalOrderId > -1) || Fired;
@@ -50,9 +50,9 @@ namespace Staff
             Salary = 100;
             textureSize = cafe.Textures["Cook"].GetSize();
 			size = new Vector2(128, 128);
-            currentGoal = (Goal)saveData[10];
-            goalOrderId = (int)saveData[11];
-            currentApplianceId = saveData[12] == 0 ? -1 : (int)saveData[12] - 1;
+            currentGoal = (Goal)saveData[12];
+            goalOrderId = (int)saveData[13];
+            currentApplianceId = saveData[14] == 0 ? -1 : (int)saveData[15] - 1;
             cafe.Connect(nameof(Cafe.OnNewOrderAdded),this,nameof(OnNewOrder));
 			GenerateRIDBasedOnTexture(cafe.Textures["Cook"], ZOrderValues.Customer);
         }
@@ -168,9 +168,9 @@ namespace Staff
         {
             //total count of CafeObject is 5; total count of Person is 2
             Array<uint> data = base.GetSaveData();
-            data.Add((uint)currentGoal);//[10]
-            data.Add((uint)goalOrderId);//[11]
-            data.Add((uint)currentApplianceId + 1u);//[12]
+            data.Add((uint)currentGoal);//[12]
+            data.Add((uint)goalOrderId);//[13]
+            data.Add((uint)currentApplianceId + 1u);//[14]
             return data;
         }
 

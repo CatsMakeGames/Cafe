@@ -6,6 +6,8 @@ public class StuffDebugUI : VBoxContainer
 {
 	Cafe cafe;
 
+    [Export]
+    Godot.Collections.Array<Furniture.FurnitureType> types;
 	public override void _Ready()
 	{
 		base._Ready();

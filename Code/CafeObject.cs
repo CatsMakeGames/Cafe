@@ -63,12 +63,11 @@ public class CafeObject : Godot.Object
     }
 
     /**<summary>Constructor used for loading from save data<para/>
-     * Note that if using this constructor you need to hard code texture name in every class to avoid usin wrong textures</summary>*/
+     * Note that if using this constructor you need to hard code texture name in every class to avoid using wrong textures</summary>*/
     public CafeObject(Cafe cafe, uint[] saveData)
     {
         this.cafe = cafe;
         _id = saveData[0];
-        this.size = new Vector2(128, 128);
         LoadData(saveData);
     }
 
@@ -128,16 +127,20 @@ public class CafeObject : Godot.Object
         result.Add((uint)textureSize.x);//[1]
         result.Add((uint)textureSize.y);//[2]
 
+        result.Add((uint)size.x);//[3]
+        result.Add((uint)size.y);//[4]
+
         //position is stored as integer because that's simpler and because it does not change result that much
-        result.Add((uint)position.x);//[3]
-        result.Add((uint)position.y);//[4]
+        result.Add((uint)position.x);//[5]
+        result.Add((uint)position.y);//[6]
         return result;
     }
 
     public virtual void LoadData(uint[] data)
     {
-        position = new Vector2(data[3], data[4]);
+        position = new Vector2(data[5], data[6]);
         textureSize = new Vector2(data[1], data[2]);
+        size = new Vector2(data[3], data[4]);
     }
 
     /**<summary>Init object based on data loaded from save file</summary>*/

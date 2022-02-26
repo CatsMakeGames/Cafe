@@ -67,7 +67,7 @@ public class Person : CafeObject
 	/**<summary>Should timer be counted</summary>*/
 	protected bool TaskIsActive = false;
 
-	public new static uint SaveDataSize = 10u;
+	public new static uint SaveDataSize = 12u;
 
 	/**<summary>Sets new time for timer.<para/>This will reset timer if it's active</summary>*/
 	protected void SetTaskTimer(float time)
@@ -98,12 +98,12 @@ public class Person : CafeObject
 	public Person(Cafe cafe, uint[] saveData) : base(cafe, saveData)
 	{
         _loadedDestination = new Vector2(
-            (float)saveData[5],
-            (float)saveData[6]
+            (float)saveData[7],
+            (float)saveData[8]
         );
-		TaskIsActive 	=  	Convert.ToBoolean(saveData[7]);
-		TaskNeededTime 	= 	Convert.ToSingle(saveData[8]);
-		TaskCurrentTime	= 	Convert.ToSingle(saveData[9]);
+		TaskIsActive 	=  	Convert.ToBoolean(saveData[9]);
+		TaskNeededTime 	= 	Convert.ToSingle(saveData[10]);
+		TaskCurrentTime	= 	Convert.ToSingle(saveData[11]);
 	}
 
 	/**<summary>Executed when staff member arrives to their goal</summary>*/
@@ -121,18 +121,18 @@ public class Person : CafeObject
 		if (pathToTheTarget != null)
 		{
 			//if ai has goal save that
-			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].x);//[5]
-			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].y);//[6]
+			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].x);//[7]
+			data.Add((uint)pathToTheTarget[pathToTheTarget.Length - 1].y);//[8]
 		}
 		else
 		{
-			data.Add((uint)position.x);//[5]
-			data.Add((uint)position.y);//[6]
+			data.Add((uint)position.x);//[7]
+			data.Add((uint)position.y);//[5]
 		}
 
-		data.Add((uint)TaskNeededTime);//[7]
-		data.Add((uint)TaskCurrentTime);//[8]
-		data.Add(TaskIsActive ? 1u : 0u);//[9]
+		data.Add((uint)TaskNeededTime);//[9]
+		data.Add((uint)TaskCurrentTime);//[10]
+		data.Add(TaskIsActive ? 1u : 0u);//[11]
 		return data;
 	}
 
