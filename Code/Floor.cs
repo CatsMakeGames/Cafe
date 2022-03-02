@@ -14,6 +14,7 @@ public class Floor : Godot.Object
             //spawn image in the world
             if (value != null)
             {
+                VisualServer.FreeRid(textureRID);
                 textureRID = VisualServer.CanvasItemCreate();
                 VisualServer.CanvasItemSetParent(textureRID, cafeCanvasRID);
                 VisualServer.CanvasItemAddTextureRect(textureRID, new Rect2(0, 0, _roomSize.x, _roomSize.y), value.GetRid(), true, null, false, value.GetRid());

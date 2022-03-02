@@ -312,7 +312,7 @@ public class Cafe : Node2D
 		_furnitureMover = new FurnitureMover(this);
 		_cafeControlMenu  = GetNode<CafeControl>("UI") ?? throw new NullReferenceException("Missing menu!");
 		_cafeControlMenu.Cafe = this;
-		_floor = new Floor(_textureManager["Floor"], new Vector2(1000, 1000), this);
+		_floor = new Floor(_textureManager["Floor"], new Vector2(1920, 1020), this);
 
 		_navigation = GetNode<CafeNavigation>("CafeNavigation") ?? throw new NullReferenceException("Failed to find navigation system");
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");

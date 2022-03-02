@@ -1,4 +1,4 @@
-[gd_scene load_steps=99 format=2]
+[gd_scene load_steps=137 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
@@ -97,6 +97,44 @@
 [ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset6.tres" type="TileSet" id=95]
 [ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset4.tres" type="TileSet" id=96]
 [ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset9.tres" type="TileSet" id=97]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon20.tres" type="Texture" id=98]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon21.tres" type="Texture" id=99]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon7.tres" type="Texture" id=100]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon5.tres" type="Texture" id=101]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon13.tres" type="Texture" id=102]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon4.tres" type="Texture" id=103]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon1.tres" type="Texture" id=104]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon3.tres" type="Texture" id=105]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon15.tres" type="Texture" id=106]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon8.tres" type="Texture" id=107]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon12.tres" type="Texture" id=108]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon22.tres" type="Texture" id=109]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon23.tres" type="Texture" id=110]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon10.tres" type="Texture" id=111]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset20.tres" type="TileSet" id=112]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset19.tres" type="TileSet" id=113]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset21.tres" type="TileSet" id=114]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset22.tres" type="TileSet" id=115]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset11.tres" type="TileSet" id=116]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset12.tres" type="TileSet" id=117]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset14.tres" type="TileSet" id=118]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset15.tres" type="TileSet" id=119]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset13.tres" type="TileSet" id=120]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset16.tres" type="TileSet" id=121]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset17.tres" type="TileSet" id=122]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset18.tres" type="TileSet" id=123]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset10.tres" type="TileSet" id=124]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon18.tres" type="Texture" id=125]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon19.tres" type="Texture" id=126]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon0.tres" type="Texture" id=127]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon2.tres" type="Texture" id=128]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon6.tres" type="Texture" id=129]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon11.tres" type="Texture" id=130]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon14.tres" type="Texture" id=131]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon9.tres" type="Texture" id=132]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon16.tres" type="Texture" id=133]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon17.tres" type="Texture" id=134]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset23.tres" type="TileSet" id=135]
 
 [sub_resource type="AtlasTexture" id=1]
 atlas = ExtResource( 5 )
@@ -121,9 +159,9 @@ Textures = {
 _navigationSystemPrefab = ExtResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 960, 488 )
+position = Vector2( 856, 376 )
 current = true
-zoom = Vector2( 2, 2 )
+zoom = Vector2( 2.3, 2.3 )
 
 [node name="Entrance" type="Node2D" parent="."]
 
@@ -156,8 +194,8 @@ __meta__ = {
 }
 
 [node name="UI" parent="." instance=ExtResource( 12 )]
-scale = Vector2( 0.5, 0.5 )
-transform = Transform2D( 0.5, 0, 0, 0.5, 0, 0 )
+scale = Vector2( 0.45, 0.45 )
+transform = Transform2D( 0.45, 0, 0, 0.45, 0, 0 )
 
 [node name="Stats" parent="UI" instance=ExtResource( 21 )]
 anchor_right = 0.0
@@ -185,7 +223,7 @@ types = [ 0 ]
 [node name="TextureManager" parent="." instance=ExtResource( 13 )]
 _fallbackTexture = ExtResource( 10 )
 _floorTextures = [ ExtResource( 83 ), ExtResource( 79 ), ExtResource( 81 ), ExtResource( 86 ), ExtResource( 84 ), ExtResource( 82 ), ExtResource( 85 ), ExtResource( 80 ), ExtResource( 76 ), ExtResource( 87 ), ExtResource( 75 ), ExtResource( 77 ), ExtResource( 78 ), ExtResource( 42 ), ExtResource( 45 ), ExtResource( 64 ), ExtResource( 70 ), ExtResource( 54 ), ExtResource( 46 ), ExtResource( 74 ), ExtResource( 65 ), ExtResource( 50 ), ExtResource( 47 ), ExtResource( 48 ), ExtResource( 59 ), ExtResource( 40 ), ExtResource( 72 ), ExtResource( 66 ), ExtResource( 67 ), ExtResource( 43 ), ExtResource( 68 ), ExtResource( 52 ), ExtResource( 73 ), ExtResource( 69 ), ExtResource( 51 ), ExtResource( 71 ), ExtResource( 61 ), ExtResource( 41 ), ExtResource( 44 ), ExtResource( 62 ), ExtResource( 60 ), ExtResource( 49 ), ExtResource( 53 ), ExtResource( 55 ), ExtResource( 63 ), ExtResource( 56 ), ExtResource( 57 ), ExtResource( 58 ), ExtResource( 17 ), ExtResource( 38 ), ExtResource( 24 ), ExtResource( 29 ), ExtResource( 36 ), ExtResource( 30 ), ExtResource( 39 ), ExtResource( 23 ), ExtResource( 31 ), ExtResource( 18 ), ExtResource( 19 ), ExtResource( 32 ), ExtResource( 33 ), ExtResource( 20 ), ExtResource( 37 ), ExtResource( 25 ), ExtResource( 27 ), ExtResource( 34 ), ExtResource( 28 ), ExtResource( 35 ) ]
-_wallTilesets = [ ExtResource( 91 ), ExtResource( 89 ), ExtResource( 90 ), ExtResource( 88 ), ExtResource( 96 ), ExtResource( 94 ), ExtResource( 95 ), ExtResource( 93 ), ExtResource( 92 ), ExtResource( 97 ) ]
+_wallTilesetIcons = [ ExtResource( 127 ), ExtResource( 104 ), ExtResource( 128 ), ExtResource( 105 ), ExtResource( 103 ), ExtResource( 101 ), ExtResource( 129 ), ExtResource( 100 ), ExtResource( 107 ), ExtResource( 132 ), ExtResource( 111 ), ExtResource( 130 ), ExtResource( 108 ), ExtResource( 102 ), ExtResource( 131 ), ExtResource( 106 ), ExtResource( 133 ), ExtResource( 134 ), ExtResource( 125 ), ExtResource( 126 ), ExtResource( 98 ), ExtResource( 99 ), ExtResource( 109 ), ExtResource( 110 ) ]
 _textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
@@ -197,6 +235,7 @@ _textures = {
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )
 }
+_wallTilesets = [ ExtResource( 91 ), ExtResource( 89 ), ExtResource( 90 ), ExtResource( 88 ), ExtResource( 96 ), ExtResource( 94 ), ExtResource( 95 ), ExtResource( 93 ), ExtResource( 92 ), ExtResource( 97 ), ExtResource( 124 ), ExtResource( 116 ), ExtResource( 117 ), ExtResource( 120 ), ExtResource( 118 ), ExtResource( 119 ), ExtResource( 121 ), ExtResource( 122 ), ExtResource( 123 ), ExtResource( 113 ), ExtResource( 112 ), ExtResource( 114 ), ExtResource( 115 ), ExtResource( 135 ) ]
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]

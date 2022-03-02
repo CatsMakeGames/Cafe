@@ -113,7 +113,19 @@ namespace UI
                   but.TextureId = elemCount++;
                   return but;
               });
-            //TODO: iterate over every wall set and add button for it
+            
+            elemCount = 0;
+
+            _createMenuCategory<Texture>("Wall",cafe.TextureManager.WallTilesetIcons, p=>
+            {
+                StoreMenuWallButton but =_wallButtonScene.InstanceOrNull<StoreMenuWallButton>()
+                                ?? throw new NullReferenceException("Unable to create instance from buttom template. Maybe template is incorrect?");
+                but.Texture = p;
+                but.Label = 100.ToString();
+                but.ParentMenu = this;
+                but.TextureId = elemCount++;
+                return but;
+            });
         }
 
         /**<summary>Process child button being pressed<para/>Logic is placed here to avoid having referenced to cafe in buttons and because menu loads/saves data</summary>*/

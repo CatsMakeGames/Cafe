@@ -14,16 +14,20 @@ public class TextureManager : Node
 	/**<summary>Collection of all floor textures in the game<para/>
 	unlike object textrues floor textures don't have a name only index and as such don't share</summary>*/
 	[Export]
-    private List<Texture> _floorTextures = new List<Texture>();
+	private List<Texture> _floorTextures = new List<Texture>();
 	public List<Texture> FloorTextures => _floorTextures;
 
 	[Export]
-	private List<TileSet> _wallTilesets = new List<TileSet>();
-	public List<TileSet> WallTilesets => _wallTilesets;
+	private List<Texture> _wallTilesetIcons = new List<Texture>();
+	public List<Texture> WallTilesetIcons => _wallTilesetIcons;
 
 	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
 	[Export]
 	private Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
+
+	[Export]
+	private List<TileSet> _wallTilesets = new List<TileSet>();
+	public List<TileSet> WallTilesets => _wallTilesets;
 
 	public bool HasTexture(string name)
 	{
