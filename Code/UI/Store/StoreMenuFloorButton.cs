@@ -13,6 +13,7 @@ namespace UI
 			{
 				ParentMenu.cafe.Money -= 100;
 				ParentMenu.cafe.Floor.Texture = ParentMenu.cafe.TextureManager.FloorTextures[TextureId];
+				ParentMenu.cafe.TextureManager.CurrentFloorTextureId = TextureId;
 			}
 		}
 	}

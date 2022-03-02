@@ -28,6 +28,11 @@ public class TextureManager : Node
 	[Export]
 	private List<TileSet> _wallTilesets = new List<TileSet>();
 	public List<TileSet> WallTilesets => _wallTilesets;
+	
+	/**<summary>Id of the current texture, used only for save system and does not have any effect on how the game works</summary>*/
+	public int CurrentWallTextureId = 0;
+	/**<summary>Id of the current texture, used only for save system and does not have any effect on how the game works</summary>*/
+	public int CurrentFloorTextureId = 0;
 
 	public bool HasTexture(string name)
 	{

@@ -1,16 +1,14 @@
-[gd_scene load_steps=137 format=2]
+[gd_scene load_steps=134 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://CafeNavigation.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Art_Pixel/Floors/Room_Builder_Floors_32x32.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
 [ext_resource path="res://Art_Pixel/people_v2/Cook.tres" type="Texture" id=9]
 [ext_resource path="res://Art_Pixel/people_v2/Waiter.tres" type="Texture" id=10]
-[ext_resource path="res://Art/table.png" type="Texture" id=11]
 [ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
 [ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
 [ext_resource path="res://Art_Pixel/lamp.png" type="Texture" id=14]
@@ -136,26 +134,11 @@
 [ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon17.tres" type="Texture" id=134]
 [ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset23.tres" type="TileSet" id=135]
 
-[sub_resource type="AtlasTexture" id=1]
-atlas = ExtResource( 5 )
-region = Rect2( 416, 480, 32, 32 )
-
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 playableArea = Rect2( 0, 0, 1024, 704 )
 DecorFurnitureTypes = [ 1, 4, 5 ]
 FoodFurnitureTypes = [ 3, 2 ]
-Textures = {
-"Cook": ExtResource( 9 ),
-"Customer": ExtResource( 2 ),
-"Fridge": ExtResource( 8 ),
-"Furniture": ExtResource( 11 ),
-"Lamp": ExtResource( 14 ),
-"Plant": ExtResource( 15 ),
-"Stove": ExtResource( 7 ),
-"Table": ExtResource( 3 ),
-"Waiter": ExtResource( 10 )
-}
 _navigationSystemPrefab = ExtResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
@@ -227,7 +210,7 @@ _wallTilesetIcons = [ ExtResource( 127 ), ExtResource( 104 ), ExtResource( 128 )
 _textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
-"Floor": SubResource( 1 ),
+"Floor": ExtResource( 83 ),
 "Fridge": ExtResource( 8 ),
 "Lamp": ExtResource( 14 ),
 "Plant": ExtResource( 15 ),

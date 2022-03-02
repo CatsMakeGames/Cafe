@@ -13,7 +13,7 @@ public class SaveManager
 	<para/> Update this based on current system</summary>*/
 	public long DataBegining = 1;
 
-	public byte CurrentSaveSystemVersion = 5;
+	public byte CurrentSaveSystemVersion = 6;
 
 	private int _currentSaveId;
 
@@ -224,6 +224,8 @@ public class SaveManager
 			//we also need to store cafe name
 			saveFile.Store8(CurrentSaveSystemVersion);
 			saveFile.StoreLine(cafe.cafeName);
+			saveFile.Store32((uint)cafe.TextureManager.CurrentFloorTextureId);
+			saveFile.Store32((uint)cafe.TextureManager.CurrentWallTextureId);
 
 			_storeCafe(saveFile, cafe);
 			_storeAttractionSystem(saveFile, cafe);
@@ -311,6 +313,9 @@ public class SaveManager
 				throw new Exception($"Incompatible version of save system are used! Expected v{CurrentSaveSystemVersion} got v{version}");
 			}
 			cafe.cafeName = saveFile.GetLine();
+			//TODO: add safety check to avoid invalid ids
+			cafe.Floor.Texture = cafe.TextureManager.FloorTextures[(int)saveFile.Get32()];
+			cafe.GetNode<TileMap>("TileMap").TileSet = cafe.TextureManager.WallTilesets[(int)saveFile.Get32()];
 			//now move past this
 			saveFile.Seek((long)saveFile.GetPosition() + "cafe_begin".Length + 1u);
 			cafe.Load(_loadArray(cafe, saveFile,"cafe_end"));

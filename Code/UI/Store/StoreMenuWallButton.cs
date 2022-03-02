@@ -13,6 +13,7 @@ namespace UI
 			{
 				ParentMenu.cafe.Money -= 100;
 				ParentMenu.cafe.GetNode<TileMap>("TileMap").TileSet = ParentMenu.cafe.TextureManager.WallTilesets[TextureId];
+                ParentMenu.cafe.TextureManager.CurrentWallTextureId = TextureId;
 			}
 		}
 	}
