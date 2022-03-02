@@ -102,6 +102,8 @@ __meta__ = {
 categoryFont = ExtResource( 3 )
 _iconTextures = [ ExtResource( 1 ), ExtResource( 2 ) ]
 ButtonScenePath = "res://FurnitureButton.tscn"
+FloorButtonScenePath = "res://FloorButton.tscn"
+WallButtonScenePath = "res://WallButton.tscn"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="StoreMenu"]
 margin_left = -9.15527e-05

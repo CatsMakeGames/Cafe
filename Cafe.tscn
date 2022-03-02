@@ -1,50 +1,155 @@
-[gd_scene load_steps=19 format=2]
+[gd_scene load_steps=134 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://CafeNavigation.tscn" type="PackedScene" id=4]
-[ext_resource path="res://Art_Pixel/Floors/floor.png" type="Texture" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
 [ext_resource path="res://Art_Pixel/people_v2/Cook.tres" type="Texture" id=9]
 [ext_resource path="res://Art_Pixel/people_v2/Waiter.tres" type="Texture" id=10]
-[ext_resource path="res://Art/table.png" type="Texture" id=11]
 [ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
 [ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
 [ext_resource path="res://Art_Pixel/lamp.png" type="Texture" id=14]
 [ext_resource path="res://Art_Pixel/plant.png" type="Texture" id=15]
+[ext_resource path="res://TileMap.tscn" type="PackedScene" id=16]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture48.png" type="Texture" id=17]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture57.png" type="Texture" id=18]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture58.png" type="Texture" id=19]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture61.png" type="Texture" id=20]
 [ext_resource path="res://Stats.tscn" type="PackedScene" id=21]
 [ext_resource path="res://MainMenu.tscn" type="PackedScene" id=22]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture55.png" type="Texture" id=23]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture50.png" type="Texture" id=24]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture63.png" type="Texture" id=25]
 [ext_resource path="res://debug/StuffDebugUI.tscn" type="PackedScene" id=26]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture64.png" type="Texture" id=27]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture66.png" type="Texture" id=28]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture51.png" type="Texture" id=29]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture53.png" type="Texture" id=30]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture56.png" type="Texture" id=31]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture59.png" type="Texture" id=32]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture60.png" type="Texture" id=33]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture65.png" type="Texture" id=34]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture67.png" type="Texture" id=35]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture52.png" type="Texture" id=36]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture62.png" type="Texture" id=37]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture49.png" type="Texture" id=38]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture54.png" type="Texture" id=39]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture25.png" type="Texture" id=40]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture37.png" type="Texture" id=41]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture13.png" type="Texture" id=42]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture29.png" type="Texture" id=43]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture38.png" type="Texture" id=44]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture14.png" type="Texture" id=45]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture18.png" type="Texture" id=46]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture22.png" type="Texture" id=47]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture23.png" type="Texture" id=48]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture41.png" type="Texture" id=49]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture21.png" type="Texture" id=50]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture34.png" type="Texture" id=51]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture31.png" type="Texture" id=52]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture42.png" type="Texture" id=53]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture17.png" type="Texture" id=54]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture43.png" type="Texture" id=55]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture45.png" type="Texture" id=56]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture46.png" type="Texture" id=57]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture47.png" type="Texture" id=58]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture24.png" type="Texture" id=59]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture40.png" type="Texture" id=60]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture36.png" type="Texture" id=61]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture39.png" type="Texture" id=62]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture44.png" type="Texture" id=63]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture15.png" type="Texture" id=64]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture20.png" type="Texture" id=65]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture27.png" type="Texture" id=66]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture28.png" type="Texture" id=67]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture30.png" type="Texture" id=68]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture33.png" type="Texture" id=69]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture16.png" type="Texture" id=70]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture35.png" type="Texture" id=71]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture26.png" type="Texture" id=72]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture32.png" type="Texture" id=73]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture19.png" type="Texture" id=74]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture10.png" type="Texture" id=75]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture8.png" type="Texture" id=76]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture11.png" type="Texture" id=77]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture12.png" type="Texture" id=78]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture1.png" type="Texture" id=79]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture7.png" type="Texture" id=80]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture2.png" type="Texture" id=81]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture5.png" type="Texture" id=82]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture0.png" type="Texture" id=83]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture4.png" type="Texture" id=84]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture6.png" type="Texture" id=85]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture3.png" type="Texture" id=86]
+[ext_resource path="res://Art_Pixel/Floors/generated/FloorTexture9.png" type="Texture" id=87]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset3.tres" type="TileSet" id=88]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset1.tres" type="TileSet" id=89]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset2.tres" type="TileSet" id=90]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset0.tres" type="TileSet" id=91]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset8.tres" type="TileSet" id=92]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset7.tres" type="TileSet" id=93]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset5.tres" type="TileSet" id=94]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset6.tres" type="TileSet" id=95]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset4.tres" type="TileSet" id=96]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset9.tres" type="TileSet" id=97]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon20.tres" type="Texture" id=98]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon21.tres" type="Texture" id=99]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon7.tres" type="Texture" id=100]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon5.tres" type="Texture" id=101]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon13.tres" type="Texture" id=102]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon4.tres" type="Texture" id=103]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon1.tres" type="Texture" id=104]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon3.tres" type="Texture" id=105]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon15.tres" type="Texture" id=106]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon8.tres" type="Texture" id=107]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon12.tres" type="Texture" id=108]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon22.tres" type="Texture" id=109]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon23.tres" type="Texture" id=110]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon10.tres" type="Texture" id=111]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset20.tres" type="TileSet" id=112]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset19.tres" type="TileSet" id=113]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset21.tres" type="TileSet" id=114]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset22.tres" type="TileSet" id=115]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset11.tres" type="TileSet" id=116]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset12.tres" type="TileSet" id=117]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset14.tres" type="TileSet" id=118]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset15.tres" type="TileSet" id=119]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset13.tres" type="TileSet" id=120]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset16.tres" type="TileSet" id=121]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset17.tres" type="TileSet" id=122]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset18.tres" type="TileSet" id=123]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset10.tres" type="TileSet" id=124]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon18.tres" type="Texture" id=125]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon19.tres" type="Texture" id=126]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon0.tres" type="Texture" id=127]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon2.tres" type="Texture" id=128]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon6.tres" type="Texture" id=129]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon11.tres" type="Texture" id=130]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon14.tres" type="Texture" id=131]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon9.tres" type="Texture" id=132]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon16.tres" type="Texture" id=133]
+[ext_resource path="res://Art_Pixel/Wall/icon_generated/WallIcon17.tres" type="Texture" id=134]
+[ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset23.tres" type="TileSet" id=135]
 
 [node name="Cafe" type="Node2D"]
 script = ExtResource( 1 )
 playableArea = Rect2( 0, 0, 1024, 704 )
 DecorFurnitureTypes = [ 1, 4, 5 ]
 FoodFurnitureTypes = [ 3, 2 ]
-Textures = {
-"Cook": ExtResource( 9 ),
-"Customer": ExtResource( 2 ),
-"Fridge": ExtResource( 8 ),
-"Furniture": ExtResource( 11 ),
-"Lamp": ExtResource( 14 ),
-"Plant": ExtResource( 15 ),
-"Stove": ExtResource( 7 ),
-"Table": ExtResource( 3 ),
-"Waiter": ExtResource( 10 )
-}
 _navigationSystemPrefab = ExtResource( 4 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 511.243, 299.004 )
+position = Vector2( 856, 376 )
 current = true
-zoom = Vector2( 1.5, 1.5 )
+zoom = Vector2( 2.3, 2.3 )
 
 [node name="Entrance" type="Node2D" parent="."]
 
 [node name="CafeNavigation" parent="." instance=ExtResource( 4 )]
+visible = false
 _locationNodes = {
 "Entrance": "Entrance",
 "Exit": "Entrance",
@@ -53,6 +158,10 @@ _locationNodes = {
 
 [node name="Kitchen" type="Node2D" parent="."]
 position = Vector2( 960, 840 )
+
+[node name="TileMap" parent="." instance=ExtResource( 16 )]
+scale = Vector2( 2, 2 )
+tile_data = PoolIntArray( -65537, 0, 65537, -131072, 0, 131076, -131071, 0, 131076, -131070, 0, 131076, -131069, 0, 131076, -131068, 0, 131076, -131067, 0, 131076, -131066, 0, 131076, -131065, 0, 131076, -131064, 0, 131076, -131063, 0, 131076, -131062, 0, 131076, -131061, 0, 131076, -131060, 0, 131076, -131059, 0, 131076, -131058, 0, 131076, -131057, 0, 131076, -131056, 0, 131076, -131055, 0, 131076, -131054, 0, 131076, -131053, 0, 131076, -131052, 0, 131076, -131051, 0, 131076, -131050, 0, 131076, -131049, 0, 131076, -131048, 0, 131076, -131047, 0, 131076, -131046, 0, 131076, -131045, 0, 131076, -131044, 0, 131076, -131043, 0, 131076, -131042, 0, 65542, -1, 0, 65538, -65536, 0, 196611, -65535, 0, 196611, -65534, 0, 196611, -65533, 0, 196611, -65532, 0, 196611, -65531, 0, 196611, -65530, 0, 196611, -65529, 0, 196611, -65528, 0, 196611, -65527, 0, 196611, -65526, 0, 196611, -65525, 0, 196611, -65524, 0, 196611, -65523, 0, 196611, -65522, 0, 196611, -65521, 0, 196611, -65520, 0, 196611, -65519, 0, 196611, -65518, 0, 196611, -65517, 0, 196611, -65516, 0, 196611, -65515, 0, 196611, -65514, 0, 196611, -65513, 0, 196611, -65512, 0, 196611, -65511, 0, 196611, -65510, 0, 196611, -65509, 0, 196611, -65508, 0, 196611, -65507, 0, 196611, -65506, 0, 65541, 65535, 0, 327681, 30, 0, 327686, 131071, 0, 327681, 65566, 0, 327686, 196607, 0, 327681, 131102, 0, 327686, 262143, 0, 327681, 196638, 0, 327686, 327679, 0, 327681, 262174, 0, 327686, 393215, 0, 327681, 327710, 0, 327686, 458751, 0, 327681, 393246, 0, 131077, 524287, 0, 327681, 458782, 0, 131077, 589823, 0, 327681, 524318, 0, 131077, 655359, 0, 327681, 589854, 0, 131077, 720895, 0, 327681, 655390, 0, 131077, 786431, 0, 327681, 720926, 0, 131077, 851967, 0, 327681, 786462, 0, 131077, 917503, 0, 327681, 851998, 0, 131077, 983039, 0, 327681, 917534, 0, 131077, 1048575, 0, 327681, 983070, 0, 131077, 1114111, 0, 327682, 1048576, 0, 327683, 1048577, 0, 327683, 1048578, 0, 327683, 1048579, 0, 327683, 1048580, 0, 327683, 1048581, 0, 327683, 1048582, 0, 327683, 1048583, 0, 327683, 1048584, 0, 327683, 1048585, 0, 327683, 1048586, 0, 327683, 1048587, 0, 327683, 1048588, 0, 327683, 1048589, 0, 327683, 1048590, 0, 327683, 1048591, 0, 327683, 1048592, 0, 327683, 1048593, 0, 327683, 1048594, 0, 327683, 1048595, 0, 327683, 1048596, 0, 327683, 1048597, 0, 327683, 1048598, 0, 327683, 1048599, 0, 327683, 1048600, 0, 327683, 1048601, 0, 327683, 1048602, 0, 327683, 1048603, 0, 327683, 1048604, 0, 327683, 1048605, 0, 327683, 1048606, 0, 327683 )
 
 [node name="PaymentSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource( 6 )
@@ -67,16 +176,17 @@ __meta__ = {
 "_editor_description_": "This timer manages how often does player loose their money when paying their staff"
 }
 
-[node name="Stats" parent="." instance=ExtResource( 21 )]
+[node name="UI" parent="." instance=ExtResource( 12 )]
+scale = Vector2( 0.45, 0.45 )
+transform = Transform2D( 0.45, 0, 0, 0.45, 0, 0 )
+
+[node name="Stats" parent="UI" instance=ExtResource( 21 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = -144.0
-margin_right = 256.0
-margin_bottom = -80.0
-
-[node name="UI" parent="." instance=ExtResource( 12 )]
-scale = Vector2( 0.75, 0.75 )
-transform = Transform2D( 0.75, 0, 0, 0.75, 0, 0 )
+margin_left = 1536.0
+margin_right = 1792.0
+margin_bottom = 64.0
+rect_scale = Vector2( 1.5, 1.5 )
 
 [node name="MainMenu" parent="UI" instance=ExtResource( 22 )]
 visible = false
@@ -95,10 +205,12 @@ types = [ 0 ]
 
 [node name="TextureManager" parent="." instance=ExtResource( 13 )]
 _fallbackTexture = ExtResource( 10 )
+_floorTextures = [ ExtResource( 83 ), ExtResource( 79 ), ExtResource( 81 ), ExtResource( 86 ), ExtResource( 84 ), ExtResource( 82 ), ExtResource( 85 ), ExtResource( 80 ), ExtResource( 76 ), ExtResource( 87 ), ExtResource( 75 ), ExtResource( 77 ), ExtResource( 78 ), ExtResource( 42 ), ExtResource( 45 ), ExtResource( 64 ), ExtResource( 70 ), ExtResource( 54 ), ExtResource( 46 ), ExtResource( 74 ), ExtResource( 65 ), ExtResource( 50 ), ExtResource( 47 ), ExtResource( 48 ), ExtResource( 59 ), ExtResource( 40 ), ExtResource( 72 ), ExtResource( 66 ), ExtResource( 67 ), ExtResource( 43 ), ExtResource( 68 ), ExtResource( 52 ), ExtResource( 73 ), ExtResource( 69 ), ExtResource( 51 ), ExtResource( 71 ), ExtResource( 61 ), ExtResource( 41 ), ExtResource( 44 ), ExtResource( 62 ), ExtResource( 60 ), ExtResource( 49 ), ExtResource( 53 ), ExtResource( 55 ), ExtResource( 63 ), ExtResource( 56 ), ExtResource( 57 ), ExtResource( 58 ), ExtResource( 17 ), ExtResource( 38 ), ExtResource( 24 ), ExtResource( 29 ), ExtResource( 36 ), ExtResource( 30 ), ExtResource( 39 ), ExtResource( 23 ), ExtResource( 31 ), ExtResource( 18 ), ExtResource( 19 ), ExtResource( 32 ), ExtResource( 33 ), ExtResource( 20 ), ExtResource( 37 ), ExtResource( 25 ), ExtResource( 27 ), ExtResource( 34 ), ExtResource( 28 ), ExtResource( 35 ) ]
+_wallTilesetIcons = [ ExtResource( 127 ), ExtResource( 104 ), ExtResource( 128 ), ExtResource( 105 ), ExtResource( 103 ), ExtResource( 101 ), ExtResource( 129 ), ExtResource( 100 ), ExtResource( 107 ), ExtResource( 132 ), ExtResource( 111 ), ExtResource( 130 ), ExtResource( 108 ), ExtResource( 102 ), ExtResource( 131 ), ExtResource( 106 ), ExtResource( 133 ), ExtResource( 134 ), ExtResource( 125 ), ExtResource( 126 ), ExtResource( 98 ), ExtResource( 99 ), ExtResource( 109 ), ExtResource( 110 ) ]
 _textures = {
 "Cook": ExtResource( 9 ),
 "Customer": ExtResource( 2 ),
-"Floor": ExtResource( 5 ),
+"Floor": ExtResource( 83 ),
 "Fridge": ExtResource( 8 ),
 "Lamp": ExtResource( 14 ),
 "Plant": ExtResource( 15 ),
@@ -106,6 +218,7 @@ _textures = {
 "Table": ExtResource( 3 ),
 "Waiter": ExtResource( 10 )
 }
+_wallTilesets = [ ExtResource( 91 ), ExtResource( 89 ), ExtResource( 90 ), ExtResource( 88 ), ExtResource( 96 ), ExtResource( 94 ), ExtResource( 95 ), ExtResource( 93 ), ExtResource( 92 ), ExtResource( 97 ), ExtResource( 124 ), ExtResource( 116 ), ExtResource( 117 ), ExtResource( 120 ), ExtResource( 118 ), ExtResource( 119 ), ExtResource( 121 ), ExtResource( 122 ), ExtResource( 123 ), ExtResource( 113 ), ExtResource( 112 ), ExtResource( 114 ), ExtResource( 115 ), ExtResource( 135 ) ]
 
 [connection signal="timeout" from="CustomerSpawnTimer" to="." method="_on_CustomerSpawnTimer_timeout"]
 [connection signal="timeout" from="PaycheckTimer" to="." method="_on_PaycheckTimer_timeout"]

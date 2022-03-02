@@ -185,7 +185,7 @@ public class Furniture : CafeObject
                         );
         //level = (byte)data[10];
         variation = (int)data[15];
-        _texture = cafe.Textures[CurrentType.ToString()];
+        _texture = cafe.TextureManager.GetTexture(CurrentType.ToString());
         level = (byte)data[12];
         _decorLevel = (int)data[16];
         _remakeTexture();

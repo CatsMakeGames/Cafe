@@ -156,11 +156,6 @@ public class Cafe : Node2D
 
 	FoodData _foodData 	= new FoodData();
 
-	/**Replace with loading from data table to allow more control over texture size or maybe use default texture size*/
-	[Export]
-	public Godot.Collections.Dictionary<string, Texture> Textures = new Godot.Collections.Dictionary<string, Texture>();
-	/**<summary>Array of node names that correspond to a specific location node</summary>*/
-
 	/**<summary>How much money was spent during last pay check time</summary>*/
 	protected int lastSpending = 0;
 	/**<summary>How much money was earned between updates</summary>*/
@@ -185,7 +180,7 @@ public class Cafe : Node2D
 	public void StartBuildingItem(StoreItemData data)
 	{
 		_furnitureBuildPreview = new FurnitureBuildObject(
-					data,Textures[data.TextureName],data.Size,
+					data,TextureManager.GetTexture(data.TextureName),data.Size,
 					new Vector2(32, 32),//TODO: read from table
 					GridSize,this);
 		CurrentState = State.Building;
@@ -232,7 +227,8 @@ public class Cafe : Node2D
 		_attraction.Update(this);
 	}
 
-	protected Floor floor;
+	private Floor _floor;
+	public Floor Floor => _floor;
 	protected bool pressed = false;
 	protected AudioStreamPlayer PaymentSoundPlayer;
 
@@ -311,7 +307,7 @@ public class Cafe : Node2D
 		_furnitureMover = new FurnitureMover(this);
 		_cafeControlMenu  = GetNode<CafeControl>("UI") ?? throw new NullReferenceException("Missing menu!");
 		_cafeControlMenu.Cafe = this;
-		floor = new Floor(_textureManager["Floor"], new Vector2(1000, 1000), this);
+		_floor = new Floor(_textureManager["Floor"], new Vector2(1920, 1020), this);
 
 		_navigation = GetNode<CafeNavigation>("CafeNavigation") ?? throw new NullReferenceException("Failed to find navigation system");
 		CustomerCountLabel = GetNodeOrNull<Label>("UILayer/UI/CustomerCountLabel");
@@ -387,6 +383,7 @@ public class Cafe : Node2D
 		_furnitures.Clear();
 		_navigation.QueueFree();
 		_navigation = _navigationSystemPrefab.Instance<CafeNavigation>();
+		_navigation.Visible = false;
 		AddChild(_navigation);
 	}
 

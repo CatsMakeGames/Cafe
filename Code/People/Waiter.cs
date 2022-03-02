@@ -60,12 +60,12 @@ namespace Staff
 			cafe.Connect(nameof(Cafe.OnCustomerArrivedAtTheTable),this,nameof(OnNewCustomerIsAtTheTable));
 			cafe.Connect(nameof(Cafe.OnOderFinished),this,nameof(TakeNewCompletedOrder));
             Salary = 100;
-			textureSize = cafe.Textures["Waiter"].GetSize();
+			textureSize = cafe.TextureManager.GetTexture("Waiter").GetSize();
 			size = new Vector2(128, 128);
             CurrentGoal = (Goal)saveData[12];
             currentOrder = (int)saveData[13] - 1;
             _loadedCustomerId = saveData[14];
-			GenerateRIDBasedOnTexture(cafe.Textures["Waiter"], ZOrderValues.Customer);
+			GenerateRIDBasedOnTexture(cafe.TextureManager.GetTexture("Waiter"), ZOrderValues.Customer);
 		}
 
 		public override Array<uint> GetSaveData()
