@@ -18,9 +18,10 @@ tileset_hor_count = 8
 width = tileset_hor_count * tile_size
 #total height of the set
 height = tileset_ver_count * tile_size
+id = 0
 for y in range(0,row_count):
     for x in range(0,line_count):
-        with open(("./generated/Wall_Tileset{}.tres").format(x+y), 'w') as f:
+        with open(("./Wall_Tileset{}.tres").format(id), 'w') as f:
             f.write(("""
 [gd_resource type="TileSet" load_steps=2 format=2]
 
@@ -49,3 +50,4 @@ for y in range(0,row_count):
 0/shapes = [  ]
 0/z_index = 0
 """).format(source_file_path,source_filename,source_filename,x * width,y * height,width,height))
+            id += 1

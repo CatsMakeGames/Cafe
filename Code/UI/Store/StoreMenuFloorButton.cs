@@ -10,10 +10,10 @@ namespace UI
 		protected override void onPressed()
 		{
 			if(ParentMenu.cafe.Money >= 100)
-            {
-                ParentMenu.cafe.Money -= 100;
-                ParentMenu.cafe.Floor.Texture = ParentMenu.cafe.TextureManager.FloorTextures[TextureId];
-            }
+			{
+				ParentMenu.cafe.Money -= 100;
+				ParentMenu.cafe.Floor.Texture = ParentMenu.cafe.TextureManager.FloorTextures[TextureId];
+			}
 		}
 	}
 }

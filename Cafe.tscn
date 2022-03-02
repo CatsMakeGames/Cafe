@@ -99,7 +99,6 @@
 [ext_resource path="res://Art_Pixel/Wall/generated/Wall_Tileset9.tres" type="TileSet" id=97]
 
 [sub_resource type="AtlasTexture" id=1]
-flags = 2
 atlas = ExtResource( 5 )
 region = Rect2( 416, 480, 32, 32 )
 

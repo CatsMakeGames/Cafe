@@ -35,6 +35,4 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[connection signal="mouse_entered" from="." to="." method="onMouseOver"]
-[connection signal="mouse_exited" from="." to="." method="onMouseOut"]
 [connection signal="pressed" from="." to="." method="onPressed"]
