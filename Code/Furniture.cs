@@ -54,13 +54,16 @@ public class Furniture : CafeObject
 
     private FurnitureType _currentType = FurnitureType.Invalid;
 
+    private Vector2 _collisionRectSize;
+    private Vector2 _collisionOffset;
+
     public FurnitureType CurrentType => _currentType;
 
     /**<summary>Price of the furniture in store<para/>Mostly meant for when it's being sold</summary>*/
     public int Price = 0;
 
     /**<summary>Space that is taken up by this furniture</summary>*/
-    public Rect2 CollisionRect => new Rect2(Position, size);
+    public Rect2 CollisionRect => new Rect2(Position + _collisionOffset, _collisionRectSize);
     public virtual bool IsInUse => CurrentState == State.InUse;
 
     /**<summary>Current level of the furniture.<para/>Used to store same types of furniture under same class<para/>
@@ -69,7 +72,7 @@ public class Furniture : CafeObject
     protected byte level;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 17u;
+    public new static uint SaveDataSize = 20u;
 
     public override Array<uint> GetSaveData()
     {
@@ -98,6 +101,12 @@ public class Furniture : CafeObject
 
         baseSaveData.Add((uint)variation);//[15]
         baseSaveData.Add((uint)_decorLevel);//[16]
+
+        baseSaveData.Add((uint)_collisionRectSize.x);//[17]
+        baseSaveData.Add((uint)_collisionRectSize.y);//[18]
+
+        baseSaveData.Add((uint)_collisionOffset.x);//[19]
+        baseSaveData.Add((uint)_collisionOffset.y);//[20]
         return baseSaveData;
     }
 
@@ -160,7 +169,17 @@ public class Furniture : CafeObject
     /**<summary>If false this furniture will not be considered in FindClosestFurniture search</summary>*/
     public virtual bool CanBeUsed => CurrentState == State.Free;
 
-    public Furniture(uint id,Furniture.FurnitureType type, Texture texture, Vector2 size, Vector2 textureSize, Cafe cafe, Vector2 pos,byte lvl, Category _category = Category.Any) 
+    public Furniture(uint id,
+        FurnitureType type,
+        Texture texture,
+        Vector2 size,
+        Vector2 textureSize,
+        Cafe cafe,
+        Vector2 pos,
+        byte lvl,
+        Vector2 collisionSize,
+        Vector2 collisionOffset,
+        Category _category = Category.Any)
         : base(id,texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
     {
         _currentType = type;
@@ -168,6 +187,8 @@ public class Furniture : CafeObject
         variation = rand.Next(0,2);
         _texture = texture;
         Level = lvl;  
+        _collisionOffset = collisionOffset;
+        _collisionRectSize = collisionSize;
     }
 
     public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
@@ -189,6 +210,14 @@ public class Furniture : CafeObject
         level = (byte)data[12];
         _decorLevel = (int)data[16];
         _remakeTexture();
+        _collisionRectSize = new Vector2(
+            (float)data[17],
+            (float)data[18]
+            );
+        _collisionOffset = new Vector2(
+            (float)data[18],
+            (float)data[19]
+            );
         //because level directly affects texture 
     }
 
@@ -259,11 +288,11 @@ public class Furniture : CafeObject
     {
         //restore the tilemap
         //calculate before hand to avoid recalculating each iteration
-        int width = ((int)(size.x + position.x)) / cafe.GridSize;
-        int height = ((int)(size.y + position.y)) / cafe.GridSize;
-        for (int x = ((int)(position.x)) / cafe.GridSize/*convert location to tilemap location*/; x < width; x++)
+        int width =  ((int)(CollisionRect.Size.x + CollisionRect.Position.x)) / cafe.GridSize;
+        int height = ((int)(CollisionRect.Size.y + CollisionRect.Position.y)) / cafe.GridSize;
+        for (int x = ((int)(CollisionRect.Position.x)) / cafe.GridSize/*convert location to tilemap location*/; x < width; x++)
         {
-            for (int y = ((int)(position.y)) / cafe.GridSize; y < height; y++)
+            for (int y = ((int)CollisionRect.Position.y) / cafe.GridSize; y < height; y++)
             {
                 cafe.Navigation.SetNavigationTile(x, y, !clear);
             }

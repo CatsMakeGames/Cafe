@@ -71,6 +71,8 @@ public class FurnitureBuildObject : CafeObject
                     cafe,
                     Position,
                     _currentItemData.Level,
+                    _currentItemData.CollisionRectSize,
+                    _currentItemData.CollisionRectOffset,
                     _currentItemData.FurnitureCategory
             ));
             cafe.Furnitures[cafe.CurrentFurnitureId - 1/*because it was already updated*/].Price = _currentItemData.Price;

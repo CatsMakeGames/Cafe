@@ -1,0 +1,4 @@
+interface IMenuInferface
+{
+    void Init();
+}

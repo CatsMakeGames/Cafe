@@ -149,7 +149,6 @@ zoom = Vector2( 2.3, 2.3 )
 [node name="Entrance" type="Node2D" parent="."]
 
 [node name="CafeNavigation" parent="." instance=ExtResource( 4 )]
-visible = false
 _locationNodes = {
 "Entrance": "Entrance",
 "Exit": "Entrance",

@@ -6,7 +6,7 @@ using Godot.Collections;
 namespace UI
 {
     /**<summary>Store ui based on nodes rather then using visual server</summary>*/
-    public class StoreMenu : Control
+    public class StoreMenu : Control, IMenuInferface
     {
         [Export(PropertyHint.ResourceType, "Font")]
         Font categoryFont;
@@ -173,17 +173,11 @@ namespace UI
             if (file.IsOpen())
             {
                 string[] line;
+                file.GetCsvLine(";");
                 while (!file.EofReached())
                 {
-                    try
-                    {
-                        line = file.GetCsvLine(";");
-                        data.Add(new StoreItemData(line));
-                    }
-                    catch (Exception e)
-                    {
-                        //ignore cause first line is column names and that causes errors
-                    }
+                    line = file.GetCsvLine(";");
+                    data.Add(new StoreItemData(line));
                 }
             }
         }

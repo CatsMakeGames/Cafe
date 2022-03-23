@@ -38,8 +38,11 @@ public class CafeControl : Node
 	public void Init()
 	{
 		foreach (Control menu in _menus)
-		{
-			menu.Call("Init");
+		{	
+			if(menu is IMenuInferface m)
+			{
+				m.Init();
+			}
 		}
 	}
 

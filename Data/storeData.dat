@@ -1,16 +1,16 @@
-id;name;textureName;category;price;class;mainCategory;sizex;sizey;description;level;decor;framex;framey
-1;Junkyard Stove;Stove;3;100;Stove;3;128;128;"A very cheap stove you found on junk yard and ""fixed"". I don’t think you’ll pass health  inspection with this";0;1;32;32
-2;Junkyard Fridge;Fridge;3;100;Fridge;3;128;128;"A very cheap Fridge you found on junk yard and ""fixed""";0;1;32;32
-3;Junkyard Table;Table;1|2;100;Table;2;128;128;"A very cheap table you found on junk yard and ""fixed""";0;1;32;32
-4;Ancient Stove;Stove;3;200;Stove;3;128;128;An old furnace made out of stone. Looks great but doesn’t cook well;2;2;32;32
-5;Stove;Stove;3;350;Stove;3;128;128;Good old stove. Doesn’t explode...anymore;1;5;32;32
-6;Fancy Stove;Stove;3;600;Stove;3;128;128;A rather fancy looking stove. You can finally stop blaming tools for your mistakes and cook something good!;3;10;32;32
-7;Simple Table;Table;1|2;200;Table;2;128;128;A very simple table from a furniture store. It’s a plank with four legs what more do you want?;1;3;32;32
-8;Fancy Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. Makes your cafe look nicer.;2;5;32;32
-9;Red Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. This one has a cheap cloth on top of it!;3;6;32;32
-10;Blue Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. This one has a cheap BLUE cloth on top of it!;4;6;32;32
-11;Plant;Plant;1;50;Decor;1;128;256;A plant of unidentified type. It’s green and looks nice.;0;2;32;64
-12;Blue Lamp 1;Lamp;1;50;Decor;1;128;256;A blue cone shaped lamp.;0;2;32;64
-13;Blue Lamp 2;Lamp;1;50;Decor;1;128;256;A blue cylinder shaped lamp.;2;2;32;64
-14;Red Lamp 1;Lamp;1;50;Decor;1;128;256;A red cone shaped lamp.;1;2;32;64
-15;Red Lamp 2;Lamp;1;50;Decor;1;128;256;A red cylinder shaped lamp.;3;2;32;64
+id;name;textureName;category;price;class;mainCategory;sizex;sizey;description;level;decor;framex;framey;collW;CollH;collX;collY
+1;Junkyard Stove;Stove;3;100;Stove;3;128;128;"A very cheap stove you found on junk yard and ""fixed"". I don’t think you’ll pass health  inspection with this";0;1;32;32;128;128;0;0
+2;Junkyard Fridge;Fridge;3;100;Fridge;3;128;128;"A very cheap Fridge you found on junk yard and ""fixed""";0;1;32;32;128;128;0;0
+3;Junkyard Table;Table;1|2;100;Table;2;128;128;"A very cheap table you found on junk yard and ""fixed""";0;1;32;32;128;128;0;0
+4;Ancient Stove;Stove;3;200;Stove;3;128;128;An old furnace made out of stone. Looks great but doesn’t cook well;2;2;32;32;128;128;0;0
+5;Stove;Stove;3;350;Stove;3;128;128;Good old stove. Doesn’t explode...anymore;1;5;32;32;128;128;0;0
+6;Fancy Stove;Stove;3;600;Stove;3;128;128;A rather fancy looking stove. You can finally stop blaming tools for your mistakes and cook something good!;3;10;32;32;128;128;0;0
+7;Simple Table;Table;1|2;200;Table;2;128;128;A very simple table from a furniture store. It’s a plank with four legs what more do you want?;1;3;32;32;128;128;0;0
+8;Fancy Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. Makes your cafe look nicer.;2;5;32;32;128;128;0;0
+9;Red Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. This one has a cheap cloth on top of it!;3;6;32;32;128;128;0;0
+10;Blue Table;Table;1|2;350;Table;2;128;128;Cheap table made to look like victorian era furniture. This one has a cheap BLUE cloth on top of it!;4;6;32;32;128;128;0;0
+11;Plant;Plant;1;50;Decor;1;128;256;A plant of unidentified type. It’s green and looks nice.;0;2;32;64;128;64;0;192
+12;Blue Lamp 1;Lamp;1;50;Decor;1;128;256;A blue cone shaped lamp.;0;2;32;64;128;64;0;192
+13;Blue Lamp 2;Lamp;1;50;Decor;1;128;256;A blue cylinder shaped lamp.;2;2;32;64;128;64;0;192
+14;Red Lamp 1;Lamp;1;50;Decor;1;128;256;A red cone shaped lamp.;1;2;32;64;128;64;0;192
+15;Red Lamp 2;Lamp;1;50;Decor;1;128;256;A red cylinder shaped lamp.;3;2;32;64;128;64;0;192

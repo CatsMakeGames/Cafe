@@ -26,6 +26,10 @@ public class StoreItemData : Godot.Object
 
     public Vector2 FrameSize = new Vector2(32,32);
 
+    public Vector2 CollisionRectSize = new Vector2(128, 128);
+
+    public Vector2 CollisionRectOffset = new Vector2(0, 0);
+
     public Furniture.Category FurnitureCategory = Furniture.Category.None;
 
     /**<summary>This category will be used to display in StoreMenu</summary>*/
@@ -71,6 +75,16 @@ public class StoreItemData : Godot.Object
         (
             System.Convert.ToInt32(subData[12], System.Globalization.CultureInfo.InvariantCulture),
             System.Convert.ToInt32(subData[13], System.Globalization.CultureInfo.InvariantCulture)
+        );
+        CollisionRectSize = new Vector2
+        (
+            System.Convert.ToInt32(subData[14], System.Globalization.CultureInfo.InvariantCulture),
+            System.Convert.ToInt32(subData[15], System.Globalization.CultureInfo.InvariantCulture)
+        );
+        CollisionRectOffset = new Vector2
+        (
+            System.Convert.ToInt32(subData[16], System.Globalization.CultureInfo.InvariantCulture),
+            System.Convert.ToInt32(subData[17], System.Globalization.CultureInfo.InvariantCulture)
         );
     }
 }
