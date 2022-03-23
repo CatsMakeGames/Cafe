@@ -72,7 +72,7 @@ public class Furniture : CafeObject
     protected byte level;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 20u;
+    public new static uint SaveDataSize = 21u;
 
     public override Array<uint> GetSaveData()
     {
@@ -180,7 +180,8 @@ public class Furniture : CafeObject
         Vector2 collisionSize,
         Vector2 collisionOffset,
         Category _category = Category.Any)
-        : base(id,texture, size, textureSize, cafe, pos, (int)ZOrderValues.Furniture)
+        : base(id,texture, size, textureSize, cafe, pos,
+               type == FurnitureType.Decor ? (int)ZOrderValues.FurnitureDecor :  (int)ZOrderValues.Furniture)
     {
         _currentType = type;
         Random rand = new Random();

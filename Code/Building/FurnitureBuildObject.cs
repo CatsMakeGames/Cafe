@@ -5,7 +5,7 @@ using System.Linq;
 public class FurnitureBuildObject : CafeObject
 {
     private int _gridCellSize = 32;
-
+//TODO: update to use collision rect from item data
     private Rect2 _objectRect;
 
     private StoreItemData _currentItemData;
@@ -23,7 +23,7 @@ public class FurnitureBuildObject : CafeObject
         size = sizeInWorld;
         //by default preview item shows variation 0 of the item hence pos of frame rect is (0,0)
         GenerateRIDBasedOnTexture(tex, ZOrderValues.Preview, new Rect2(new Vector2(0, 0), frameSize));
-        _objectRect = new Rect2(Position, size);
+        _objectRect  = new Rect2(Position + data.CollisionRectOffset, data.CollisionRectSize);
     }
 
     public void SetTexture(Texture tex, Vector2 sizeInWorld, Vector2 frameSize)
@@ -50,7 +50,7 @@ public class FurnitureBuildObject : CafeObject
             ((int)cafe.GetLocalMousePosition().x / _gridCellSize) * _gridCellSize,
             ((int)cafe.GetLocalMousePosition().y / _gridCellSize) * _gridCellSize
         );
-        Position = _objectRect.Position;
+        Position = _objectRect.Position - _currentItemData.CollisionRectOffset;
         CanBePlaced = !cafe.Furnitures.Where(p => p.Value.CollisionOverlaps(_objectRect)).Any() && cafe.IsInPlayableArea(_objectRect);
     }
 
