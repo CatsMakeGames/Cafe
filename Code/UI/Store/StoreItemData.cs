@@ -34,6 +34,7 @@ public class StoreItemData : Godot.Object
 
     /**<summary>This category will be used to display in StoreMenu</summary>*/
     public Furniture.Category DisplayCategory = Furniture.Category.None;
+    public Furniture.DecorFurnitureType DecorType = Furniture.DecorFurnitureType.None;
 
 
     /**<summary>Creates Store item data from csv string</summary>*/
@@ -86,5 +87,9 @@ public class StoreItemData : Godot.Object
             System.Convert.ToInt32(subData[16], System.Globalization.CultureInfo.InvariantCulture),
             System.Convert.ToInt32(subData[17], System.Globalization.CultureInfo.InvariantCulture)
         );
+        if(!Enum.TryParse<Furniture.DecorFurnitureType>(subData[18], out DecorType))
+        {
+            GD.PrintErr($"\nFailed to recognise decor type. Name: {subData[18]}");
+        }
     }
 }

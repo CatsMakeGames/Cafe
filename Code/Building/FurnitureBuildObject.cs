@@ -63,17 +63,18 @@ public class FurnitureBuildObject : CafeObject
             cafe.Money -= _currentItemData.Price;
             cafe.AddNewFurniture(new Furniture
             (
-                    cafe.CurrentFurnitureId,
-                    type,
-                    cafe.TextureManager[_currentItemData.TextureName],
-                    _currentItemData.Size,
-                    _currentItemData.FrameSize,
-                    cafe,
-                    Position,
-                    _currentItemData.Level,
-                    _currentItemData.CollisionRectSize,
-                    _currentItemData.CollisionRectOffset,
-                    _currentItemData.FurnitureCategory
+                cafe.CurrentFurnitureId,
+                type,
+                cafe.TextureManager[_currentItemData.TextureName],
+                _currentItemData.Size,
+                _currentItemData.FrameSize,
+                cafe,
+                Position,
+                _currentItemData.Level,
+                _currentItemData.CollisionRectSize,
+                _currentItemData.CollisionRectOffset,
+                _currentItemData.DecorType,
+                _currentItemData.FurnitureCategory
             ));
             cafe.Furnitures[cafe.CurrentFurnitureId - 1/*because it was already updated*/].Price = _currentItemData.Price;
         }

@@ -39,6 +39,14 @@ public class Furniture : CafeObject
         Decor,
         Poster
     }
+    
+    /**<summary>Subtype used by decor items for getting right texture</summary>*/
+    public enum DecorFurnitureType
+    {
+        None,
+        Plant,
+        Lamp
+    }
 
     /**<summary>Texture used for this object</summary>*/
     private Texture _texture;
@@ -53,6 +61,7 @@ public class Furniture : CafeObject
     public State CurrentState = State.Free;
 
     private FurnitureType _currentType = FurnitureType.Invalid;
+    private DecorFurnitureType _currentDecorType = DecorFurnitureType.None;
 
     private Vector2 _collisionRectSize;
     private Vector2 _collisionOffset;
@@ -72,7 +81,7 @@ public class Furniture : CafeObject
     protected byte level;
 
     /**<summary>Amount of bytes used by CafeObject + amount of bytes used by this object</summary>*/
-    public new static uint SaveDataSize = 21u;
+    public new static uint SaveDataSize = 22u;
 
     public override Array<uint> GetSaveData()
     {
@@ -107,6 +116,8 @@ public class Furniture : CafeObject
 
         baseSaveData.Add((uint)_collisionOffset.x);//[19]
         baseSaveData.Add((uint)_collisionOffset.y);//[20]
+
+        baseSaveData.Add((uint)_currentDecorType);//[21]
         return baseSaveData;
     }
 
@@ -179,6 +190,7 @@ public class Furniture : CafeObject
         byte lvl,
         Vector2 collisionSize,
         Vector2 collisionOffset,
+        DecorFurnitureType _decType = DecorFurnitureType.None,
         Category _category = Category.Any)
         : base(id,texture, size, textureSize, cafe, pos,
                type == FurnitureType.Decor ? (int)ZOrderValues.FurnitureDecor :  (int)ZOrderValues.Furniture)
@@ -190,6 +202,7 @@ public class Furniture : CafeObject
         Level = lvl;  
         _collisionOffset = collisionOffset;
         _collisionRectSize = collisionSize;
+        _currentDecorType = _decType;
     }
 
     public Furniture(Cafe cafe,uint[] data) : base(cafe,data)
@@ -207,7 +220,9 @@ public class Furniture : CafeObject
                         );
         //level = (byte)data[10];
         variation = (int)data[15];
-        _texture = cafe.TextureManager.GetTexture(CurrentType.ToString());
+        _currentDecorType = (DecorFurnitureType)data[21];
+        _texture = cafe.TextureManager.GetTexture(
+            CurrentType == FurnitureType.Decor? _currentDecorType.ToString() : CurrentType.ToString());
         level = (byte)data[12];
         _decorLevel = (int)data[16];
         _remakeTexture();
@@ -216,9 +231,10 @@ public class Furniture : CafeObject
             (float)data[18]
             );
         _collisionOffset = new Vector2(
-            (float)data[18],
-            (float)data[19]
+            (float)data[19],
+            (float)data[20]
             );
+      
         //because level directly affects texture 
     }
 
