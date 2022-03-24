@@ -224,7 +224,7 @@ public class SaveManager
 			progress.Value = 0;
 			//we also need to store cafe name
 			saveFile.Store8(CurrentSaveSystemVersion);
-			progress.Value += progress.MaxValue / 10.0;
+			progress.Value += progress.MaxValue / 10.0;//10 here is amount data objects being saved(arrays are counted as one data object)
 			saveFile.StoreLine(cafe.cafeName);
 			progress.Value += progress.MaxValue / 10.0;
 			saveFile.Store32((uint)cafe.TextureManager.CurrentFloorTextureId);
@@ -309,24 +309,32 @@ public class SaveManager
 
 	/**<summary>Loads save data from file game.sav<para/>
 	cafe should be prepared(cleaned) before calling this function to avoid issues</summary>*/
-	public bool Load(Cafe cafe)
+	public bool Load(Cafe cafe,ref ProgressBar progress)
 	{
 		File saveFile = new File();
 		Error err = saveFile.Open($"user://Cafe/game{_currentSaveId}.sav", File.ModeFlags.Read);
 		if (err == Error.Ok)
 		{
+			const double totalDataValueCount = 10f;
+			progress.Value = 0;
 			byte version = saveFile.Get8();
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			if (version != CurrentSaveSystemVersion)
 			{
 				throw new Exception($"Incompatible version of save system are used! Expected v{CurrentSaveSystemVersion} got v{version}");
 			}
+			
 			cafe.cafeName = saveFile.GetLine();
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			//TODO: add safety check to avoid invalid ids
 			cafe.Floor.Texture = cafe.TextureManager.FloorTextures[(int)saveFile.Get32()];
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			cafe.GetNode<TileMap>("TileMap").TileSet = cafe.TextureManager.WallTilesets[(int)saveFile.Get32()];
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			//now move past this
 			saveFile.Seek((long)saveFile.GetPosition() + "cafe_begin".Length + 1u);
 			cafe.Load(_loadArray(cafe, saveFile,"cafe_end"));
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			if (saveFile.GetLine() == "cafe_arrays_begin")
 			{
 				cafe.CustomersToTakeOrderFrom = _loadArrayUint(cafe, saveFile);
@@ -335,16 +343,19 @@ public class SaveManager
 				cafe.AvailableTables = new Stack<uint>(_loadArrayUint(cafe, saveFile));
 				cafe.Orders = _loadArray(cafe, saveFile);
 				cafe.ShopData = _loadArray(cafe, saveFile);
+				progress.Value += progress.MaxValue / totalDataValueCount;
 			}
 			else
 			{
 				throw new Exception("Failed to find cafe arrays in save file!");
 			}
+
 			if (saveFile.GetLine() != "cafe_arrays_end")
 			{
 				 throw new Exception("Missing end of cafe arrays in save file!");
 			}
 			_loadAttractionSystem(cafe, saveFile);
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			//cafe name is last single object data so after that we read furniture
 			saveFile.Seek((long)saveFile.GetPosition() + "furniture_begin".Length + 1u);
 
@@ -370,20 +381,22 @@ public class SaveManager
 					currentDataReadingId = 0;
 				}
 			}
-
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			while (!saveFile.EofReached())
 			{
 				LoadPerson(cafe, saveFile);
 			}
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			foreach (var person in cafe.People)
 			{
 				person.Value.SaveInit();
 			}
-
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			foreach (var fur in cafe.Furnitures)
 			{
 				fur.Value.SaveInit();
 			}
+			progress.Value += progress.MaxValue / totalDataValueCount;
 			cafe.UpdateAttraction();
 			//all objects are loaded -> init them
 

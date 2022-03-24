@@ -361,8 +361,10 @@ public class Cafe : Node2D
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
 	public bool Load()
 	{
+		//TODO: save this reference on start of the game
+		ProgressBar bar = GetNode<ProgressBar>("UI/LoadingScreen/ColorRect/ProgressBar");
 		Clean();
-		return _saveManager.Load(this);
+		return _saveManager.Load(this,ref bar);
 	}
 
 	public void Clean()
