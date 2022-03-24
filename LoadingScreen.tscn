@@ -1,0 +1,31 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Fonts/DefaultFont.tres" type="DynamicFont" id=1]
+
+[node name="LoadingScreen" type="Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 448.0
+margin_bottom = 256.0
+mouse_filter = 2
+color = Color( 0, 0, 0, 0.796078 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="ColorRect"]
+margin_left = 88.0
+margin_top = 72.0
+margin_right = 368.0
+margin_bottom = 113.0
+custom_fonts/font = ExtResource( 1 )
+text = "Please Wait..."
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ProgressBar" type="ProgressBar" parent="ColorRect"]
+margin_left = 8.0
+margin_top = 144.0
+margin_right = 440.0
+margin_bottom = 232.0

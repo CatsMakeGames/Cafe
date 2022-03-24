@@ -181,7 +181,7 @@ public class SaveManager
 	}
 
 	/**<summary>Saves all of the data in cafe into a file</summary>*/
-	public void Save(Cafe cafe)
+	public void Save(Cafe cafe,ref ProgressBar progress)
 	{
 		//save file is structured like this -> 
 		/*version name
@@ -221,15 +221,20 @@ public class SaveManager
 		Error err = saveFile.Open($"user://Cafe/game{_currentSaveId}.sav", File.ModeFlags.Write);
 		if (err == Error.Ok)
 		{
+			progress.Value = 0;
 			//we also need to store cafe name
 			saveFile.Store8(CurrentSaveSystemVersion);
+			progress.Value += progress.MaxValue / 10.0;
 			saveFile.StoreLine(cafe.cafeName);
+			progress.Value += progress.MaxValue / 10.0;
 			saveFile.Store32((uint)cafe.TextureManager.CurrentFloorTextureId);
+			progress.Value += progress.MaxValue / 10.0;
 			saveFile.Store32((uint)cafe.TextureManager.CurrentWallTextureId);
-
+			progress.Value += progress.MaxValue / 10.0;
 			_storeCafe(saveFile, cafe);
+			progress.Value += progress.MaxValue / 10.0;
 			_storeAttractionSystem(saveFile, cafe);
-
+			progress.Value += progress.MaxValue / 10.0;
 			//mainly for easier debugging
 			saveFile.StoreLine("furniture_begin");
 			foreach (var fur in cafe.Furnitures)
@@ -244,10 +249,13 @@ public class SaveManager
                 }
 			}
 			saveFile.StoreLine("furniture_end");
-
+			progress.Value += progress.MaxValue / 10.0;
 			StorePerson<Staff.Waiter>(saveFile, cafe);
+			progress.Value += progress.MaxValue / 10.0;
 			StorePerson<Staff.Cook>(saveFile, cafe);
+			progress.Value += progress.MaxValue / 10.0;
 			StorePerson<Customer>(saveFile, cafe);
+			progress.Value += progress.MaxValue / 10.0;
 			saveFile.Close();
 		}
 		//TODO: Add file reading error handling

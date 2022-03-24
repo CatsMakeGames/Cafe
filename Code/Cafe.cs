@@ -352,7 +352,10 @@ public class Cafe : Node2D
 
 	public void Save()
 	{
-		_saveManager.Save(this);	
+		ProgressBar bar =  GetNode<ProgressBar>("UI/LoadingScreen/ColorRect/ProgressBar");
+		//bar.Value
+
+		_saveManager.Save(this,ref bar);	
 	}
 
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/

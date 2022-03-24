@@ -1,9 +1,10 @@
-[gd_scene load_steps=134 format=2]
+[gd_scene load_steps=135 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
 [ext_resource path="res://Art_Pixel/table.png" type="Texture" id=3]
 [ext_resource path="res://CafeNavigation.tscn" type="PackedScene" id=4]
+[ext_resource path="res://LoadingScreen.tscn" type="PackedScene" id=5]
 [ext_resource path="res://Sounds/140382__dwoboyle__coins-01.wav" type="AudioStream" id=6]
 [ext_resource path="res://Art_Pixel/stove.png" type="Texture" id=7]
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
@@ -193,6 +194,10 @@ margin_left = 522.667
 margin_top = 213.333
 margin_right = 522.667
 margin_bottom = 213.333
+
+[node name="LoadingScreen" parent="UI" instance=ExtResource( 5 )]
+position = Vector2( 942.222, 604.444 )
+z_as_relative = false
 
 [node name="StuffDebugUI" parent="." instance=ExtResource( 26 )]
 margin_left = 656.0
