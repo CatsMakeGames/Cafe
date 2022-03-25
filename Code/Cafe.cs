@@ -23,6 +23,8 @@ public class Cafe : Node2D
 	private uint _currentPersonId = 0;
 	/**<summary>Id that will be given to next spawned furniture</summary>*/
 	private uint _currentFurnitureId = 0;
+	/**<summary>Reference to progress bar used in the loading screen</summary>*/
+	private LoadingScreen _loadingScreen;
 	public uint CurrentFurnitureId => _currentFurnitureId;
 	public uint CurrentPersonId => _currentPersonId;
 
@@ -321,6 +323,7 @@ public class Cafe : Node2D
 		}	
 		_cafeControlMenu.Init();
 		_saveManager = new SaveManager();
+		_loadingScreen = GetNode<LoadingScreen>("UI/LoadingScreen");
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
@@ -352,19 +355,21 @@ public class Cafe : Node2D
 
 	public void Save()
 	{
-		ProgressBar bar =  GetNode<ProgressBar>("UI/LoadingScreen/ColorRect/ProgressBar");
-		//bar.Value
-
-		_saveManager.Save(this,ref bar);	
+		_loadingScreen.Visible = true;
+		_loadingScreen.Text = "Saving...";
+		_saveManager.Save(this,_loadingScreen);
+		_loadingScreen.Visible = false;
 	}
 
 	/**<summary>Clears the world from current objects and spawns new ones</summary>*/
-	public bool Load()
-	{
-		//TODO: save this reference on start of the game
-		ProgressBar bar = GetNode<ProgressBar>("UI/LoadingScreen/ColorRect/ProgressBar");
+	public bool Load() 
+	{ 
 		Clean();
-		return _saveManager.Load(this,ref bar);
+		_loadingScreen.Visible = true;
+		_loadingScreen.Text = "Loading...";
+		bool success = _saveManager.Load(this,_loadingScreen);
+		_loadingScreen.Visible = false;
+		return success;
 	}
 
 	public void Clean()

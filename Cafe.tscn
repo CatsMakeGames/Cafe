@@ -196,6 +196,7 @@ margin_right = 522.667
 margin_bottom = 213.333
 
 [node name="LoadingScreen" parent="UI" instance=ExtResource( 5 )]
+visible = false
 position = Vector2( 942.222, 604.444 )
 z_as_relative = false
 
