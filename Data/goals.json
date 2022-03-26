@@ -1,0 +1,39 @@
+{
+    "goals":[
+        {"name" : "start_1",
+            "display" : "Starting out!",
+            "type" : 2,
+            "description" : "Time to start your journey to peak of the success! You'll need to place some appliances to start your work",
+            "requirements":[
+                ["Table", ">", 0],
+                ["Stove", ">", 0],
+                ["Fridge", ">", 0],
+                ["Waiter", ">",0],
+                ["Cook",">",0]
+            ],
+            "prereqs":[]
+        },
+        {"name" :"start_2",
+            "display" :"Bigger, better, pricier!",
+            "type" : 2,
+            "description" : "You started out on your journey, but having one customer at a time won't cut it! So it's time to expand!",
+            "requirements":[
+                ["Table", ">", 0],
+                ["Stove", ">", 5],
+                ["Fridge", ">", 5]
+            ],
+            "prereqs":["start_1"]
+        },
+        {"name" :"start_0",
+            "display" :"tabe",
+            "type" : 2,
+            "description" : "You started out on your journey, but having one customer at a time won't cut it! So it's time to expand!",
+            "requirements":[
+                ["Table", ">", 0],
+                ["Stove", ">", 0],
+                ["Fridge", ">", 0]
+            ],
+            "prereqs":["start_1"]
+        }
+    ]
+}

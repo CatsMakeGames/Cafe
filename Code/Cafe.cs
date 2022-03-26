@@ -25,6 +25,7 @@ public class Cafe : Node2D
 	private uint _currentFurnitureId = 0;
 	/**<summary>Reference to progress bar used in the loading screen</summary>*/
 	private LoadingScreen _loadingScreen;
+	private GoalManager _goalManager;
 	public uint CurrentFurnitureId => _currentFurnitureId;
 	public uint CurrentPersonId => _currentPersonId;
 
@@ -221,6 +222,7 @@ public class Cafe : Node2D
 			fur.UpdateNavigation(true);
 			fur.Init();
 			UpdateAttraction();
+			_goalManager.PerformGoalCheck(GoalType.Furniture);
 		}
 	}
 
@@ -324,6 +326,7 @@ public class Cafe : Node2D
 		_cafeControlMenu.Init();
 		_saveManager = new SaveManager();
 		_loadingScreen = GetNode<LoadingScreen>("UI/LoadingScreen");
+		_goalManager = new GoalManager(this);
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
