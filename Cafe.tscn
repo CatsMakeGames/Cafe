@@ -1,4 +1,4 @@
-[gd_scene load_steps=135 format=2]
+[gd_scene load_steps=136 format=2]
 
 [ext_resource path="res://Code/Cafe.cs" type="Script" id=1]
 [ext_resource path="res://Art_Pixel/people_v2/Customer.tres" type="Texture" id=2]
@@ -10,6 +10,7 @@
 [ext_resource path="res://Art_Pixel/fridge.png" type="Texture" id=8]
 [ext_resource path="res://Art_Pixel/people_v2/Cook.tres" type="Texture" id=9]
 [ext_resource path="res://Art_Pixel/people_v2/Waiter.tres" type="Texture" id=10]
+[ext_resource path="res://GoalPanel.tscn" type="PackedScene" id=11]
 [ext_resource path="res://Menu.tscn" type="PackedScene" id=12]
 [ext_resource path="res://TextureManager.tscn" type="PackedScene" id=13]
 [ext_resource path="res://Art_Pixel/lamp.png" type="Texture" id=14]
@@ -175,6 +176,13 @@ autostart = true
 __meta__ = {
 "_editor_description_": "This timer manages how often does player loose their money when paying their staff"
 }
+
+[node name="GoalPanel" parent="." instance=ExtResource( 11 )]
+margin_left = 1312.0
+margin_top = -192.0
+margin_right = 2024.0
+margin_bottom = 896.0
+_goalNodeScenePath = "res://GoalNode.tscn"
 
 [node name="UI" parent="." instance=ExtResource( 12 )]
 scale = Vector2( 0.45, 0.45 )

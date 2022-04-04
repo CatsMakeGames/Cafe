@@ -12,6 +12,8 @@ public class GoalManager : Godot.Object
     private Dictionary<GoalType,List<Goal>> _goals = new Dictionary<GoalType, List<Goal>>();
     private Cafe _cafe;
 
+    public Dictionary<GoalType, List<Goal>> Goals => _goals;
+
     public bool IsCompleted(string name) => _completedGoals.Contains(name);
 
     public GoalManager(Cafe cafe)

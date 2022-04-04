@@ -26,6 +26,8 @@ public class Cafe : Node2D
 	/**<summary>Reference to progress bar used in the loading screen</summary>*/
 	private LoadingScreen _loadingScreen;
 	private GoalManager _goalManager;
+
+	public GoalManager GoalManager => _goalManager;
 	public uint CurrentFurnitureId => _currentFurnitureId;
 	public uint CurrentPersonId => _currentPersonId;
 
@@ -62,6 +64,9 @@ public class Cafe : Node2D
 	public delegate void OnNewTableIsAvailable();
 	[Signal]
 	public delegate void OnOderFinished();
+	/**<summary>Called when cafe finishes _ready function. use this for initialisation that must happen after cafe initialises</summary>*/
+	[Signal]
+	public delegate void OnInitFinished();
 	/**
 	* <summary>How much money player has</summary>
 	*/
@@ -327,6 +332,7 @@ public class Cafe : Node2D
 		_saveManager = new SaveManager();
 		_loadingScreen = GetNode<LoadingScreen>("UI/LoadingScreen");
 		_goalManager = new GoalManager(this);
+		EmitSignal(nameof(OnInitFinished));
 	}
 
 	public void RemoveCustomerFromWaitingList(Customer customer)
